@@ -41,3 +41,12 @@ Route::get('/', function () {
         'products' => $products,
     ]);
 });
+
+foreach ([
+    '/produits' => 'Produits',
+    '/rapports' => 'Rapports',
+    '/clients' => 'Clients',
+    '/parametres' => 'Paramètres',
+] as $path => $title) {
+    Route::get($path, fn () => Inertia::render('Stub', ['title' => $title]));
+}
