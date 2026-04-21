@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(composer require *)",
+      "Bash(php artisan *)",
+      "Bash(npm install *)",
+      "WebSearch",
+      "WebFetch(domain:support.claude.com)"
+    ]
+  }
+}
