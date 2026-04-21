@@ -31,7 +31,7 @@ export default function SalesIndex({ user, caisse, categories, products }) {
                     productId: item.productId,
                     name: product.name,
                     description: product.description,
-                    image: product.image,
+                    category_id: product.category_id,
                     unitPrice: product.price,
                     quantity: item.quantity,
                     subtotal: product.price * item.quantity,

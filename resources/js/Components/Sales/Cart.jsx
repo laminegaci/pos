@@ -1,5 +1,6 @@
 import { CreditCard, Minus, Plus, ShoppingBag, Trash2, X } from 'lucide-react';
 import { formatCurrency } from '../../lib/formatCurrency';
+import ProductImage from './ProductImage';
 
 export default function Cart({ lines, subtotal, remise, total, onIncrement, onDecrement, onRemove, onClear, onCheckout }) {
     const count = lines.reduce((sum, l) => sum + l.quantity, 0);
@@ -36,11 +37,9 @@ export default function Cart({ lines, subtotal, remise, total, onIncrement, onDe
                     <div className="flex flex-col gap-4">
                         {lines.map((line) => (
                             <div key={line.productId} className="flex gap-3">
-                                <img
-                                    src={line.image}
-                                    alt={line.name}
-                                    className="h-14 w-14 shrink-0 rounded-xl object-cover ring-1 ring-slate-200/70"
-                                />
+                                <div className="shrink-0">
+                                    <ProductImage product={line} size="sm" />
+                                </div>
                                 <div className="min-w-0 flex-1">
                                     <div className="flex items-start justify-between gap-2">
                                         <div className="min-w-0">
