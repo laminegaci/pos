@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\ProductController;
+use App\Models\Product;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -14,25 +16,17 @@ Route::get('/', function () {
         ['id' => 'accessoires', 'label' => 'Accessoires'],
     ];
 
-    $products = [
-        ['id' => 'plaque-ba13-standard', 'name' => 'Plaque BA13 Standard', 'description' => '13mm - 2,50m x 1,20m', 'price' => 450, 'category_id' => 'plaques'],
-        ['id' => 'plaque-ba13-hydro', 'name' => 'Plaque BA13 Hydro', 'description' => '13mm - Hydrofuge', 'price' => 520, 'category_id' => 'plaques'],
-        ['id' => 'plaque-ba13-feu', 'name' => 'Plaque BA13 Feu', 'description' => '13mm - Anti-feu', 'price' => 560, 'category_id' => 'plaques'],
-        ['id' => 'montant-m48', 'name' => 'Montant M48', 'description' => '48mm - 3m', 'price' => 180, 'category_id' => 'profiles'],
-        ['id' => 'rail-r48', 'name' => 'Rail R48', 'description' => '48mm - 3m', 'price' => 150, 'category_id' => 'profiles'],
-        ['id' => 'vis-ttpc-25', 'name' => 'Vis TTPC 25mm', 'description' => 'Boîte 100 pcs', 'price' => 350, 'category_id' => 'visserie'],
-        ['id' => 'enduit-jointoyage-pret', 'name' => 'Enduit Jointoyage', 'description' => '25kg - Prêt à l\'emploi', 'price' => 1850, 'category_id' => 'enduits'],
-        ['id' => 'enduit-jointoyage-finition', 'name' => 'Enduit Jointoyage', 'description' => '25kg - Finition', 'price' => 1720, 'category_id' => 'enduits'],
-        ['id' => 'bande-joint', 'name' => 'Bande à Joint', 'description' => '50mm × 30m', 'price' => 320, 'category_id' => 'accessoires'],
-        ['id' => 'cheville-frapper', 'name' => 'Cheville à Frapper', 'description' => '6×40mm - 100 pcs', 'price' => 280, 'category_id' => 'visserie'],
-        ['id' => 'peinture-mat-blanc', 'name' => 'Peinture Mat Blanc', 'description' => '10L - Intérieur', 'price' => 3200, 'category_id' => 'peintures'],
-        ['id' => 'cale-poncer', 'name' => 'Cale à Poncer', 'description' => 'Manuelle - 210×105', 'price' => 150, 'category_id' => 'accessoires'],
-    ];
-
-    $products = array_map(function ($p) {
-        $p['image'] = "https://picsum.photos/seed/{$p['id']}/400/300";
-        return $p;
-    }, $products);
+    $products = Product::where('active', true)->get()->map(function ($p) {
+        return [
+            'id' => $p->id,
+            'name' => $p->name,
+            'description' => $p->description,
+            'price' => (float) $p->price,
+            'category_id' => $p->category_id,
+            'image' => $p->image ?: "https://picsum.photos/seed/{$p->sku}/400/300",
+            'stock' => $p->stock,
+        ];
+    });
 
     return Inertia::render('Sales/Index', [
         'user' => ['name' => 'Yacine Demo', 'role' => 'Caissier', 'initials' => 'YD'],
@@ -42,8 +36,30 @@ Route::get('/', function () {
     ]);
 });
 
+Route::get('/scan', function () {
+    $products = Product::where('active', true)->get()->map(function ($p) {
+        return [
+            'id' => $p->id,
+            'name' => $p->name,
+            'description' => $p->description,
+            'price' => (float) $p->price,
+            'category_id' => $p->category_id,
+            'sku' => $p->sku,
+            'stock' => $p->stock,
+        ];
+    });
+
+    return Inertia::render('Scan/Index', [
+        'products' => $products,
+    ]);
+});
+
+Route::get('/produits', [ProductController::class, 'index'])->name('products.index');
+Route::post('/produits', [ProductController::class, 'store'])->name('products.store');
+Route::put('/produits/{product}', [ProductController::class, 'update'])->name('products.update');
+Route::delete('/produits/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
+
 foreach ([
-    '/produits' => 'Produits',
     '/rapports' => 'Rapports',
     '/clients' => 'Clients',
     '/parametres' => 'Paramètres',
