@@ -11,6 +11,7 @@ import {
     Plus,
     Search,
     Trash2,
+    Upload,
     X,
     XCircle,
 } from 'lucide-react';
@@ -62,6 +63,7 @@ export default function ProductsIndex({ products, categories }) {
     const [viewMode, setViewMode] = useState('table');
     const [errors, setErrors] = useState({});
     const [submitting, setSubmitting] = useState(false);
+    const [uploadingImage, setUploadingImage] = useState(false);
     const [formData, setFormData] = useState(emptyForm());
 
     function emptyForm() {
@@ -143,6 +145,35 @@ export default function ProductsIndex({ products, categories }) {
     const handleDelete = (product) => {
         if (!confirm(`Supprimer « ${product.name} » ?`)) return;
         router.delete(`/produits/${product.id}`, { preserveScroll: true });
+    };
+
+    const handleImageUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        setUploadingImage(true);
+        try {
+            const formDataImg = new FormData();
+            formDataImg.append('image', file);
+            const res = await fetch('/produits/upload-image', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+                },
+                body: formDataImg,
+            });
+            const data = await res.json();
+            if (data.url) {
+                setFormData({ ...formData, image: data.url });
+            }
+        } catch {
+            setErrors({ ...errors, image: 'Erreur upload' });
+        } finally {
+            setUploadingImage(false);
+        }
+    };
+
+    const handleImageRemove = () => {
+        setFormData({ ...formData, image: '' });
     };
 
     return (
@@ -429,14 +460,26 @@ export default function ProductsIndex({ products, categories }) {
                         </div>
                         <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-5 p-6 md:grid-cols-[180px_1fr]">
                             <div className="flex flex-col gap-2">
-                                <div className="text-xs font-medium text-slate-600">Aperçu</div>
-                                <ProductImage
-                                    product={{ id: editingProduct?.id ?? '_preview_', category_id: formData.category_id }}
-                                    size="lg"
-                                />
-                                <div className="text-[11px] text-slate-400">
-                                    Illustration générée automatiquement d'après la catégorie.
-                                </div>
+                                <div className="text-xs font-medium text-slate-600">Image</div>
+                                {formData.image ? (
+                                    <div className="relative overflow-hidden rounded-xl border border-slate-200">
+                                        <img src={formData.image} alt="" className="aspect-video w-full object-cover" />
+                                        <button
+                                            type="button"
+                                            onClick={handleImageRemove}
+                                            className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-white/90 text-slate-600 shadow-md hover:bg-white hover:text-red-600"
+                                        >
+                                            <X size={14} />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <label className="flex aspect-video cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 transition hover:border-indigo-300 hover:bg-indigo-50/50">
+                                        <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" disabled={uploadingImage} />
+                                        <Upload size={20} className="mb-1 text-slate-400" />
+                                        <span className="text-xs text-slate-500">{uploadingImage ? 'Upload...' : 'Télécharger'}</span>
+                                    </label>
+                                )}
+                                {errors.image && <div className="text-xs text-red-600">{errors.image}</div>}
                             </div>
                             <div className="grid grid-cols-1 gap-4">
                                 <Field label="Nom" error={errors.name}>

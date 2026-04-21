@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -68,8 +69,24 @@ class ProductController extends Controller
 
     public function destroy(Product $product): RedirectResponse
     {
+        if ($product->image && str_starts_with($product->image, '/storage/')) {
+            Storage::disk('public')->delete(str_replace('/storage/', '', $product->image));
+        }
         $product->delete();
 
         return redirect()->route('products.index')->with('success', 'Produit supprimé avec succès');
+    }
+
+    public function uploadImage(Request $request): array
+    {
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+        ]);
+
+        $path = $request->file('image')->store('products', 'public');
+
+        return [
+            'url' => '/storage/'.$path,
+        ];
     }
 }
