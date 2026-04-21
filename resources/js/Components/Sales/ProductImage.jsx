@@ -299,14 +299,27 @@ const BG_BY_CATEGORY = {
 };
 
 export default function ProductImage({ product, size = 'md' }) {
+    const hasCustomImage = product.image && (product.image.startsWith('http') || product.image.startsWith('/storage'));
     const Visual = VISUAL_BY_PRODUCT[product.id];
     const bg = BG_BY_CATEGORY[product.category_id] ?? 'from-slate-50 to-slate-100';
 
     const sizes = {
-        sm: 'h-14 w-14 rounded-xl',
-        md: 'h-16 w-16 rounded-xl',
-        lg: 'aspect-[4/3] w-full',
+        sm: 'h-14 w-14 shrink-0 rounded-xl',
+        md: 'h-16 w-16 shrink-0 rounded-xl',
+        lg: 'h-40 w-full shrink-0 rounded-xl',
     };
+
+    if (hasCustomImage) {
+        return (
+            <div className={`overflow-hidden bg-gradient-to-br ${bg} ${sizes[size]}`}>
+                <img
+                    src={product.image}
+                    alt={product.name || ''}
+                    className="h-full w-full object-cover"
+                />
+            </div>
+        );
+    }
 
     return (
         <div className={`relative overflow-hidden bg-gradient-to-br ${bg} ${sizes[size]}`}>
