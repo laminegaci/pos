@@ -1,0 +1,128 @@
+import { Head } from '@inertiajs/react';
+import { useEffect, useMemo, useState } from 'react';
+import PosLayout from '../../Layouts/PosLayout';
+import CategoryTabs from '../../Components/Sales/CategoryTabs';
+import ProductGrid from '../../Components/Sales/ProductGrid';
+import Cart from '../../Components/Sales/Cart';
+import { formatCurrency } from '../../lib/formatCurrency';
+
+export default function SalesIndex({ user, caisse, categories, products }) {
+    const [selectedCategory, setSelectedCategory] = useState('all');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [viewMode, setViewMode] = useState('grid');
+    const [cartItems, setCartItems] = useState([]);
+
+    const productsById = useMemo(() => Object.fromEntries(products.map((p) => [p.id, p])), [products]);
+
+    const filteredProducts = useMemo(() => {
+        const q = searchQuery.trim().toLowerCase();
+        return products.filter((p) => {
+            const matchesCat = selectedCategory === 'all' || p.category_id === selectedCategory;
+            const matchesQuery = !q || p.name.toLowerCase().includes(q) || p.description.toLowerCase().includes(q);
+            return matchesCat && matchesQuery;
+        });
+    }, [products, selectedCategory, searchQuery]);
+
+    const cartLines = useMemo(
+        () =>
+            cartItems.map((item) => {
+                const product = productsById[item.productId];
+                return {
+                    productId: item.productId,
+                    name: product.name,
+                    description: product.description,
+                    image: product.image,
+                    unitPrice: product.price,
+                    quantity: item.quantity,
+                    subtotal: product.price * item.quantity,
+                };
+            }),
+        [cartItems, productsById],
+    );
+
+    const subtotal = useMemo(() => cartLines.reduce((sum, l) => sum + l.subtotal, 0), [cartLines]);
+    const remise = cartLines.length > 0 ? 200 : 0;
+    const total = Math.max(0, subtotal - remise);
+
+    const addToCart = (productId) => {
+        setCartItems((prev) => {
+            const existing = prev.find((i) => i.productId === productId);
+            if (existing) return prev.map((i) => (i.productId === productId ? { ...i, quantity: i.quantity + 1 } : i));
+            return [...prev, { productId, quantity: 1 }];
+        });
+    };
+
+    const incrementItem = (productId) => addToCart(productId);
+
+    const decrementItem = (productId) => {
+        setCartItems((prev) =>
+            prev
+                .map((i) => (i.productId === productId ? { ...i, quantity: i.quantity - 1 } : i))
+                .filter((i) => i.quantity > 0),
+        );
+    };
+
+    const removeItem = (productId) => setCartItems((prev) => prev.filter((i) => i.productId !== productId));
+
+    const clearCart = () => setCartItems([]);
+
+    const handleCheckout = () => {
+        if (cartLines.length === 0) return;
+        alert(`Encaissement : ${formatCurrency(total)}`);
+    };
+
+    useEffect(() => {
+        const onKey = (e) => {
+            if (e.key === 'F9') {
+                e.preventDefault();
+                handleCheckout();
+            }
+        };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    });
+
+    return (
+        <>
+            <Head title="Vente" />
+            <PosLayout user={user} searchQuery={searchQuery} onSearchChange={setSearchQuery}>
+                <div className="flex flex-1 flex-col overflow-hidden px-6 py-5">
+                    <div className="mb-4 flex items-center gap-3">
+                        <h1 className="text-2xl font-bold text-gray-900">Vente</h1>
+                        <span className="text-sm font-medium text-gray-500">Caisse #{caisse.number}</span>
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                            {caisse.status === 'open' ? 'Ouverte' : 'Fermée'}
+                        </span>
+                    </div>
+
+                    <div className="mb-4">
+                        <CategoryTabs
+                            categories={categories}
+                            selected={selectedCategory}
+                            onSelect={setSelectedCategory}
+                            viewMode={viewMode}
+                            onViewModeChange={setViewMode}
+                        />
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto pr-1">
+                        <ProductGrid products={filteredProducts} viewMode={viewMode} onAdd={addToCart} />
+                    </div>
+                </div>
+
+                <Cart
+                    lines={cartLines}
+                    subtotal={subtotal}
+                    remise={remise}
+                    total={total}
+                    onIncrement={incrementItem}
+                    onDecrement={decrementItem}
+                    onRemove={removeItem}
+                    onClear={clearCart}
+                    onCheckout={handleCheckout}
+                />
+            </PosLayout>
+        </>
+    );
+}
