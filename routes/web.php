@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ReportController;
 use App\Models\Product;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -60,10 +62,11 @@ Route::post('/produits/upload-image', [ProductController::class, 'uploadImage'])
 Route::put('/produits/{product}', [ProductController::class, 'update'])->name('products.update');
 Route::delete('/produits/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
 
-foreach ([
-    '/rapports' => 'Rapports',
-    '/clients' => 'Clients',
-    '/parametres' => 'Paramètres',
-] as $path => $title) {
-    Route::get($path, fn () => Inertia::render('Stub', ['title' => $title]));
-}
+Route::get('/clients', [ClientController::class, 'index'])->name('clients.index');
+Route::post('/clients', [ClientController::class, 'store'])->name('clients.store');
+Route::put('/clients/{client}', [ClientController::class, 'update'])->name('clients.update');
+Route::delete('/clients/{client}', [ClientController::class, 'destroy'])->name('clients.destroy');
+
+Route::get('/rapports', [ReportController::class, 'index'])->name('reports.index');
+
+Route::get('/parametres', fn () => Inertia::render('Settings/Index'));
