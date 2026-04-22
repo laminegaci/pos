@@ -28,10 +28,12 @@ export default function SalesIndex({ user, caisse, categories, products }) {
             cartItems.map((item) => {
                 const product = productsById[item.productId];
                 return {
+                    id: product.id,
                     productId: item.productId,
                     name: product.name,
                     description: product.description,
                     category_id: product.category_id,
+                    image: product.image,
                     unitPrice: product.price,
                     quantity: item.quantity,
                     subtotal: product.price * item.quantity,

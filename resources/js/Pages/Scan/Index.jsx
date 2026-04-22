@@ -94,9 +94,12 @@ export default function ScanIndex({ products = [] }) {
             cartItems.map((item) => {
                 const product = products.find((p) => p.id === item.productId);
                 return {
+                    id: product?.id,
                     productId: item.productId,
                     name: product?.name,
                     description: product?.description,
+                    category_id: product?.category_id,
+                    image: product?.image,
                     unitPrice: product?.price || 0,
                     quantity: item.quantity,
                     subtotal: (product?.price || 0) * item.quantity,
