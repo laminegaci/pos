@@ -10,24 +10,24 @@ class ProductSeeder extends Seeder
     public function run(): void
     {
         $products = [
-            ['name' => 'Plaque BA13 Standard', 'description' => '13mm - 2,50m x 1,20m', 'price' => 450, 'category_id' => 'plaques', 'stock' => 100, 'sku' => 'PLA-B13-STD'],
-            ['name' => 'Plaque BA13 Hydro', 'description' => '13mm - Hydrofuge', 'price' => 520, 'category_id' => 'plaques', 'stock' => 80, 'sku' => 'PLA-B13-HYD'],
-            ['name' => 'Plaque BA13 Feu', 'description' => '13mm - Anti-feu', 'price' => 560, 'category_id' => 'plaques', 'stock' => 60, 'sku' => 'PLA-B13-FEU'],
-            ['name' => 'Montant M48', 'description' => '48mm - 3m', 'price' => 180, 'category_id' => 'profiles', 'stock' => 200, 'sku' => 'PRO-M48-3M'],
-            ['name' => 'Rail R48', 'description' => '48mm - 3m', 'price' => 150, 'category_id' => 'profiles', 'stock' => 200, 'sku' => 'PRO-R48-3M'],
-            ['name' => 'Vis TTPC 25mm', 'description' => 'Boîte 100 pcs', 'price' => 350, 'category_id' => 'visserie', 'stock' => 50, 'sku' => 'VIS-TTPC-25'],
-            ['name' => 'Enduit Jointoyage', 'description' => '25kg - Prêt à l\'emploi', 'price' => 1850, 'category_id' => 'enduits', 'stock' => 30, 'sku' => 'END-JOINT-PRET'],
-            ['name' => 'Enduit Jointoyage', 'description' => '25kg - Finition', 'price' => 1720, 'category_id' => 'enduits', 'stock' => 30, 'sku' => 'END-JOINT-FIN'],
-            ['name' => 'Bande à Joint', 'description' => '50mm × 30m', 'price' => 320, 'category_id' => 'accessoires', 'stock' => 100, 'sku' => 'ACC-BANDE-JT'],
-            ['name' => 'Cheville à Frapper', 'description' => '6×40mm - 100 pcs', 'price' => 280, 'category_id' => 'visserie', 'stock' => 80, 'sku' => 'VIS-CHF-640'],
-            ['name' => 'Peinture Mat Blanc', 'description' => '10L - Intérieur', 'price' => 3200, 'category_id' => 'peintures', 'stock' => 20, 'sku' => 'PEINT-MAT-BLC'],
-            ['name' => 'Cale à Poncer', 'description' => 'Manuelle - 210×105', 'price' => 150, 'category_id' => 'accessoires', 'stock' => 50, 'sku' => 'ACC-CALE-PON'],
+            ['name' => 'Bureau simple moderne', 'description' => '13mm - 2,50m x 1,20m', 'price' => 13000, 'category_id' => 'plaques', 'stock' => 100, 'sku' => 'Ak26-1-simple'],
+            ['name' => 'Bureau avec rangement intégré', 'description' => '13mm - Hydrofuge', 'price' => 22000, 'category_id' => 'plaques', 'stock' => 80, 'sku' => 'Ak26-2-avec'],
+            ['name' => 'Bureau en L (angle)', 'description' => '13mm - Anti-feu', 'price' => 25000, 'category_id' => 'plaques', 'stock' => 60, 'sku' => 'Ak26-3-en'],
+            ['name' => 'Bureau exécutif (direction)', 'description' => '48mm - 3m', 'price' => 55000, 'category_id' => 'profiles', 'stock' => 200, 'sku' => 'Ak26-4-exécutif'],
+            ['name' => 'Bureau compact pour petit espace', 'description' => '48mm - 3m', 'price' => 8000, 'category_id' => 'profiles', 'stock' => 200, 'sku' => 'Ak26-5-compact'],
+            ['name' => 'Bureau avec tiroirs', 'description' => 'Boîte 100 pcs', 'price' => 18000, 'category_id' => 'visserie', 'stock' => 50, 'sku' => 'Ak26-6-avec'],
+            ['name' => 'Bureau réglable en hauteur', 'description' => '25kg - Prêt à l\'emploi', 'price' => 13000, 'category_id' => 'enduits', 'stock' => 30, 'sku' => 'Ak26-7-réglable'],
+            ['name' => 'Bureau gaming', 'description' => '25kg - Finition', 'price' => 22000, 'category_id' => 'enduits', 'stock' => 30, 'sku' => 'Ak26-8-gaming'],
+            ['name' => 'Bureau avec bibliothèque', 'description' => '50mm × 30m', 'price' => 30000, 'category_id' => 'accessoires', 'stock' => 100, 'sku' => 'Ak26-9-avec'],
+            ['name' => 'Bureau pliable', 'description' => '6×40mm - 100 pcs', 'price' => 8000, 'category_id' => 'visserie', 'stock' => 80, 'sku' => 'Ak26-10-pliable'],
+            ['name' => 'Bureau industriel', 'description' => '10L - Intérieur', 'price' => 25000, 'category_id' => 'peintures', 'stock' => 20, 'sku' => 'Ak26-11-industriel'],
+            ['name' => 'Bureau double (2 personnes)', 'description' => 'Manuelle - 210×105', 'price' => 45000, 'category_id' => 'accessoires', 'stock' => 50, 'sku' => 'Ak26-12-double'],
         ];
 
-        foreach ($products as $product) {
+        foreach ($products as $index => $product) {
             Product::create([
                 ...$product,
-                'image' => 'https://picsum.photos/seed/'.$product['sku'].'/400/300',
+                'image' => database_path('images/'. ($index + 1) . '.png'),
                 'active' => true,
             ]);
         }
