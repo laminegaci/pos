@@ -290,12 +290,14 @@ const VISUAL_BY_PRODUCT = {
 };
 
 const BG_BY_CATEGORY = {
-    plaques: 'from-slate-100 to-slate-200',
-    profiles: 'from-sky-50 to-slate-100',
-    visserie: 'from-amber-50 to-slate-100',
-    enduits: 'from-stone-50 to-stone-100',
-    peintures: 'from-violet-50 to-pink-100',
-    accessoires: 'from-emerald-50 to-slate-100',
+    bureaux: 'from-indigo-50 to-violet-100',
+    rangement_bureau: 'from-sky-50 to-cyan-100',
+    bureaux_direction: 'from-amber-50 to-orange-100',
+    bureaux_compacts: 'from-emerald-50 to-teal-100',
+    bureaux_ergonomiques: 'from-violet-50 to-purple-100',
+    bureaux_gaming: 'from-fuchsia-50 to-pink-100',
+    mobilier_professionnel: 'from-orange-50 to-red-100',
+    bureaux_partages: 'from-teal-50 to-cyan-100',
 };
 
 export default function ProductImage({ product, size = 'md' }) {

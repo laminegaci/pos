@@ -15,21 +15,25 @@ import PosLayout from '../../Layouts/PosLayout';
 import { formatCurrency } from '../../lib/formatCurrency';
 
 const CATEGORY_LABELS = {
-    plaques: 'Plaques',
-    profiles: 'Profilés',
-    visserie: 'Visserie',
-    enduits: 'Enduits',
-    peintures: 'Peintures',
-    accessoires: 'Accessoires',
+    bureaux: 'Bureaux',
+    rangement_bureau: 'Rangement',
+    bureaux_direction: 'Bureaux Direction',
+    bureaux_compacts: 'Bureaux Compacts',
+    bureaux_ergonomiques: 'Bureaux Ergonomiques',
+    bureaux_gaming: 'Bureaux Gaming',
+    mobilier_professionnel: 'Mobilier Pro',
+    bureaux_partages: 'Bureaux Partagés',
 };
 
 const CATEGORY_COLORS = {
-    plaques: '#6366f1',
-    profiles: '#06b6d4',
-    visserie: '#f59e0b',
-    enduits: '#10b981',
-    peintures: '#ec4899',
-    accessoires: '#8b5cf6',
+    bureaux: '#6366f1',
+    rangement_bureau: '#06b6d4',
+    bureaux_direction: '#f59e0b',
+    bureaux_compacts: '#10b981',
+    bureaux_ergonomiques: '#ec4899',
+    bureaux_gaming: '#8b5cf6',
+    mobilier_professionnel: '#f97316',
+    bureaux_partages: '#14b8a6',
 };
 
 function KpiCard({ icon: Icon, label, value, tone = 'indigo', delta, hint }) {

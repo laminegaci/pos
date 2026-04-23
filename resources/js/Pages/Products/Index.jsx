@@ -71,7 +71,7 @@ export default function ProductsIndex({ products, categories }) {
             name: '',
             description: '',
             price: '',
-            category_id: categories[0]?.id ?? 'plaques',
+            category_id: categories[0]?.id ?? 'bureaux',
             stock: '',
             sku: '',
             image: '',

@@ -10,12 +10,14 @@ use Inertia\Inertia;
 Route::get('/', function () {
     $categories = [
         ['id' => 'all', 'label' => 'Tout'],
-        ['id' => 'plaques', 'label' => 'Plaques'],
-        ['id' => 'profiles', 'label' => 'Profilés'],
-        ['id' => 'visserie', 'label' => 'Visserie'],
-        ['id' => 'enduits', 'label' => 'Enduits'],
-        ['id' => 'peintures', 'label' => 'Peintures'],
-        ['id' => 'accessoires', 'label' => 'Accessoires'],
+        ['id' => 'bureaux', 'label' => 'Bureaux'],
+        ['id' => 'rangement_bureau', 'label' => 'Rangement'],
+        ['id' => 'bureaux_direction', 'label' => 'Bureaux Direction'],
+        ['id' => 'bureaux_compacts', 'label' => 'Bureaux Compacts'],
+        ['id' => 'bureaux_ergonomiques', 'label' => 'Bureaux Ergonomiques'],
+        ['id' => 'bureaux_gaming', 'label' => 'Bureaux Gaming'],
+        ['id' => 'mobilier_professionnel', 'label' => 'Mobilier Pro'],
+        ['id' => 'bureaux_partages', 'label' => 'Bureaux Partagés'],
     ];
 
     $products = Product::where('active', true)->get()->map(function ($p) {
