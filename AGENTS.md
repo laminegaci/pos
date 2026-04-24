@@ -6,7 +6,7 @@ Guidelines for agentic coding agents operating in this repository.
 
 - **Framework**: Laravel 12 (PHP ^8.2) with Inertia.js + React
 - **Database**: SQLite at `database/database.sqlite`
-- **Working Directory**: `C:\laragon\www\pos-placo`
+- **Working Directory**: `C:\laragon\www\pos`
 
 ---
 

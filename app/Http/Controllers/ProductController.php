@@ -24,7 +24,6 @@ class ProductController extends Controller
             ['id' => 'bureaux_ergonomiques', 'label' => 'Bureaux Ergonomiques'],
             ['id' => 'bureaux_gaming', 'label' => 'Bureaux Gaming'],
             ['id' => 'mobilier_professionnel', 'label' => 'Mobilier Pro'],
-            ['id' => 'bureaux_partages', 'label' => 'Bureaux Partagés'],
         ];
 
         return Inertia::render('Products/Index', [

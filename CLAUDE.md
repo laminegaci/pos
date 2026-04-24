@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Laravel 12 skeleton (PHP ^8.2) with Inertia.js + React scaffolding wired up. No domain code has been added yet: `app/Models` contains only the default `User`, `app/Http/Controllers` is empty, and `database/migrations` holds only the default users/cache/jobs tables. Routes currently render a single Inertia `Welcome` page. Treat new work as greenfield on top of this scaffold — there are no POS-specific models, controllers, or pages yet.
 
-Runs under Laragon on Windows (working directory `C:\laragon\www\pos-placo`). Use Unix-style paths with the bash shell.
+Runs under Laragon on Windows (working directory `C:\laragon\www\pos`). Use Unix-style paths with the bash shell.
 
 ## Commands
 

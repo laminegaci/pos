@@ -22,7 +22,6 @@ const CATEGORY_LABELS = {
     bureaux_ergonomiques: 'Bureaux Ergonomiques',
     bureaux_gaming: 'Bureaux Gaming',
     mobilier_professionnel: 'Mobilier Pro',
-    bureaux_partages: 'Bureaux Partagés',
 };
 
 const CATEGORY_COLORS = {
