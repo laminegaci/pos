@@ -1,5 +1,5 @@
-import { Link, usePage } from '@inertiajs/react';
-import { Box, LogOut, ScanLine, BarChart3, Settings, ShoppingBag, Users } from 'lucide-react';
+import { Link, usePage, useForm } from '@inertiajs/react';
+import { Box, LogOut, ScanLine, BarChart3, Settings, ShoppingBag, Users, User } from 'lucide-react';
 
 const navItems = [
     { icon: ShoppingBag, label: 'Ventes', href: '/', badge: true },
@@ -12,6 +12,13 @@ const navItems = [
 
 export default function Sidebar() {
     const { url } = usePage();
+    const { auth } = usePage().props;
+    const { post } = useForm();
+
+    const logout = (e) => {
+        e.preventDefault();
+        post('/logout');
+    };
 
     return (
         <aside className="flex h-screen w-20 flex-col items-center justify-between border-r border-slate-200/70 bg-gradient-to-b from-white via-white to-indigo-50/40 py-4 shadow-[4px_0_24px_-12px_rgba(30,27,75,0.12)]">
@@ -53,16 +60,18 @@ export default function Sidebar() {
             <div className="flex w-full flex-col items-center gap-3">
                 <div className="h-px w-8 bg-slate-200" />
                 <button
+                    type="button"
                     title="Déconnexion"
+                    onClick={logout}
                     className="flex h-11 w-11 items-center justify-center rounded-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
                 >
                     <LogOut size={20} />
                 </button>
-                <img
-                    src="https://picsum.photos/seed/avatar-user/80/80"
-                    alt="Profil"
-                    className="h-9 w-9 rounded-full object-cover ring-2 ring-white shadow-sm"
-                />
+                <Link href="/profile" title="Mon profil">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 text-sm font-semibold text-white shadow-sm">
+                        {auth?.user?.name?.charAt(0).toUpperCase() || 'U'}
+                    </div>
+                </Link>
             </div>
         </aside>
     );
