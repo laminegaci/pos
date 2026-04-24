@@ -23,7 +23,7 @@ const TABS = [
     { id: 'company', label: 'Entreprise', icon: Building2 },
     { id: 'billing', label: 'Facturation', icon: Receipt },
     { id: 'payments', label: 'Paiements', icon: CreditCard },
-    { id: 'printer', label: 'Imprimante', icon: Printer },
+    // { id: 'printer', label: 'Imprimante', icon: Printer },
     { id: 'users', label: 'Utilisateurs', icon: Users },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'appearance', label: 'Apparence', icon: Palette },
@@ -320,7 +320,7 @@ export default function SettingsIndex() {
                             </div>
                         )}
 
-                        {activeTab === 'printer' && (
+                        {/* {activeTab === 'printer' && (
                             <div className="space-y-4">
                                 <SectionCard title="Imprimante ticket" description="Configuration matérielle.">
                                     <div className="grid grid-cols-2 gap-4">
@@ -343,7 +343,7 @@ export default function SettingsIndex() {
                                     </button>
                                 </SectionCard>
                             </div>
-                        )}
+                        )} */}
 
                         {activeTab === 'users' && (
                             <div className="space-y-4">
