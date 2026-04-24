@@ -1,5 +1,5 @@
 import { Link, usePage, useForm } from '@inertiajs/react';
-import { Box, LogOut, ScanLine, BarChart3, Settings, ShoppingBag, Users, User } from 'lucide-react';
+import { Box, LogOut, Receipt, ScanLine, BarChart3, Settings, ShoppingBag, Users } from 'lucide-react';
 
 const navItems = [
     { icon: ShoppingBag, label: 'Ventes', href: '/', badge: true },
@@ -7,6 +7,7 @@ const navItems = [
     { icon: ScanLine, label: 'Scan', href: '/scan' },
     { icon: BarChart3, label: 'Rapports', href: '/rapports' },
     { icon: Users, label: 'Clients', href: '/clients' },
+    { icon: Receipt, label: 'Historique', href: '/ventes' },
     { icon: Settings, label: 'Paramètres', href: '/parametres' },
 ];
 

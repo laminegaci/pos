@@ -4,6 +4,7 @@ use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\SaleController;
 use App\Http\Controllers\UserController;
 use App\Models\Product;
 use Illuminate\Support\Facades\Route;
@@ -71,6 +72,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/clients/{client}', [ClientController::class, 'destroy'])->name('clients.destroy');
 
     Route::get('/rapports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('/ventes', [SaleController::class, 'index'])->name('sales.index');
+    Route::get('/ventes/{sale}', [SaleController::class, 'show'])->name('sales.show');
 
     Route::get('/parametres', [UserController::class, 'settings'])->name('settings.index');
 
