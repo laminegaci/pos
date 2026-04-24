@@ -156,16 +156,7 @@ protected function casts(): array
 - Use PHPUnit assertions
 
 ```php
-public function test_user_can_be_created(): void
-{
-    $response = $this->post('/users', [
-        'name' => 'Test User',
-        'email' => 'test@example.com',
-    ]);
 
-    $response->assertStatus(302);
-    $this->assertDatabaseHas('users', ['email' => 'test@example.com']);
-}
 ```
 
 ### Architecture

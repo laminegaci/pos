@@ -4,10 +4,10 @@ use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\UserController;
 use App\Models\Product;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/', function () {
@@ -35,7 +35,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });
 
         return Inertia::render('Sales/Index', [
-            'user' => ['name' => 'Yacine Demo', 'role' => 'Caissier', 'initials' => 'YD'],
             'caisse' => ['number' => '01', 'status' => 'open'],
             'categories' => $categories,
             'products' => $products,
@@ -73,7 +72,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/rapports', [ReportController::class, 'index'])->name('reports.index');
 
-    Route::get('/parametres', fn () => Inertia::render('Settings/Index'));
+    Route::get('/parametres', [UserController::class, 'settings'])->name('settings.index');
 
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
     Route::get('/profile/password', [ProfileController::class, 'password'])->name('profile.password');

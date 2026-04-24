@@ -24,7 +24,7 @@ export default function ChangePassword({ user }) {
     };
 
     return (
-        <PosLayout user={user}>
+        <PosLayout>
             <div className="flex-1 overflow-auto p-8">
                 <div className="max-w-2xl mx-auto">
                     <h1 className="text-2xl font-bold text-slate-900 mb-8">Changer mon mot de passe</h1>

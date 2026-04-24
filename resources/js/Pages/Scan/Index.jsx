@@ -116,7 +116,7 @@ export default function ScanIndex({ products = [] }) {
     return (
         <>
             <Head title="Scan" />
-            <PosLayout user={{ name: 'Yacine Demo', role: 'Caissier', initials: 'YD' }}>
+            <PosLayout>
                 <div className="flex flex-1 flex-col overflow-hidden px-8 py-6">
                     <div className="mb-6">
                         <h1 className="text-2xl font-bold tracking-tight text-slate-900">Scan</h1>

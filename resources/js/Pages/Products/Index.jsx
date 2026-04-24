@@ -179,7 +179,7 @@ export default function ProductsIndex({ products, categories }) {
     return (
         <>
             <Head title="Produits" />
-            <PosLayout user={{ name: 'Yacine Demo', role: 'Caissier', initials: 'YD' }}>
+            <PosLayout>
                 <div className="flex flex-1 flex-col overflow-hidden px-8 py-6">
                     {/* Header */}
                     <div className="mb-5 flex items-start justify-between gap-4">

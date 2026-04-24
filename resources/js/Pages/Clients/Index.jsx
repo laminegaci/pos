@@ -161,7 +161,7 @@ export default function ClientsIndex({ clients }) {
     }
 
     return (
-        <PosLayout user={{ name: 'Yacine Demo', role: 'Caissier', initials: 'YD' }}>
+        <PosLayout>
             <Head title="Clients" />
             <div className="flex flex-1 flex-col overflow-hidden p-6">
                 <div className="mb-6 flex items-center justify-between">

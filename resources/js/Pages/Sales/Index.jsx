@@ -6,7 +6,7 @@ import ProductGrid from '../../Components/Sales/ProductGrid';
 import Cart from '../../Components/Sales/Cart';
 import { formatCurrency } from '../../lib/formatCurrency';
 
-export default function SalesIndex({ user, caisse, categories, products }) {
+export default function SalesIndex({ caisse, categories, products }) {
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [viewMode, setViewMode] = useState('grid');
@@ -87,7 +87,7 @@ export default function SalesIndex({ user, caisse, categories, products }) {
     return (
         <>
             <Head title="Vente" />
-            <PosLayout user={user} searchQuery={searchQuery} onSearchChange={setSearchQuery}>
+            <PosLayout searchQuery={searchQuery} onSearchChange={setSearchQuery}>
                 <div className="flex flex-1 flex-col overflow-hidden px-8 py-6">
                     <div className="mb-5 flex items-center gap-3">
                         <h1 className="text-2xl font-bold tracking-tight text-slate-900">Vente</h1>

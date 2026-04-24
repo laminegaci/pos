@@ -97,7 +97,7 @@ function SectionCard({ title, description, children }) {
     );
 }
 
-export default function SettingsIndex() {
+export default function SettingsIndex({ users = [] }) {
     const [activeTab, setActiveTab] = useState('general');
     const [saved, setSaved] = useState(false);
     const [settings, setSettings] = useState({
@@ -143,7 +143,7 @@ export default function SettingsIndex() {
     }
 
     return (
-        <PosLayout user={{ name: 'Yacine Demo', role: 'Caissier', initials: 'YD' }}>
+        <PosLayout>
             <Head title="Paramètres" />
             <div className="flex flex-1 overflow-hidden">
                 <aside className="w-64 flex-shrink-0 overflow-y-auto border-r border-slate-200/60 bg-white/60 p-4">
@@ -349,10 +349,7 @@ export default function SettingsIndex() {
                             <div className="space-y-4">
                                 <SectionCard title="Utilisateurs" description="Comptes autorisés à utiliser le POS.">
                                     <div className="space-y-2">
-                                        {[
-                                            { name: 'Yacine Demo', role: 'Caissier', email: 'yacine@demo.local' },
-                                            { name: 'Admin', role: 'Administrateur', email: 'admin@demo.local' },
-                                        ].map((u) => (
+                                        {users.map((u) => (
                                             <div key={u.email} className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3">
                                                 <div className="flex items-center gap-3">
                                                     <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 text-xs font-bold text-white">
