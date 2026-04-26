@@ -14,16 +14,16 @@ export default function Sidebar() {
     const { url } = usePage();
 
     return (
-        <aside className="flex h-screen w-20 flex-col items-center justify-between border-r border-slate-200/70 bg-gradient-to-b from-white via-white to-indigo-50/40 py-4 shadow-[4px_0_24px_-12px_rgba(30,27,75,0.12)]">
+        <aside className="flex h-screen w-28 flex-col items-center justify-between border-r border-slate-200/70 bg-gradient-to-b from-gray-100 via-violet-200 to-gray-100 py-4 shadow-[4px_0_24px_-12px_rgba(30,27,75,0.12)]">
             {/* Traffic lights */}
-            <div className="flex w-full items-center justify-start gap-1.5 pl-4">
+            <div className="flex w-full items-center justify-start gap-1.5 pl-8">
                 <span className="h-3 w-3 rounded-full bg-[#ff5f57] shadow-inner" />
                 <span className="h-3 w-3 rounded-full bg-[#febc2e] shadow-inner" />
                 <span className="h-3 w-3 rounded-full bg-[#28c840] shadow-inner" />
             </div>
 
             {/* Primary nav */}
-            <div className="flex flex-1 flex-col items-center justify-center gap-2">
+            <div className="flex flex-1 flex-col items-center justify-center gap-3">
                 {navItems.map(({ icon: Icon, label, href, badge }) => {
                     const active = url === href || (href === '/' && url === '/');
                     return (
