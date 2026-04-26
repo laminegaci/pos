@@ -1,16 +1,25 @@
-import { Head } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { useEffect, useMemo, useState } from 'react';
 import PosLayout from '../../Layouts/PosLayout';
 import CategoryTabs from '../../Components/Sales/CategoryTabs';
 import ProductGrid from '../../Components/Sales/ProductGrid';
 import Cart from '../../Components/Sales/Cart';
+import Toast from '../../Components/Toast';
 import { formatCurrency } from '../../lib/formatCurrency';
 
 export default function SalesIndex({ caisse, categories, products }) {
+    const { flash } = usePage().props;
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [viewMode, setViewMode] = useState('grid');
     const [cartItems, setCartItems] = useState([]);
+    const [submitting, setSubmitting] = useState(false);
+    const [toast, setToast] = useState(null);
+
+    useEffect(() => {
+        if (flash?.success) setToast({ message: flash.success, type: 'success' });
+        else if (flash?.error) setToast({ message: flash.error, type: 'error' });
+    }, [flash?.success, flash?.error]);
 
     const productsById = useMemo(() => Object.fromEntries(products.map((p) => [p.id, p])), [products]);
 
@@ -69,8 +78,25 @@ export default function SalesIndex({ caisse, categories, products }) {
     const clearCart = () => setCartItems([]);
 
     const handleCheckout = () => {
-        if (cartLines.length === 0) return;
-        alert(`Encaissement : ${formatCurrency(total)}`);
+        if (cartLines.length === 0 || submitting) return;
+        setSubmitting(true);
+        router.post(
+            '/ventes',
+            {
+                remise,
+                items: cartItems.map((i) => ({ product_id: i.productId, quantity: i.quantity })),
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    clearCart();
+                },
+                onError: () => {
+                    setToast({ message: "Échec de l'encaissement. Veuillez réessayer.", type: 'error' });
+                },
+                onFinish: () => setSubmitting(false),
+            },
+        );
     };
 
     useEffect(() => {
@@ -87,6 +113,11 @@ export default function SalesIndex({ caisse, categories, products }) {
     return (
         <>
             <Head title="Vente" />
+            <Toast
+                message={toast?.message}
+                type={toast?.type}
+                onClose={() => setToast(null)}
+            />
             <PosLayout searchQuery={searchQuery} onSearchChange={setSearchQuery}>
                 <div className="flex flex-1 flex-col overflow-hidden px-8 py-6">
                     <div className="mb-5 flex items-center gap-3">

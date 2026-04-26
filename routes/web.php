@@ -73,6 +73,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/rapports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('/ventes', [SaleController::class, 'index'])->name('sales.index');
+    Route::post('/ventes', [SaleController::class, 'store'])->name('sales.store');
     Route::get('/ventes/{sale}', [SaleController::class, 'show'])->name('sales.show');
 
     Route::get('/parametres', [UserController::class, 'settings'])->name('settings.index');
