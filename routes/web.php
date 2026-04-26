@@ -6,6 +6,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\UserController;
+use App\Models\Client;
 use App\Models\Product;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -35,10 +36,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ];
         });
 
+        $clients = Client::where('active', true)
+            ->orderBy('name')
+            ->get(['id', 'name', 'phone'])
+            ->map(fn ($c) => [
+                'id' => $c->id,
+                'name' => $c->name,
+                'phone' => $c->phone,
+            ]);
+
         return Inertia::render('Sales/Index', [
             'caisse' => ['number' => '01', 'status' => 'open'],
             'categories' => $categories,
             'products' => $products,
+            'clients' => $clients,
         ]);
     });
 
@@ -73,6 +84,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/rapports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('/ventes', [SaleController::class, 'index'])->name('sales.index');
+    Route::post('/ventes', [SaleController::class, 'store'])->name('sales.store');
     Route::get('/ventes/{sale}', [SaleController::class, 'show'])->name('sales.show');
 
     Route::get('/parametres', [UserController::class, 'settings'])->name('settings.index');

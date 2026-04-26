@@ -110,7 +110,7 @@ export default function ScanIndex({ products = [] }) {
     );
 
     const subtotal = cartProducts.reduce((sum, l) => sum + l.subtotal, 0);
-    const remise = cartProducts.length > 0 ? 200 : 0;
+    const remise = cartProducts.length > 0 ? 0 : 0;
     const total = Math.max(0, subtotal - remise);
 
     return (

@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Models\Product;
 use App\Models\Sale;
 use App\Models\SaleItem;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -47,6 +50,57 @@ class SaleController extends Controller
         return Inertia::render('Sales/List', [
             'sales' => $sales,
         ]);
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'client_id' => ['nullable', 'integer', 'exists:clients,id'],
+            'remise' => ['nullable', 'numeric', 'min:0'],
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.product_id' => ['required', 'integer', 'exists:products,id'],
+            'items.*.quantity' => ['required', 'integer', 'min:1'],
+        ]);
+
+        $sale = DB::transaction(function () use ($data, $request) {
+            $productIds = collect($data['items'])->pluck('product_id')->all();
+            $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
+
+            $subtotal = 0;
+            $lines = [];
+            foreach ($data['items'] as $item) {
+                $product = $products[$item['product_id']];
+                $unitPrice = (float) $product->price;
+                $lineTotal = $unitPrice * $item['quantity'];
+                $subtotal += $lineTotal;
+                $lines[] = [
+                    'product_id' => $product->id,
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $unitPrice,
+                    'line_total' => $lineTotal,
+                ];
+            }
+
+            $remise = (float) ($data['remise'] ?? 0);
+            $total = max(0, $subtotal - $remise);
+
+            $sale = Sale::create([
+                'user_id' => $request->user()->id,
+                'client_id' => $data['client_id'] ?? null,
+                'subtotal' => $subtotal,
+                'remise' => $remise,
+                'total' => $total,
+                'status' => 'completed',
+            ]);
+
+            foreach ($lines as $line) {
+                SaleItem::create([...$line, 'sale_id' => $sale->id]);
+            }
+
+            return $sale;
+        });
+
+        return redirect('/')->with('success', "Vente #{$sale->id} enregistrée avec succès.");
     }
 
     public function show(int $id): Response
