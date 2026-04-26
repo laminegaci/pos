@@ -53,7 +53,7 @@ export default function SalesIndex({ caisse, categories, products, clients = [] 
     );
 
     const subtotal = useMemo(() => cartLines.reduce((sum, l) => sum + l.subtotal, 0), [cartLines]);
-    const remise = cartLines.length > 0 ? 200 : 0;
+    const remise = cartLines.length > 0 ? 0 : 0;
     const total = Math.max(0, subtotal - remise);
 
     const addToCart = (productId) => {
