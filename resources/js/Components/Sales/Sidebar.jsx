@@ -22,7 +22,7 @@ export default function Sidebar() {
     };
 
     return (
-        <aside className="flex h-screen w-28 flex-col items-center justify-between border-r border-slate-200/70 bg-gradient-to-b from-gray-100 via-violet-200 to-gray-100 py-4 shadow-[4px_0_24px_-12px_rgba(30,27,75,0.12)]">
+        <aside className="flex h-screen w-28 flex-col items-center justify-between border-r border-slate-200/70 bg-gradient-to-b from-gray-100 via-violet-200 to-gray-100 py-30 shadow-[4px_0_24px_-12px_rgba(30,27,75,0.12)]">
             {/* Traffic lights */}
             <div className="flex w-full items-center justify-start gap-1.5 pl-8">
                 <span className="h-3 w-3 rounded-full bg-[#ff5f57] shadow-inner" />
@@ -31,7 +31,7 @@ export default function Sidebar() {
             </div>
 
             {/* Primary nav */}
-            <div className="flex flex-1 flex-col items-center justify-center gap-3">
+            <div className="flex flex-1 flex-col items-center justify-center gap-3 bg-neutral-50/40 rounded-lg p-3 shadow-xl">
                 {navItems.map(({ icon: Icon, label, href, badge }) => {
                     const active = url === href || (href === '/' && url === '/');
                     return (
