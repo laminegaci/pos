@@ -7,12 +7,13 @@ import Cart from '../../Components/Sales/Cart';
 import Toast from '../../Components/Toast';
 import { formatCurrency } from '../../lib/formatCurrency';
 
-export default function SalesIndex({ caisse, categories, products }) {
+export default function SalesIndex({ caisse, categories, products, clients = [] }) {
     const { flash } = usePage().props;
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [viewMode, setViewMode] = useState('grid');
     const [cartItems, setCartItems] = useState([]);
+    const [selectedClientId, setSelectedClientId] = useState(null);
     const [submitting, setSubmitting] = useState(false);
     const [toast, setToast] = useState(null);
 
@@ -75,7 +76,10 @@ export default function SalesIndex({ caisse, categories, products }) {
 
     const removeItem = (productId) => setCartItems((prev) => prev.filter((i) => i.productId !== productId));
 
-    const clearCart = () => setCartItems([]);
+    const clearCart = () => {
+        setCartItems([]);
+        setSelectedClientId(null);
+    };
 
     const handleCheckout = () => {
         if (cartLines.length === 0 || submitting) return;
@@ -83,6 +87,7 @@ export default function SalesIndex({ caisse, categories, products }) {
         router.post(
             '/ventes',
             {
+                client_id: selectedClientId,
                 remise,
                 items: cartItems.map((i) => ({ product_id: i.productId, quantity: i.quantity })),
             },
@@ -149,6 +154,9 @@ export default function SalesIndex({ caisse, categories, products }) {
                     subtotal={subtotal}
                     remise={remise}
                     total={total}
+                    clients={clients}
+                    selectedClientId={selectedClientId}
+                    onClientChange={setSelectedClientId}
                     onIncrement={incrementItem}
                     onDecrement={decrementItem}
                     onRemove={removeItem}
