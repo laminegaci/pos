@@ -21,6 +21,7 @@ export default function SalesList({ sales }) {
                     </div>
                     <div className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
                         <button
+                            onClick={() => window.location.href = '/ventes/export'}
                             className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition hover:text-slate-900"
                             title="Exporter"
                         >

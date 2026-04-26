@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Exports\ClientExport;
 use App\Models\Client;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ClientController extends Controller
 {
@@ -79,5 +81,10 @@ class ClientController extends Controller
         $client->delete();
 
         return redirect()->route('clients.index')->with('success', 'Client supprimé.');
+    }
+
+    public function export()
+    {
+        return Excel::download(new ClientExport, 'clients-'.now()->format('Y-m-d').'.xlsx');
     }
 }

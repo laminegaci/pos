@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Exports\ProductExport;
 use App\Models\Product;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ProductController extends Controller
 {
@@ -89,5 +91,10 @@ class ProductController extends Controller
         return [
             'url' => '/storage/'.$path,
         ];
+    }
+
+    public function export()
+    {
+        return Excel::download(new ProductExport, 'produits-'.now()->format('Y-m-d').'.xlsx');
     }
 }

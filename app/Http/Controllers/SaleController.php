@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Exports\SaleExport;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Models\SaleItem;
@@ -12,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
+use Maatwebsite\Excel\Facades\Excel;
 
 class SaleController extends Controller
 {
@@ -103,7 +105,7 @@ class SaleController extends Controller
         return redirect('/')->with('success', "Vente #{$sale->id} enregistrée avec succès.");
     }
 
-    public function show(int $id): Response
+    public function show(string $id): Response
     {
         $sale = Sale::with(['client:id,name,email,phone', 'user:id,name'])
             ->where('status', 'completed')
@@ -144,5 +146,10 @@ class SaleController extends Controller
             ],
             'items' => $items,
         ]);
+    }
+
+    public function export()
+    {
+        return Excel::download(new SaleExport, 'ventes-'.now()->format('Y-m-d').'.xlsx');
     }
 }

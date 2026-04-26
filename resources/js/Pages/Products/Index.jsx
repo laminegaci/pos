@@ -268,6 +268,7 @@ export default function ProductsIndex({ products, categories }) {
                                 </button>
                                 <div className="h-4 w-px bg-slate-200" />
                                 <button
+                                    onClick={() => window.location.href = '/produits/export'}
                                     className="flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition hover:text-slate-900"
                                     title="Exporter"
                                 >

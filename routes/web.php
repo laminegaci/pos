@@ -76,13 +76,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/produits/upload-image', [ProductController::class, 'uploadImage'])->name('products.uploadImage');
     Route::put('/produits/{product}', [ProductController::class, 'update'])->name('products.update');
     Route::delete('/produits/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
+    Route::get('/produits/export', [ProductController::class, 'export'])->name('products.export');
 
     Route::get('/clients', [ClientController::class, 'index'])->name('clients.index');
     Route::post('/clients', [ClientController::class, 'store'])->name('clients.store');
     Route::put('/clients/{client}', [ClientController::class, 'update'])->name('clients.update');
     Route::delete('/clients/{client}', [ClientController::class, 'destroy'])->name('clients.destroy');
+    Route::get('/clients/export', [ClientController::class, 'export'])->name('clients.export');
 
     Route::get('/rapports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('/ventes/export', [SaleController::class, 'export'])->name('sales.export');
     Route::get('/ventes', [SaleController::class, 'index'])->name('sales.index');
     Route::post('/ventes', [SaleController::class, 'store'])->name('sales.store');
     Route::get('/ventes/{sale}', [SaleController::class, 'show'])->name('sales.show');
