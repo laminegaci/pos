@@ -2,6 +2,7 @@ import { Head, router } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
 import {
     Building2,
+    Download,
     Mail,
     MapPin,
     Pencil,
@@ -9,6 +10,7 @@ import {
     Plus,
     Search,
     Trash2,
+    Upload,
     User,
     Users,
     Wallet,
@@ -212,6 +214,21 @@ export default function ClientsIndex({ clients }) {
                                 {t.label}
                             </button>
                         ))}
+                    </div>
+                    <div className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
+                        <button
+                            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition hover:text-slate-900"
+                            title="Exporter"
+                        >
+                            <Download size={15} />
+                        </button>
+                        <label
+                            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-slate-500 transition hover:text-slate-900"
+                            title="Importer"
+                        >
+                            <Upload size={15} />
+                            <input type="file" accept=".csv,.xlsx,.xls" className="hidden" />
+                        </label>
                     </div>
                 </div>
 

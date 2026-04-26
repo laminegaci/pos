@@ -1,6 +1,6 @@
 import { Head } from '@inertiajs/react';
 import { useState } from 'react';
-import { Eye, X } from 'lucide-react';
+import { Download, Eye, Upload, X } from 'lucide-react';
 import PosLayout from '../../Layouts/PosLayout';
 
 export default function SalesList({ sales }) {
@@ -18,6 +18,21 @@ export default function SalesList({ sales }) {
                     <div>
                         <h1 className="text-xl font-bold text-slate-900">Historique des ventes</h1>
                         <p className="text-sm text-slate-500">{sales.total} vente(s)</p>
+                    </div>
+                    <div className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
+                        <button
+                            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition hover:text-slate-900"
+                            title="Exporter"
+                        >
+                            <Download size={15} />
+                        </button>
+                        <label
+                            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-slate-500 transition hover:text-slate-900"
+                            title="Importer"
+                        >
+                            <Upload size={15} />
+                            <input type="file" accept=".csv,.xlsx,.xls" className="hidden" />
+                        </label>
                     </div>
                 </div>
 

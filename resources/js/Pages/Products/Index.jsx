@@ -4,6 +4,7 @@ import {
     AlertTriangle,
     Box,
     CheckCircle2,
+    Download,
     Layers,
     LayoutGrid,
     List,
@@ -265,6 +266,20 @@ export default function ProductsIndex({ products, categories }) {
                                 >
                                     <LayoutGrid size={15} />
                                 </button>
+                                <div className="h-4 w-px bg-slate-200" />
+                                <button
+                                    className="flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition hover:text-slate-900"
+                                    title="Exporter"
+                                >
+                                    <Download size={15} />
+                                </button>
+                                <label
+                                    className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-slate-500 transition hover:text-slate-900"
+                                    title="Importer"
+                                >
+                                    <Upload size={15} />
+                                    <input type="file" accept=".csv,.xlsx,.xls" className="hidden" />
+                                </label>
                             </div>
                         </div>
                     </div>
