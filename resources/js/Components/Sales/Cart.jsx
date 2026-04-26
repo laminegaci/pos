@@ -1,8 +1,22 @@
 import { CreditCard, Minus, Plus, ShoppingBag, Trash2, X } from 'lucide-react';
 import { formatCurrency } from '../../lib/formatCurrency';
+import ClientSelector from './ClientSelector';
 import ProductImage from './ProductImage';
 
-export default function Cart({ lines, subtotal, remise, total, onIncrement, onDecrement, onRemove, onClear, onCheckout }) {
+export default function Cart({
+    lines,
+    subtotal,
+    remise,
+    total,
+    clients = [],
+    selectedClientId = null,
+    onClientChange,
+    onIncrement,
+    onDecrement,
+    onRemove,
+    onClear,
+    onCheckout,
+}) {
     const count = lines.reduce((sum, l) => sum + l.quantity, 0);
 
     return (
@@ -22,6 +36,10 @@ export default function Cart({ lines, subtotal, remise, total, onIncrement, onDe
                 >
                     <Trash2 size={15} />
                 </button>
+            </div>
+
+            <div className="border-b border-slate-100 px-5 py-3">
+                <ClientSelector clients={clients} value={selectedClientId} onChange={onClientChange} />
             </div>
 
             <div className="flex-1 overflow-y-auto px-5 py-4">

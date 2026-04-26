@@ -1,5 +1,5 @@
-import { Link, usePage } from '@inertiajs/react';
-import { Box, LogOut, ScanLine, BarChart3, Settings, ShoppingBag, Users } from 'lucide-react';
+import { Link, usePage, useForm } from '@inertiajs/react';
+import { Box, LogOut, Receipt, ScanLine, BarChart3, Settings, ShoppingBag, Users } from 'lucide-react';
 
 const navItems = [
     { icon: ShoppingBag, label: 'Ventes', href: '/', badge: true },
@@ -7,23 +7,31 @@ const navItems = [
     { icon: ScanLine, label: 'Scan', href: '/scan' },
     { icon: BarChart3, label: 'Rapports', href: '/rapports' },
     { icon: Users, label: 'Clients', href: '/clients' },
+    { icon: Receipt, label: 'Historique', href: '/ventes' },
     { icon: Settings, label: 'Paramètres', href: '/parametres' },
 ];
 
 export default function Sidebar() {
     const { url } = usePage();
+    const { auth } = usePage().props;
+    const { post } = useForm();
+
+    const logout = (e) => {
+        e.preventDefault();
+        post('/logout');
+    };
 
     return (
-        <aside className="flex h-screen w-20 flex-col items-center justify-between border-r border-slate-200/70 bg-gradient-to-b from-white via-white to-indigo-50/40 py-4 shadow-[4px_0_24px_-12px_rgba(30,27,75,0.12)]">
+        <aside className="flex h-screen w-28 flex-col items-center justify-between border-r border-slate-200/70 bg-gradient-to-b from-gray-100 via-violet-200 to-gray-100 py-30 shadow-[4px_0_24px_-12px_rgba(30,27,75,0.12)]">
             {/* Traffic lights */}
-            <div className="flex w-full items-center justify-start gap-1.5 pl-4">
+            <div className="flex w-full items-center justify-start gap-1.5 pl-8">
                 <span className="h-3 w-3 rounded-full bg-[#ff5f57] shadow-inner" />
                 <span className="h-3 w-3 rounded-full bg-[#febc2e] shadow-inner" />
                 <span className="h-3 w-3 rounded-full bg-[#28c840] shadow-inner" />
             </div>
 
             {/* Primary nav */}
-            <div className="flex flex-1 flex-col items-center justify-center gap-2">
+            <div className="flex flex-1 flex-col items-center justify-center gap-3 bg-neutral-50/40 rounded-lg p-3 shadow-xl">
                 {navItems.map(({ icon: Icon, label, href, badge }) => {
                     const active = url === href || (href === '/' && url === '/');
                     return (
@@ -53,16 +61,18 @@ export default function Sidebar() {
             <div className="flex w-full flex-col items-center gap-3">
                 <div className="h-px w-8 bg-slate-200" />
                 <button
+                    type="button"
                     title="Déconnexion"
+                    onClick={logout}
                     className="flex h-11 w-11 items-center justify-center rounded-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
                 >
                     <LogOut size={20} />
                 </button>
-                <img
-                    src="https://picsum.photos/seed/avatar-user/80/80"
-                    alt="Profil"
-                    className="h-9 w-9 rounded-full object-cover ring-2 ring-white shadow-sm"
-                />
+                <Link href="/profile" title="Mon profil">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 text-sm font-semibold text-white shadow-sm">
+                        {auth?.user?.name?.charAt(0).toUpperCase() || 'U'}
+                    </div>
+                </Link>
             </div>
         </aside>
     );

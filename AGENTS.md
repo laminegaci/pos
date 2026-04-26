@@ -6,7 +6,7 @@ Guidelines for agentic coding agents operating in this repository.
 
 - **Framework**: Laravel 12 (PHP ^8.2) with Inertia.js + React
 - **Database**: SQLite at `database/database.sqlite`
-- **Working Directory**: `C:\laragon\www\pos-placo`
+- **Working Directory**: `C:\laragon\www\pos`
 
 ---
 
@@ -156,16 +156,7 @@ protected function casts(): array
 - Use PHPUnit assertions
 
 ```php
-public function test_user_can_be_created(): void
-{
-    $response = $this->post('/users', [
-        'name' => 'Test User',
-        'email' => 'test@example.com',
-    ]);
 
-    $response->assertStatus(302);
-    $this->assertDatabaseHas('users', ['email' => 'test@example.com']);
-}
 ```
 
 ### Architecture

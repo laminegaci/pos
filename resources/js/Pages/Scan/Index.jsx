@@ -13,7 +13,6 @@ const CATEGORIES = [
     { id: 'bureaux_ergonomiques', label: 'Bureaux Ergonomiques' },
     { id: 'bureaux_gaming', label: 'Bureaux Gaming' },
     { id: 'mobilier_professionnel', label: 'Mobilier Pro' },
-    { id: 'bureaux_partages', label: 'Bureaux Partagés' },
 ];
 
 export default function ScanIndex({ products = [] }) {
@@ -111,13 +110,13 @@ export default function ScanIndex({ products = [] }) {
     );
 
     const subtotal = cartProducts.reduce((sum, l) => sum + l.subtotal, 0);
-    const remise = cartProducts.length > 0 ? 200 : 0;
+    const remise = cartProducts.length > 0 ? 0 : 0;
     const total = Math.max(0, subtotal - remise);
 
     return (
         <>
             <Head title="Scan" />
-            <PosLayout user={{ name: 'Yacine Demo', role: 'Caissier', initials: 'YD' }}>
+            <PosLayout>
                 <div className="flex flex-1 flex-col overflow-hidden px-8 py-6">
                     <div className="mb-6">
                         <h1 className="text-2xl font-bold tracking-tight text-slate-900">Scan</h1>

@@ -1,6 +1,10 @@
+import { Link, usePage } from '@inertiajs/react';
 import { Bell, Search } from 'lucide-react';
 
-export default function Topbar({ user, searchQuery, onSearchChange }) {
+export default function Topbar({ searchQuery, onSearchChange }) {
+    const { auth } = usePage().props;
+    const user = auth?.user;
+
     return (
         <header className="flex h-16 items-center gap-4 border-b border-slate-200/70 bg-white/80 px-6 backdrop-blur-xl">
             <div className="flex flex-1 justify-center">
@@ -26,15 +30,15 @@ export default function Topbar({ user, searchQuery, onSearchChange }) {
                     </span>
                 </button>
                 <div className="h-8 w-px bg-slate-200" />
-                <div className="flex items-center gap-3">
+                <Link href="/profile" className="flex items-center gap-3 hover:opacity-80">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 text-sm font-semibold text-white shadow-sm">
-                        {user.initials}
+                        {user?.name?.charAt(0).toUpperCase() || 'U'}
                     </div>
                     <div className="text-sm leading-tight">
-                        <div className="font-semibold text-slate-900">{user.name}</div>
-                        <div className="text-xs text-slate-500">{user.role}</div>
+                        <div className="font-semibold text-slate-900">{user?.name || 'Utilisateur'}</div>
+                        <div className="text-xs text-slate-500">Caissier</div>
                     </div>
-                </div>
+                </Link>
             </div>
         </header>
     );

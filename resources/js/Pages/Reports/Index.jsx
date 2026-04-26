@@ -22,7 +22,6 @@ const CATEGORY_LABELS = {
     bureaux_ergonomiques: 'Bureaux Ergonomiques',
     bureaux_gaming: 'Bureaux Gaming',
     mobilier_professionnel: 'Mobilier Pro',
-    bureaux_partages: 'Bureaux Partagés',
 };
 
 const CATEGORY_COLORS = {
@@ -195,7 +194,7 @@ export default function ReportsIndex({ kpis, daily, topProducts, byCategory, top
     const topProductMax = useMemo(() => Math.max(1, ...topProducts.map((p) => p.revenue)), [topProducts]);
 
     return (
-        <PosLayout user={{ name: 'Yacine Demo', role: 'Caissier', initials: 'YD' }}>
+        <PosLayout>
             <Head title="Rapports" />
             <div className="flex flex-1 flex-col overflow-auto p-6">
                 <div className="mb-6">
