@@ -1,0 +1,146 @@
+<?php
+
+return [
+    'welcome' => 'Welcome to our application',
+
+    'auth' => [
+        'login' => 'Login',
+        'logout' => 'Logout',
+        'register' => 'Register',
+        'forgot_password' => 'Forgot your password?',
+        'remember_me' => 'Remember me',
+        'email' => 'Email address',
+        'password' => 'Password',
+        'confirm_password' => 'Confirm password',
+        'name' => 'Name',
+    ],
+
+    'navigation' => [
+        'home' => 'Home',
+        'products' => 'Products',
+        'clients' => 'Clients',
+        'sales' => 'Sales',
+        'reports' => 'Reports',
+        'settings' => 'Settings',
+        'profile' => 'Profile',
+    ],
+
+    'common' => [
+        'save' => 'Save',
+        'cancel' => 'Cancel',
+        'delete' => 'Delete',
+        'edit' => 'Edit',
+        'create' => 'Create',
+        'search' => 'Search',
+        'filter' => 'Filter',
+        'export' => 'Export',
+        'import' => 'Import',
+        'submit' => 'Submit',
+        'close' => 'Close',
+        'back' => 'Back',
+        'next' => 'Next',
+        'loading' => 'Loading...',
+        'no_results' => 'No results found',
+        'confirm_delete' => 'Are you sure you want to delete this item?',
+        'yes' => 'Yes',
+        'no' => 'No',
+    ],
+
+    'messages' => [
+        'success' => 'Operation completed successfully',
+        'error' => 'An error occurred',
+        'created' => ':name has been created successfully',
+        'updated' => ':name has been updated successfully',
+        'deleted' => ':name has been deleted successfully',
+    ],
+
+    'products' => [
+        'title' => 'Products',
+        'name' => 'Product Name',
+        'description' => 'Description',
+        'price' => 'Price',
+        'category' => 'Category',
+        'sku' => 'SKU',
+        'stock' => 'Stock',
+        'add_product' => 'Add Product',
+        'edit_product' => 'Edit Product',
+        'product_details' => 'Product Details',
+    ],
+
+    'clients' => [
+        'title' => 'Clients',
+        'name' => 'Client Name',
+        'phone' => 'Phone',
+        'email' => 'Email',
+        'address' => 'Address',
+        'add_client' => 'Add Client',
+        'edit_client' => 'Edit Client',
+        'select_client' => 'Select a client',
+        'no_client' => 'No client (walk-in)',
+    ],
+
+    'sales' => [
+        'title' => 'Sales',
+        'new_sale' => 'New Sale',
+        'cart' => 'Cart',
+        'total' => 'Total',
+        'subtotal' => 'Subtotal',
+        'tax' => 'Tax',
+        'discount' => 'Discount',
+        'quantity' => 'Quantity',
+        'add_to_cart' => 'Add to Cart',
+        'remove_from_cart' => 'Remove from Cart',
+        'checkout' => 'Checkout',
+        'complete_sale' => 'Complete Sale',
+        'invoice' => 'Invoice',
+        'sale_completed' => 'Sale completed successfully',
+        'scan_product' => 'Scan Product',
+        'all_categories' => 'All Categories',
+    ],
+
+    'reports' => [
+        'title' => 'Reports',
+        'daily_sales' => 'Daily Sales',
+        'monthly_sales' => 'Monthly Sales',
+        'yearly_sales' => 'Yearly Sales',
+        'sales_by_product' => 'Sales by Product',
+        'sales_by_client' => 'Sales by Client',
+        'total_revenue' => 'Total Revenue',
+        'total_sales' => 'Total Sales',
+        'average_sale' => 'Average Sale',
+    ],
+
+    'settings' => [
+        'title' => 'Settings',
+        'language' => 'Language',
+        'currency' => 'Currency',
+        'tax_rate' => 'Tax Rate',
+        'store_name' => 'Store Name',
+        'store_address' => 'Store Address',
+        'store_phone' => 'Store Phone',
+    ],
+
+    'pagination' => [
+        'showing' => 'Showing',
+        'to' => 'to',
+        'of' => 'of',
+        'results' => 'results',
+        'previous' => 'Previous',
+        'next' => 'Next',
+    ],
+
+    'passwords' => [
+        'reset' => 'Reset Password',
+        'sent' => 'We have emailed your password reset link!',
+        'token' => 'This password reset token is invalid.',
+        'user' => 'We can\'t find a user with that email address.',
+        'throttled' => 'Please wait before retrying.',
+    ],
+
+    'validation' => [
+        'required' => 'This field is required',
+        'email' => 'Please enter a valid email address',
+        'min' => 'The field must be at least :min characters',
+        'max' => 'The field must not exceed :max characters',
+    ],
+];

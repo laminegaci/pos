@@ -1,0 +1,127 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "import": "Import",
+    "submit": "Submit",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "loading": "Loading...",
+    "noResults": "No results found",
+    "confirmDelete": "Are you sure you want to delete this item?",
+    "yes": "Yes",
+    "no": "No",
+    "actions": "Actions"
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "register": "Register",
+    "forgotPassword": "Forgot your password?",
+    "rememberMe": "Remember me",
+    "email": "Email address",
+    "password": "Password",
+    "confirmPassword": "Confirm password",
+    "name": "Name"
+  },
+  "navigation": {
+    "home": "Home",
+    "products": "Products",
+    "clients": "Clients",
+    "sales": "Sales",
+    "reports": "Reports",
+    "settings": "Settings",
+    "profile": "Profile"
+  },
+  "messages": {
+    "success": "Operation completed successfully",
+    "error": "An error occurred",
+    "created": ":name has been created successfully",
+    "updated": ":name has been updated successfully",
+    "deleted": ":name has been deleted successfully"
+  },
+  "products": {
+    "title": "Products",
+    "name": "Product Name",
+    "description": "Description",
+    "price": "Price",
+    "category": "Category",
+    "sku": "SKU",
+    "stock": "Stock",
+    "addProduct": "Add Product",
+    "editProduct": "Edit Product",
+    "productDetails": "Product Details"
+  },
+  "clients": {
+    "title": "Clients",
+    "name": "Client Name",
+    "phone": "Phone",
+    "email": "Email",
+    "address": "Address",
+    "addClient": "Add Client",
+    "editClient": "Edit Client",
+    "selectClient": "Select a client",
+    "noClient": "No client (walk-in)"
+  },
+  "sales": {
+    "title": "Sales",
+    "newSale": "New Sale",
+    "cart": "Cart",
+    "total": "Total",
+    "subtotal": "Subtotal",
+    "tax": "Tax",
+    "discount": "Discount",
+    "quantity": "Quantity",
+    "addToCart": "Add to Cart",
+    "removeFromCart": "Remove from Cart",
+    "checkout": "Checkout",
+    "completeSale": "Complete Sale",
+    "invoice": "Invoice",
+    "saleCompleted": "Sale completed successfully",
+    "scanProduct": "Scan Product",
+    "allCategories": "All Categories",
+    "searchProduct": "Search a product..."
+  },
+  "reports": {
+    "title": "Reports",
+    "dailySales": "Daily Sales",
+    "monthlySales": "Monthly Sales",
+    "yearlySales": "Yearly Sales",
+    "salesByProduct": "Sales by Product",
+    "salesByClient": "Sales by Client",
+    "totalRevenue": "Total Revenue",
+    "totalSales": "Total Sales",
+    "averageSale": "Average Sale"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "currency": "Currency",
+    "taxRate": "Tax Rate",
+    "storeName": "Store Name",
+    "storeAddress": "Store Address",
+    "storePhone": "Store Phone"
+  },
+  "categories": {
+    "all": "All",
+    "bureaux": "Desks",
+    "rangement_bureau": "Storage",
+    "bureaux_direction": "Executive Desks",
+    "bureaux_compacts": "Compact Desks",
+    "bureaux_ergonomiques": "Ergonomic Desks",
+    "bureaux_gaming": "Gaming Desks",
+    "mobilier_professionnel": "Professional Furniture"
+  },
+  "language": {
+    "title": "Language",
+    "fr": "French",
+    "en": "English"
+  }
+}

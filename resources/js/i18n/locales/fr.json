@@ -1,0 +1,127 @@
+{
+  "common": {
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "create": "Créer",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "export": "Exporter",
+    "import": "Importer",
+    "submit": "Soumettre",
+    "close": "Fermer",
+    "back": "Retour",
+    "next": "Suivant",
+    "loading": "Chargement...",
+    "noResults": "Aucun résultat trouvé",
+    "confirmDelete": "Êtes-vous sûr de vouloir supprimer cet élément ?",
+    "yes": "Oui",
+    "no": "Non",
+    "actions": "Actions"
+  },
+  "auth": {
+    "login": "Connexion",
+    "logout": "Déconnexion",
+    "register": "Inscription",
+    "forgotPassword": "Mot de passe oublié ?",
+    "rememberMe": "Se souvenir de moi",
+    "email": "Adresse email",
+    "password": "Mot de passe",
+    "confirmPassword": "Confirmer le mot de passe",
+    "name": "Nom"
+  },
+  "navigation": {
+    "home": "Accueil",
+    "products": "Produits",
+    "clients": "Clients",
+    "sales": "Ventes",
+    "reports": "Rapports",
+    "settings": "Paramètres",
+    "profile": "Profil"
+  },
+  "messages": {
+    "success": "Opération réussie",
+    "error": "Une erreur est survenue",
+    "created": ":name a été créé avec succès",
+    "updated": ":name a été mis à jour avec succès",
+    "deleted": ":name a été supprimé avec succès"
+  },
+  "products": {
+    "title": "Produits",
+    "name": "Nom du produit",
+    "description": "Description",
+    "price": "Prix",
+    "category": "Catégorie",
+    "sku": "SKU",
+    "stock": "Stock",
+    "addProduct": "Ajouter un produit",
+    "editProduct": "Modifier le produit",
+    "productDetails": "Détails du produit"
+  },
+  "clients": {
+    "title": "Clients",
+    "name": "Nom du client",
+    "phone": "Téléphone",
+    "email": "Email",
+    "address": "Adresse",
+    "addClient": "Ajouter un client",
+    "editClient": "Modifier le client",
+    "selectClient": "Sélectionner un client",
+    "noClient": "Sans client (passager)"
+  },
+  "sales": {
+    "title": "Ventes",
+    "newSale": "Nouvelle vente",
+    "cart": "Panier",
+    "total": "Total",
+    "subtotal": "Sous-total",
+    "tax": "Taxe",
+    "discount": "Remise",
+    "quantity": "Quantité",
+    "addToCart": "Ajouter au panier",
+    "removeFromCart": "Retirer du panier",
+    "checkout": "Paiement",
+    "completeSale": "Finaliser la vente",
+    "invoice": "Facture",
+    "saleCompleted": "Vente finalisée avec succès",
+    "scanProduct": "Scanner un produit",
+    "allCategories": "Toutes les catégories",
+    "searchProduct": "Rechercher un produit..."
+  },
+  "reports": {
+    "title": "Rapports",
+    "dailySales": "Ventes journalières",
+    "monthlySales": "Ventes mensuelles",
+    "yearlySales": "Ventes annuelles",
+    "salesByProduct": "Ventes par produit",
+    "salesByClient": "Ventes par client",
+    "totalRevenue": "Chiffre d'affaires total",
+    "totalSales": "Total des ventes",
+    "averageSale": "Vente moyenne"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "language": "Langue",
+    "currency": "Devise",
+    "taxRate": "Taux de taxe",
+    "storeName": "Nom du magasin",
+    "storeAddress": "Adresse du magasin",
+    "storePhone": "Téléphone du magasin"
+  },
+  "categories": {
+    "all": "Tout",
+    "bureaux": "Bureaux",
+    "rangement_bureau": "Rangement",
+    "bureaux_direction": "Bureaux Direction",
+    "bureaux_compacts": "Bureaux Compacts",
+    "bureaux_ergonomiques": "Bureaux Ergonomiques",
+    "bureaux_gaming": "Bureaux Gaming",
+    "mobilier_professionnel": "Mobilier Pro"
+  },
+  "language": {
+    "title": "Langue",
+    "fr": "Français",
+    "en": "Anglais"
+  }
+}

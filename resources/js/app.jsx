@@ -1,6 +1,7 @@
 import '../css/app.css';
 import { createInertiaApp } from '@inertiajs/react';
 import { createRoot, hydrateRoot } from 'react-dom/client';
+import { initI18n } from './i18n';
 
 createInertiaApp({
     title: (title) =>
@@ -14,15 +15,13 @@ createInertiaApp({
     },
 
     setup({ el, App, props }) {
-        // ✅ SSR
         if (import.meta.env.SSR) {
-            return; // ⚠️ NE RIEN FAIRE ici
-        }
-
-        // ✅ CLIENT
-        if (el.hasChildNodes()) {
+            const initialLocale = props.initialPage.props?.locale || 'fr';
+            initI18n(initialLocale);
             hydrateRoot(el, <App {...props} />);
         } else {
+            const storedLocale = localStorage.getItem('locale') || 'fr';
+            initI18n(storedLocale);
             createRoot(el).render(<App {...props} />);
         }
     },

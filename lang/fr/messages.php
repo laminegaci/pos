@@ -1,0 +1,146 @@
+<?php
+
+return [
+    'welcome' => 'Bienvenue dans notre application',
+
+    'auth' => [
+        'login' => 'Connexion',
+        'logout' => 'Déconnexion',
+        'register' => 'Inscription',
+        'forgot_password' => 'Mot de passe oublié ?',
+        'remember_me' => 'Se souvenir de moi',
+        'email' => 'Adresse email',
+        'password' => 'Mot de passe',
+        'confirm_password' => 'Confirmer le mot de passe',
+        'name' => 'Nom',
+    ],
+
+    'navigation' => [
+        'home' => 'Accueil',
+        'products' => 'Produits',
+        'clients' => 'Clients',
+        'sales' => 'Ventes',
+        'reports' => 'Rapports',
+        'settings' => 'Paramètres',
+        'profile' => 'Profil',
+    ],
+
+    'common' => [
+        'save' => 'Enregistrer',
+        'cancel' => 'Annuler',
+        'delete' => 'Supprimer',
+        'edit' => 'Modifier',
+        'create' => 'Créer',
+        'search' => 'Rechercher',
+        'filter' => 'Filtrer',
+        'export' => 'Exporter',
+        'import' => 'Importer',
+        'submit' => 'Soumettre',
+        'close' => 'Fermer',
+        'back' => 'Retour',
+        'next' => 'Suivant',
+        'loading' => 'Chargement...',
+        'no_results' => 'Aucun résultat trouvé',
+        'confirm_delete' => 'Êtes-vous sûr de vouloir supprimer cet élément ?',
+        'yes' => 'Oui',
+        'no' => 'Non',
+    ],
+
+    'messages' => [
+        'success' => 'Opération réussie',
+        'error' => 'Une erreur est survenue',
+        'created' => ':name a été créé avec succès',
+        'updated' => ':name a été mis à jour avec succès',
+        'deleted' => ':name a été supprimé avec succès',
+    ],
+
+    'products' => [
+        'title' => 'Produits',
+        'name' => 'Nom du produit',
+        'description' => 'Description',
+        'price' => 'Prix',
+        'category' => 'Catégorie',
+        'sku' => 'SKU',
+        'stock' => 'Stock',
+        'add_product' => 'Ajouter un produit',
+        'edit_product' => 'Modifier le produit',
+        'product_details' => 'Détails du produit',
+    ],
+
+    'clients' => [
+        'title' => 'Clients',
+        'name' => 'Nom du client',
+        'phone' => 'Téléphone',
+        'email' => 'Email',
+        'address' => 'Adresse',
+        'add_client' => 'Ajouter un client',
+        'edit_client' => 'Modifier le client',
+        'select_client' => 'Sélectionner un client',
+        'no_client' => 'Sans client (passager)',
+    ],
+
+    'sales' => [
+        'title' => 'Ventes',
+        'new_sale' => 'Nouvelle vente',
+        'cart' => 'Panier',
+        'total' => 'Total',
+        'subtotal' => 'Sous-total',
+        'tax' => 'Taxe',
+        'discount' => 'Remise',
+        'quantity' => 'Quantité',
+        'add_to_cart' => 'Ajouter au panier',
+        'remove_from_cart' => 'Retirer du panier',
+        'checkout' => 'Paiement',
+        'complete_sale' => 'Finaliser la vente',
+        'invoice' => 'Facture',
+        'sale_completed' => 'Vente finalisée avec succès',
+        'scan_product' => 'Scanner un produit',
+        'all_categories' => 'Toutes les catégories',
+    ],
+
+    'reports' => [
+        'title' => 'Rapports',
+        'daily_sales' => 'Ventes journalières',
+        'monthly_sales' => 'Ventes mensuelles',
+        'yearly_sales' => 'Ventes annuelles',
+        'sales_by_product' => 'Ventes par produit',
+        'sales_by_client' => 'Ventes par client',
+        'total_revenue' => 'Chiffre d\'affaires total',
+        'total_sales' => 'Total des ventes',
+        'average_sale' => 'Vente moyenne',
+    ],
+
+    'settings' => [
+        'title' => 'Paramètres',
+        'language' => 'Langue',
+        'currency' => 'Devise',
+        'tax_rate' => 'Taux de taxe',
+        'store_name' => 'Nom du magasin',
+        'store_address' => 'Adresse du magasin',
+        'store_phone' => 'Téléphone du magasin',
+    ],
+
+    'pagination' => [
+        'showing' => 'Affichage de',
+        'to' => 'à',
+        'of' => 'sur',
+        'results' => 'résultats',
+        'previous' => 'Précédent',
+        'next' => 'Suivant',
+    ],
+
+    'passwords' => [
+        'reset' => 'Réinitialiser le mot de passe',
+        'sent' => 'Nous avons envoyé votre lien de réinitialisation du mot de passe !',
+        'token' => 'Ce token de réinitialisation du mot de passe est invalide.',
+        'user' => 'Nous ne trouvons pas d\'utilisateur avec cette adresse email.',
+        'throttled' => 'Veuillez patienter avant de réessayer.',
+    ],
+
+    'validation' => [
+        'required' => 'Ce champ est requis',
+        'email' => 'Veuillez entrer une adresse email valide',
+        'min' => 'Le champ doit contenir au moins :min caractères',
+        'max' => 'Le champ ne doit pas dépasser :max caractères',
+    ],
+];

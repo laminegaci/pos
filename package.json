@@ -17,8 +17,11 @@
         "@inertiajs/react": "^3.0.3",
         "@inertiajs/vite": "^3.0.3",
         "@vitejs/plugin-react": "^6.0.1",
+        "i18next": "^26.0.8",
+        "i18next-browser-languagedetector": "^8.2.1",
         "lucide-react": "^1.8.0",
         "react": "^19.2.5",
-        "react-dom": "^19.2.5"
+        "react-dom": "^19.2.5",
+        "react-i18next": "^17.0.6"
     }
 }
