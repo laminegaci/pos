@@ -124,10 +124,10 @@ export default function SalesIndex({ caisse, categories, products, clients = [] 
                 onClose={() => setToast(null)}
             />
             <PosLayout searchQuery={searchQuery} onSearchChange={setSearchQuery}>
-                <div className="flex flex-1 flex-col overflow-hidden px-8 py-6">
-                    <div className="mb-5 flex items-center gap-3">
-                        <h1 className="text-2xl font-bold tracking-tight text-slate-900">Vente</h1>
-                        <span className="text-sm font-medium text-slate-500">Caisse #{caisse.number}</span>
+                <div className="flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-4 sm:px-5 sm:py-5 lg:px-8 lg:py-6">
+                    <div className="mb-4 flex flex-wrap items-center gap-2 sm:gap-3 lg:mb-5">
+                        <h1 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">Vente</h1>
+                        <span className="text-xs font-medium text-slate-500 sm:text-sm">Caisse #{caisse.number}</span>
                         <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200/60">
                             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.6)]" />
                             {caisse.status === 'open' ? 'Ouverte' : 'Fermée'}

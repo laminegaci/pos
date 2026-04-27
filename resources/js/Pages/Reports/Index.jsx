@@ -196,13 +196,13 @@ export default function ReportsIndex({ kpis, daily, topProducts, byCategory, top
     return (
         <PosLayout>
             <Head title="Rapports" />
-            <div className="flex flex-1 flex-col overflow-auto p-6">
+            <div className="flex flex-1 flex-col overflow-auto p-4 md:p-6">
                 <div className="mb-6">
                     <h1 className="text-2xl font-bold text-slate-900">Rapports</h1>
                     <p className="text-sm text-slate-500">Vue d'ensemble de l'activité — 30 derniers jours.</p>
                 </div>
 
-                <div className="mb-6 grid grid-cols-4 gap-4">
+                <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
                     <KpiCard
                         icon={Wallet}
                         label="CA ce mois"
@@ -233,9 +233,9 @@ export default function ReportsIndex({ kpis, daily, topProducts, byCategory, top
                     />
                 </div>
 
-                <div className="mb-6 grid grid-cols-3 gap-4">
-                    <div className="col-span-2 rounded-2xl border border-slate-200/60 bg-white p-5 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
-                        <div className="mb-3 flex items-center justify-between">
+                <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
+                    <div className="lg:col-span-2 rounded-2xl border border-slate-200/60 bg-white p-5 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
+                        <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                             <h2 className="text-sm font-semibold text-slate-900">Évolution du chiffre d'affaires</h2>
                             <span className="text-xs text-slate-400">30 derniers jours</span>
                         </div>
@@ -265,8 +265,8 @@ export default function ReportsIndex({ kpis, daily, topProducts, byCategory, top
                     </div>
                 </div>
 
-                <div className="mb-6 grid grid-cols-3 gap-4">
-                    <div className="col-span-2 rounded-2xl border border-slate-200/60 bg-white p-5 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
+                <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
+                    <div className="lg:col-span-2 rounded-2xl border border-slate-200/60 bg-white p-5 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
                         <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-900">
                             <Package size={16} className="text-indigo-500" /> Top produits (30j)
                         </h2>
@@ -280,8 +280,8 @@ export default function ReportsIndex({ kpis, daily, topProducts, byCategory, top
                                                 className="h-2 w-2 rounded-full"
                                                 style={{ backgroundColor: CATEGORY_COLORS[p.category_id] ?? '#94a3b8' }}
                                             />
-                                            <span className="font-medium text-slate-700">{p.name}</span>
-                                            <span className="text-slate-400">· {p.qty} vendus</span>
+                                            <span className="truncate font-medium text-slate-700">{p.name}</span>
+                                            <span className="text-slate-400 hidden sm:inline">· {p.qty} vendus</span>
                                         </div>
                                         <span className="font-semibold tabular-nums text-slate-900">
                                             {formatCurrency(p.revenue)}
@@ -309,7 +309,7 @@ export default function ReportsIndex({ kpis, daily, topProducts, byCategory, top
                             {topClients.length === 0 && <div className="text-sm text-slate-400">Aucun client facturé.</div>}
                             {topClients.map((c, i) => (
                                 <div key={c.id} className="flex items-center gap-3">
-                                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-600">
+                                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-600">
                                         {i + 1}
                                     </div>
                                     <div className="flex-1 min-w-0">
@@ -325,35 +325,37 @@ export default function ReportsIndex({ kpis, daily, topProducts, byCategory, top
                     </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
-                    <div className="col-span-2 rounded-2xl border border-slate-200/60 bg-white p-5 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+                    <div className="lg:col-span-2 rounded-2xl border border-slate-200/60 bg-white p-5 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
                         <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-900">
                             <ShoppingBag size={16} className="text-indigo-500" /> Ventes récentes
                         </h2>
-                        <table className="w-full text-sm">
-                            <thead>
-                                <tr className="border-b border-slate-100 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                                    <th className="pb-2">#</th>
-                                    <th className="pb-2">Date</th>
-                                    <th className="pb-2">Client</th>
-                                    <th className="pb-2">Caissier</th>
-                                    <th className="pb-2 text-right">Total</th>
+                        <div className="overflow-x-auto">
+                            <table className="w-full min-w-[500px] text-sm">
+                                <thead>
+                                    <tr className="border-b border-slate-100 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                        <th className="pb-2">#</th>
+                                        <th className="pb-2">Date</th>
+                                        <th className="pb-2">Client</th>
+                                        <th className="pb-2 hidden md:table-cell">Caissier</th>
+                                        <th className="pb-2 text-right">Total</th>
                                 </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100">
-                                {recentSales.map((s) => (
-                                    <tr key={s.id}>
-                                        <td className="py-2 font-mono text-xs text-slate-400">#{s.id}</td>
-                                        <td className="py-2 text-xs text-slate-600">{formatDateTime(s.created_at)}</td>
-                                        <td className="py-2 text-sm text-slate-800">{s.client ?? <span className="italic text-slate-400">Anonyme</span>}</td>
-                                        <td className="py-2 text-xs text-slate-500">{s.user ?? '—'}</td>
-                                        <td className="py-2 text-right font-semibold tabular-nums text-slate-900">
-                                            {formatCurrency(s.total)}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    {recentSales.map((s) => (
+                                        <tr key={s.id}>
+                                            <td className="py-2 font-mono text-xs text-slate-400">#{s.id}</td>
+                                            <td className="py-2 text-xs text-slate-600">{formatDateTime(s.created_at)}</td>
+                                            <td className="py-2 text-sm text-slate-800">{s.client ?? <span className="italic text-slate-400">Anonyme</span>}</td>
+                                            <td className="py-2 hidden md:table-cell text-xs text-slate-500">{s.user ?? '—'}</td>
+                                            <td className="py-2 text-right font-semibold tabular-nums text-slate-900">
+                                                {formatCurrency(s.total)}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
 
                     <div className="rounded-2xl border border-slate-200/60 bg-white p-5 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
@@ -375,7 +377,7 @@ export default function ReportsIndex({ kpis, daily, topProducts, byCategory, top
                                         </div>
                                     </div>
                                     <span
-                                        className={`ml-2 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold ${
+                                        className={`ml-2 inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs font-bold ${
                                             p.stock === 0
                                                 ? 'bg-red-100 text-red-700'
                                                 : 'bg-amber-100 text-amber-700'
