@@ -1,14 +1,10 @@
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { useState } from 'react';
 import { Download, Eye, Upload, X } from 'lucide-react';
 import PosLayout from '../../Layouts/PosLayout';
 
 export default function SalesList({ sales }) {
     const [selectedSale, setSelectedSale] = useState(null);
-
-    const openDetail = (sale) => {
-        window.location.href = `/ventes/${sale.id}`;
-    };
 
     return (
         <PosLayout>
@@ -75,13 +71,13 @@ export default function SalesList({ sales }) {
                                             </span>
                                         </td>
                                         <td className="px-4 py-3 text-center">
-                                            <button
-                                                onClick={() => openDetail(sale)}
+                                            <Link
+                                                href={`/ventes/${sale.id}`}
                                                 className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600 transition hover:border-indigo-400 hover:text-indigo-600"
                                             >
                                                 <Eye size={14} />
                                                 Voir
-                                            </button>
+                                            </Link>
                                         </td>
                                     </tr>
                                 ))}
@@ -98,17 +94,17 @@ export default function SalesList({ sales }) {
                     {sales.last_page > 1 && (
                         <div className="mt-4 flex items-center justify-center gap-2">
                             {sales.prev_page_url && (
-                                <a href={sales.prev_page_url} className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm hover:bg-slate-50">
+                                <Link href={sales.prev_page_url} preserveScroll className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm hover:bg-slate-50">
                                     Précédent
-                                </a>
+                                </Link>
                             )}
                             <span className="text-sm text-slate-600">
                                 Page {sales.current_page} sur {sales.last_page}
                             </span>
                             {sales.next_page_url && (
-                                <a href={sales.next_page_url} className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm hover:bg-slate-50">
+                                <Link href={sales.next_page_url} preserveScroll className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm hover:bg-slate-50">
                                     Suivant
-                                </a>
+                                </Link>
                             )}
                         </div>
                     )}
