@@ -8,12 +8,14 @@ use App\Exports\SaleExport;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Models\SaleItem;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\Response as HttpResponse;
 
 class SaleController extends Controller
 {
@@ -151,5 +153,37 @@ class SaleController extends Controller
     public function export()
     {
         return Excel::download(new SaleExport, 'ventes-'.now()->format('Y-m-d').'.xlsx');
+    }
+
+    public function invoice(Request $request, string $id): HttpResponse
+    {
+        $sale = Sale::with(['client:id,name,email,phone', 'user:id,name'])
+            ->where('status', 'completed')
+            ->findOrFail($id);
+
+        $items = SaleItem::where('sale_id', $id)
+            ->leftJoin('products', 'products.id', '=', 'sale_items.product_id')
+            ->select(
+                'sale_items.id',
+                'products.name as product_name',
+                'sale_items.quantity',
+                'sale_items.unit_price as price',
+                'sale_items.line_total'
+            )
+            ->get()
+            ->map(fn ($item) => [
+                'product_name' => $item->product_name ?? 'Article',
+                'quantity' => (int) $item->quantity,
+                'price' => (float) $item->price,
+                'line_total' => (float) $item->line_total,
+            ])
+            ->all();
+
+        $pdf = Pdf::loadView('invoices.sale', compact('sale', 'items'))->setPaper('a4');
+        $filename = "facture-{$sale->id}.pdf";
+
+        return $request->boolean('stream')
+            ? $pdf->stream($filename)
+            : $pdf->download($filename);
     }
 }

@@ -303,7 +303,7 @@ export default function ProductsIndex({ products, categories }) {
                                 </button>
                             </div>
                         ) : viewMode === 'table' ? (
-                            <div className="h-full overflow-x-auto">
+                            <div className="h-full overflow-auto">
                                 <table className="w-full min-w-[700px] text-sm">
                                     <thead className="sticky top-0 z-10 bg-slate-50/80 backdrop-blur">
                                         <tr className="text-left text-[11px] font-semibold uppercase tracking-wider text-slate-500">
