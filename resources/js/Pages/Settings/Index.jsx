@@ -7,6 +7,7 @@ import {
     Database,
     Globe,
     Lock,
+    Menu,
     Palette,
     Printer,
     Receipt,
@@ -15,6 +16,7 @@ import {
     Store,
     User,
     Users,
+    X,
 } from 'lucide-react';
 import PosLayout from '../../Layouts/PosLayout';
 
@@ -100,6 +102,7 @@ function SectionCard({ title, description, children }) {
 export default function SettingsIndex({ users = [] }) {
     const [activeTab, setActiveTab] = useState('general');
     const [saved, setSaved] = useState(false);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
     const [settings, setSettings] = useState({
         shopName: 'POS',
         shopCode: 'POS-01',
@@ -146,19 +149,44 @@ export default function SettingsIndex({ users = [] }) {
         <PosLayout>
             <Head title="Paramètres" />
             <div className="flex flex-1 overflow-hidden">
-                <aside className="w-64 flex-shrink-0 overflow-y-auto border-r border-slate-200/60 bg-white/60 p-4">
-                    <div className="mb-4 px-2">
+                {/* Mobile sidebar backdrop */}
+                <div
+                    className={`fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm transition-opacity lg:hidden ${
+                        sidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+                    }`}
+                    onClick={() => setSidebarOpen(false)}
+                />
+
+                {/* Sidebar */}
+                <aside
+                    className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-slate-200/60 bg-white/95 backdrop-blur-xl transition-transform duration-200 lg:static lg:z-auto lg:w-64 lg:translate-x-0 lg:flex-shrink-0 lg:p-4 ${
+                        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+                    }`}
+                >
+                    <div className="mb-4 flex items-center justify-between px-2 lg:hidden">
+                        <h1 className="text-lg font-bold text-slate-900">Paramètres</h1>
+                        <button
+                            onClick={() => setSidebarOpen(false)}
+                            className="flex h-8 w-8 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100"
+                        >
+                            <X size={18} />
+                        </button>
+                    </div>
+                    <div className="mb-4 px-2 hidden lg:block">
                         <h1 className="text-lg font-bold text-slate-900">Paramètres</h1>
                         <p className="text-xs text-slate-500">Configuration du POS</p>
                     </div>
-                    <nav className="space-y-0.5">
+                    <nav className="space-y-0.5 overflow-y-auto flex-1">
                         {TABS.map((t) => {
                             const Icon = t.icon;
                             const active = activeTab === t.id;
                             return (
                                 <button
                                     key={t.id}
-                                    onClick={() => setActiveTab(t.id)}
+                                    onClick={() => {
+                                        setActiveTab(t.id);
+                                        setSidebarOpen(false);
+                                    }}
                                     className={`flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm transition ${
                                         active
                                             ? 'bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-sm'
@@ -174,7 +202,14 @@ export default function SettingsIndex({ users = [] }) {
                 </aside>
 
                 <form onSubmit={save} className="flex flex-1 flex-col overflow-hidden">
-                    <div className="flex items-center justify-between border-b border-slate-200/60 bg-white/60 px-6 py-3">
+                    <div className="flex items-center justify-between border-b border-slate-200/60 bg-white/60 px-4 py-3 sm:px-6">
+                        <button
+                            type="button"
+                            onClick={() => setSidebarOpen(true)}
+                            className="flex h-10 w-10 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-100 lg:hidden"
+                        >
+                            <Menu size={20} />
+                        </button>
                         <div className="text-sm font-semibold text-slate-700">
                             {TABS.find((t) => t.id === activeTab)?.label}
                         </div>
@@ -186,16 +221,16 @@ export default function SettingsIndex({ users = [] }) {
                                 type="submit"
                                 className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:from-indigo-700 hover:to-violet-700"
                             >
-                                <Save size={14} /> Enregistrer
+                                <Save size={14} /> <span className="hidden sm:inline">Enregistrer</span>
                             </button>
                         </div>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto p-6">
+                    <div className="flex-1 overflow-y-auto p-4 sm:p-6">
                         {activeTab === 'general' && (
                             <div className="space-y-4">
                                 <SectionCard title="Magasin" description="Identité et configuration régionale.">
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                         <Field label="Nom du magasin">
                                             <Input value={settings.shopName} onChange={(e) => update({ shopName: e.target.value })} />
                                         </Field>
@@ -231,7 +266,7 @@ export default function SettingsIndex({ users = [] }) {
                         {activeTab === 'company' && (
                             <div className="space-y-4">
                                 <SectionCard title="Informations légales" description="Apparaissent sur les tickets et factures.">
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                         <Field label="Raison sociale">
                                             <Input value={settings.company} onChange={(e) => update({ company: e.target.value })} />
                                         </Field>
@@ -258,7 +293,7 @@ export default function SettingsIndex({ users = [] }) {
                         {activeTab === 'billing' && (
                             <div className="space-y-4">
                                 <SectionCard title="Facturation" description="Taxes et format des tickets.">
-                                    <div className="mb-4 grid grid-cols-2 gap-4">
+                                    <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                                         <Field label="Taux de TVA (%)" hint="Valeur par défaut appliquée aux ventes.">
                                             <Input
                                                 type="number"
@@ -407,7 +442,7 @@ export default function SettingsIndex({ users = [] }) {
                             <div className="space-y-4">
                                 <SectionCard title="Apparence" description="Personnalisez le thème de l'interface.">
                                     <Field label="Thème">
-                                        <div className="grid grid-cols-3 gap-3">
+                                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                                             {[
                                                 { id: 'light', label: 'Clair', bg: 'bg-white' },
                                                 { id: 'dark', label: 'Sombre', bg: 'bg-slate-900' },
