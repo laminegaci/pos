@@ -89,6 +89,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/ventes', [SaleController::class, 'index'])->name('sales.index');
     Route::post('/ventes', [SaleController::class, 'store'])->name('sales.store');
     Route::get('/ventes/{sale}', [SaleController::class, 'show'])->name('sales.show');
+    Route::get('/ventes/{sale}/facture', [SaleController::class, 'invoice'])->name('sales.invoice');
 
     Route::get('/parametres', [UserController::class, 'settings'])->name('settings.index');
 
