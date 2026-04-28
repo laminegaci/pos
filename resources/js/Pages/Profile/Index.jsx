@@ -25,7 +25,7 @@ export default function Profile({ user }) {
 
     const submitProfile = (e) => {
         e.preventDefault();
-        profileForm.patch('/user/profile-information', {
+        profileForm.put('/user/profile-information', {
             preserveScroll: true,
             onSuccess: () => {
                 setProfileSuccess(true);
