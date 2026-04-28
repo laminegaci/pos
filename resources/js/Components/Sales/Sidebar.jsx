@@ -1,20 +1,22 @@
 import { Link, usePage, useForm } from '@inertiajs/react';
 import { Box, LogOut, Receipt, ScanLine, BarChart3, Settings, ShoppingBag, Users } from 'lucide-react';
-
-const navItems = [
-    { icon: ShoppingBag, label: 'Ventes', href: '/', badge: true },
-    { icon: Box, label: 'Produits', href: '/produits' },
-    { icon: ScanLine, label: 'Scan', href: '/scan' },
-    { icon: BarChart3, label: 'Rapports', href: '/rapports' },
-    { icon: Users, label: 'Clients', href: '/clients' },
-    { icon: Receipt, label: 'Historique', href: '/ventes' },
-    { icon: Settings, label: 'Paramètres', href: '/parametres' },
-];
+import { useTranslation } from 'react-i18next';
 
 export default function Sidebar({ mobileOpen = false, onClose }) {
+    const { t } = useTranslation();
     const { url } = usePage();
     const { auth } = usePage().props;
     const { post } = useForm();
+
+    const navItems = [
+        { icon: ShoppingBag, label: t('navigation.sales'), href: '/', badge: true },
+        { icon: Box, label: t('navigation.products'), href: '/produits' },
+        { icon: ScanLine, label: t('navigation.scan'), href: '/scan' },
+        { icon: BarChart3, label: t('navigation.reports'), href: '/rapports' },
+        { icon: Users, label: t('navigation.clients'), href: '/clients' },
+        { icon: Receipt, label: t('navigation.history'), href: '/ventes' },
+        { icon: Settings, label: t('navigation.settings'), href: '/parametres' },
+    ];
 
     const logout = (e) => {
         e.preventDefault();
@@ -77,13 +79,13 @@ export default function Sidebar({ mobileOpen = false, onClose }) {
                     <div className="h-px w-8 bg-slate-200" />
                     <button
                         type="button"
-                        title="Déconnexion"
+                        title={t('auth.logout')}
                         onClick={logout}
                         className="flex h-11 w-11 items-center justify-center rounded-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
                     >
                         <LogOut size={20} />
                     </button>
-                    <Link href="/profile" title="Mon profil" onClick={onClose}>
+                    <Link href="/profile" title={t('navigation.myProfile')} onClick={onClose}>
                         <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 text-sm font-semibold text-white shadow-sm">
                             {auth?.user?.name?.charAt(0).toUpperCase() || 'U'}
                         </div>

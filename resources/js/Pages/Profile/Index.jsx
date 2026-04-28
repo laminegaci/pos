@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { useForm } from '@inertiajs/react';
+import { useForm, Head } from '@inertiajs/react';
 import { Eye, EyeOff } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import PosLayout from '../../Layouts/PosLayout';
 
 export default function Profile({ user }) {
+    const { t } = useTranslation();
     const profileForm = useForm({
         name: user.name,
         email: user.email,
@@ -50,27 +52,27 @@ export default function Profile({ user }) {
 
     return (
         <PosLayout>
+            <Head title={t('profile.title')} />
             <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
                 <div className="mx-auto w-full max-w-2xl space-y-6">
-                    <h1 className="text-xl font-bold text-slate-900 sm:text-2xl">Mon Profil</h1>
+                    <h1 className="text-xl font-bold text-slate-900 sm:text-2xl">{t('profile.title')}</h1>
 
-                    {/* Profile information */}
                     <section className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm sm:p-6">
                         <header className="mb-5">
-                            <h2 className="text-base font-semibold text-slate-900">Informations</h2>
-                            <p className="text-xs text-slate-500">Mettez à jour votre nom et votre adresse e-mail.</p>
+                            <h2 className="text-base font-semibold text-slate-900">{t('profile.info')}</h2>
+                            <p className="text-xs text-slate-500">{t('profile.infoDesc')}</p>
                         </header>
 
                         {profileSuccess && (
                             <div className="mb-4 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700">
-                                Profil mis à jour avec succès.
+                                {t('profile.updated')}
                             </div>
                         )}
 
                         <form onSubmit={submitProfile} className="space-y-5">
                             <div>
                                 <label htmlFor="name" className="mb-2 block text-sm font-medium text-slate-700">
-                                    Nom complet
+                                    {t('profile.fullName')}
                                 </label>
                                 <input
                                     id="name"
@@ -87,7 +89,7 @@ export default function Profile({ user }) {
 
                             <div>
                                 <label htmlFor="email" className="mb-2 block text-sm font-medium text-slate-700">
-                                    Email
+                                    {t('profile.email')}
                                 </label>
                                 <input
                                     id="email"
@@ -107,56 +109,61 @@ export default function Profile({ user }) {
                                 disabled={profileForm.processing}
                                 className="rounded-lg bg-indigo-600 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
                             >
-                                {profileForm.processing ? 'Enregistrement…' : 'Enregistrer'}
+                                {profileForm.processing ? t('common.saving') : t('common.save')}
                             </button>
                         </form>
                     </section>
 
-                    {/* Change password */}
                     <section className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm sm:p-6">
                         <header className="mb-5">
-                            <h2 className="text-base font-semibold text-slate-900">Mot de passe</h2>
+                            <h2 className="text-base font-semibold text-slate-900">{t('profile.password')}</h2>
                             <p className="text-xs text-slate-500">
-                                Choisissez un mot de passe long et complexe pour sécuriser votre compte.
+                                {t('profile.passwordDesc')}
                             </p>
                         </header>
 
                         {passwordSuccess && (
                             <div className="mb-4 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700">
-                                Mot de passe mis à jour avec succès.
+                                {t('profile.passwordUpdated')}
                             </div>
                         )}
 
                         <form onSubmit={submitPassword} className="space-y-5">
                             <PasswordField
                                 id="current_password"
-                                label="Mot de passe actuel"
+                                label={t('profile.currentPassword')}
                                 value={passwordForm.data.current_password}
                                 onChange={(v) => passwordForm.setData('current_password', v)}
                                 visible={showCurrent}
                                 onToggle={() => setShowCurrent((v) => !v)}
                                 error={passwordForm.errors.current_password}
                                 autoComplete="current-password"
+                                showLabel={t('profile.showPassword')}
+                                hideLabel={t('profile.hidePassword')}
                             />
                             <PasswordField
                                 id="password"
-                                label="Nouveau mot de passe"
+                                label={t('profile.newPassword')}
                                 value={passwordForm.data.password}
                                 onChange={(v) => passwordForm.setData('password', v)}
                                 visible={showNew}
                                 onToggle={() => setShowNew((v) => !v)}
                                 error={passwordForm.errors.password}
                                 autoComplete="new-password"
+                                showLabel={t('profile.showPassword')}
+                                hideLabel={t('profile.hidePassword')}
                             />
                             <PasswordField
                                 id="password_confirmation"
-                                label="Confirmer le nouveau mot de passe"
+                                label={t('profile.confirmNewPassword')}
                                 value={passwordForm.data.password_confirmation}
                                 onChange={(v) => passwordForm.setData('password_confirmation', v)}
                                 visible={showConfirm}
                                 onToggle={() => setShowConfirm((v) => !v)}
                                 error={passwordForm.errors.password_confirmation}
                                 autoComplete="new-password"
+                                showLabel={t('profile.showPassword')}
+                                hideLabel={t('profile.hidePassword')}
                             />
 
                             <button
@@ -164,7 +171,7 @@ export default function Profile({ user }) {
                                 disabled={passwordForm.processing}
                                 className="rounded-lg bg-indigo-600 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
                             >
-                                {passwordForm.processing ? 'Mise à jour…' : 'Mettre à jour le mot de passe'}
+                                {passwordForm.processing ? t('profile.updatingPassword') : t('profile.updatePassword')}
                             </button>
                         </form>
                     </section>
@@ -174,7 +181,7 @@ export default function Profile({ user }) {
     );
 }
 
-function PasswordField({ id, label, value, onChange, visible, onToggle, error, autoComplete }) {
+function PasswordField({ id, label, value, onChange, visible, onToggle, error, autoComplete, showLabel, hideLabel }) {
     return (
         <div>
             <label htmlFor={id} className="mb-2 block text-sm font-medium text-slate-700">
@@ -195,7 +202,7 @@ function PasswordField({ id, label, value, onChange, visible, onToggle, error, a
                     type="button"
                     onClick={onToggle}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                    aria-label={visible ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                    aria-label={visible ? hideLabel : showLabel}
                 >
                     {visible ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
