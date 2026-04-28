@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import { Head, useForm, usePage  } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
 import {
     Bell,
@@ -87,12 +87,13 @@ function SectionCard({ title, description, children }) {
     );
 }
 
-export default function SettingsIndex({ users = [] }) {
+export default function SettingsIndex({ users = [], settings: initialSettings }) {
     const { t } = useTranslation();
+    const { props } = usePage();
     const [activeTab, setActiveTab] = useState('general');
     const [saved, setSaved] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [settings, setSettings] = useState({
+    const [settings, setSettings] = useState(initialSettings || {
         shopName: 'POS',
         shopCode: 'POS-01',
         currency: 'DZD',
@@ -138,12 +139,20 @@ export default function SettingsIndex({ users = [] }) {
 
     function update(patch) {
         setSettings({ ...settings, ...patch });
+        setFormData({ ...formData, ...patch });
     }
+
+    const { data: formData, setData: setFormData, put: saveSettings, processing } = useForm(settings);
 
     function save(e) {
         e.preventDefault();
-        setSaved(true);
-        setTimeout(() => setSaved(false), 2000);
+        saveSettings('/parametres', {
+            preserveScroll: true,
+            onSuccess: () => {
+                setSaved(true);
+                setTimeout(() => setSaved(false), 2000);
+            },
+        });
     }
 
     return (
