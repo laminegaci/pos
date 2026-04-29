@@ -1,5 +1,6 @@
 import { Head, router, usePage } from '@inertiajs/react';
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import PosLayout from '../../Layouts/PosLayout';
 import CategoryTabs from '../../Components/Sales/CategoryTabs';
 import ProductGrid from '../../Components/Sales/ProductGrid';
@@ -8,6 +9,7 @@ import Toast from '../../Components/Toast';
 import { formatCurrency } from '../../lib/formatCurrency';
 
 export default function SalesIndex({ caisse, categories, products, clients = [] }) {
+    const { t } = useTranslation();
     const { flash } = usePage().props;
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
@@ -97,7 +99,7 @@ export default function SalesIndex({ caisse, categories, products, clients = [] 
                     clearCart();
                 },
                 onError: () => {
-                    setToast({ message: "Échec de l'encaissement. Veuillez réessayer.", type: 'error' });
+                    setToast({ message: t('sales.checkoutFailed'), type: 'error' });
                 },
                 onFinish: () => setSubmitting(false),
             },
@@ -117,7 +119,7 @@ export default function SalesIndex({ caisse, categories, products, clients = [] 
 
     return (
         <>
-            <Head title="Vente" />
+            <Head title={t('sales.sale')} />
             <Toast
                 message={toast?.message}
                 type={toast?.type}
@@ -126,11 +128,11 @@ export default function SalesIndex({ caisse, categories, products, clients = [] 
             <PosLayout searchQuery={searchQuery} onSearchChange={setSearchQuery}>
                 <div className="flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-4 sm:px-5 sm:py-5 lg:px-8 lg:py-6">
                     <div className="mb-4 flex flex-wrap items-center gap-2 sm:gap-3 lg:mb-5">
-                        <h1 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">Vente</h1>
-                        <span className="text-xs font-medium text-slate-500 sm:text-sm">Caisse #{caisse.number}</span>
+                        <h1 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">{t('sales.sale')}</h1>
+                        <span className="text-xs font-medium text-slate-500 sm:text-sm">{t('sales.register')} #{caisse.number}</span>
                         <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200/60">
                             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.6)]" />
-                            {caisse.status === 'open' ? 'Ouverte' : 'Fermée'}
+                            {caisse.status === 'open' ? t('sales.registerOpen') : t('sales.registerClosed')}
                         </span>
                     </div>
 

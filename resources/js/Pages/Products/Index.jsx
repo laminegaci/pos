@@ -16,16 +16,17 @@ import {
     X,
     XCircle,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import PosLayout from '../../Layouts/PosLayout';
 import ProductImage from '../../Components/Sales/ProductImage';
 import { formatCurrency } from '../../lib/formatCurrency';
 
 const LOW_STOCK = 10;
 
-function stockStatus(stock) {
-    if (stock === 0) return { label: 'Rupture', tone: 'red' };
-    if (stock < LOW_STOCK) return { label: 'Faible', tone: 'amber' };
-    return { label: 'En stock', tone: 'emerald' };
+function stockStatus(stock, t) {
+    if (stock === 0) return { label: t('products.statusOut'), tone: 'red' };
+    if (stock < LOW_STOCK) return { label: t('products.statusLow'), tone: 'amber' };
+    return { label: t('products.statusInStock'), tone: 'emerald' };
 }
 
 const toneClasses = {
@@ -57,6 +58,7 @@ function StatCard({ icon: Icon, label, value, tone = 'indigo', hint }) {
 }
 
 export default function ProductsIndex({ products, categories }) {
+    const { t } = useTranslation();
     const [showModal, setShowModal] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
@@ -80,7 +82,7 @@ export default function ProductsIndex({ products, categories }) {
         };
     }
 
-    const allCategories = useMemo(() => [{ id: 'all', label: 'Tout' }, ...categories], [categories]);
+    const allCategories = useMemo(() => [{ id: 'all', label: t('common.all') }, ...categories], [categories, t]);
     const categoryLabel = (id) => categories.find((c) => c.id === id)?.label ?? id;
 
     const filteredProducts = useMemo(() => {
@@ -144,7 +146,7 @@ export default function ProductsIndex({ products, categories }) {
     };
 
     const handleDelete = (product) => {
-        if (!confirm(`Supprimer « ${product.name} » ?`)) return;
+        if (!confirm(t('products.confirmDelete', { name: product.name }))) return;
         router.delete(`/produits/${product.id}`, { preserveScroll: true });
     };
 
@@ -167,7 +169,7 @@ export default function ProductsIndex({ products, categories }) {
                 setFormData({ ...formData, image: data.url });
             }
         } catch {
-            setErrors({ ...errors, image: 'Erreur upload' });
+            setErrors({ ...errors, image: t('products.uploadError') });
         } finally {
             setUploadingImage(false);
         }
@@ -179,39 +181,39 @@ export default function ProductsIndex({ products, categories }) {
 
     return (
         <>
-            <Head title="Produits" />
+            <Head title={t('products.title')} />
             <PosLayout>
                 <div className="flex flex-1 flex-col overflow-hidden p-4 md:px-8 md:py-6">
                     {/* Header */}
                     <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                         <div>
-                            <h1 className="text-2xl font-bold tracking-tight text-slate-900">Produits</h1>
-                            <p className="text-sm text-slate-500">Gérer votre catalogue et votre stock</p>
+                            <h1 className="text-2xl font-bold tracking-tight text-slate-900">{t('products.title')}</h1>
+                            <p className="text-sm text-slate-500">{t('products.subtitle')}</p>
                         </div>
                         <button
                             onClick={openCreateModal}
                             className="inline-flex h-10 shrink-0 items-center gap-2 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 px-4 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 transition hover:shadow-xl hover:shadow-indigo-500/40 active:scale-[0.98]"
                         >
                             <Plus size={18} />
-                            <span className="hidden sm:inline">Nouveau produit</span>
-                            <span className="sm:hidden">Ajouter</span>
+                            <span className="hidden sm:inline">{t('products.newProduct')}</span>
+                            <span className="sm:hidden">{t('products.add')}</span>
                         </button>
                     </div>
 
                     {/* Stats */}
                     <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-                        <StatCard icon={Box} label="Total produits" value={stats.total} tone="indigo" />
+                        <StatCard icon={Box} label={t('products.totalProducts')} value={stats.total} tone="indigo" />
                         <StatCard
                             icon={AlertTriangle}
-                            label="Stock faible"
+                            label={t('products.lowStock')}
                             value={stats.lowStock}
                             tone="amber"
-                            hint={`< ${LOW_STOCK} unités`}
+                            hint={t('products.lowStockHint', { count: LOW_STOCK })}
                         />
-                        <StatCard icon={XCircle} label="Ruptures" value={stats.outOfStock} tone="red" />
+                        <StatCard icon={XCircle} label={t('products.outOfStock')} value={stats.outOfStock} tone="red" />
                         <StatCard
                             icon={Layers}
-                            label="Valeur stock"
+                            label={t('products.stockValue')}
                             value={formatCurrency(stats.inventoryValue)}
                             tone="emerald"
                         />
@@ -225,7 +227,7 @@ export default function ProductsIndex({ products, categories }) {
                                 type="search"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                placeholder="Rechercher..."
+                                placeholder={`${t('common.search')}...`}
                                 className="h-10 w-full rounded-full border border-slate-200 bg-white pl-10 pr-4 text-sm outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
                             />
                         </div>
@@ -254,7 +256,7 @@ export default function ProductsIndex({ products, categories }) {
                                     className={`flex h-8 w-8 items-center justify-center rounded-full transition ${
                                         viewMode === 'table' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:text-slate-900'
                                     }`}
-                                    title="Tableau"
+                                    title={t('products.table')}
                                 >
                                     <List size={15} />
                                 </button>
@@ -263,7 +265,7 @@ export default function ProductsIndex({ products, categories }) {
                                     className={`flex h-8 w-8 items-center justify-center rounded-full transition ${
                                         viewMode === 'grid' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:text-slate-900'
                                     }`}
-                                    title="Grille"
+                                    title={t('products.grid')}
                                 >
                                     <LayoutGrid size={15} />
                                 </button>
@@ -271,13 +273,13 @@ export default function ProductsIndex({ products, categories }) {
                                 <button
                                     onClick={() => window.location.href = '/produits/export'}
                                     className="flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition hover:text-slate-900"
-                                    title="Exporter"
+                                    title={t('common.export')}
                                 >
                                     <Download size={15} />
                                 </button>
                                 <label
                                     className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-slate-500 transition hover:text-slate-900"
-                                    title="Importer"
+                                    title={t('common.import')}
                                 >
                                     <Upload size={15} />
                                     <input type="file" accept=".csv,.xlsx,.xls" className="hidden" />
@@ -293,13 +295,13 @@ export default function ProductsIndex({ products, categories }) {
                                 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-400">
                                     <Box size={24} />
                                 </div>
-                                <div className="text-sm font-medium text-slate-600">Aucun produit trouvé</div>
-                                <div className="text-xs text-slate-400">Ajustez vos filtres ou créez un nouveau produit.</div>
+                                <div className="text-sm font-medium text-slate-600">{t('products.noProductFound')}</div>
+                                <div className="text-xs text-slate-400">{t('products.adjustFilters')}</div>
                                 <button
                                     onClick={openCreateModal}
                                     className="mt-2 inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white hover:bg-slate-800"
                                 >
-                                    <Plus size={14} /> Nouveau produit
+                                    <Plus size={14} /> {t('products.newProduct')}
                                 </button>
                             </div>
                         ) : viewMode === 'table' ? (
@@ -307,18 +309,18 @@ export default function ProductsIndex({ products, categories }) {
                                 <table className="w-full min-w-[700px] text-sm">
                                     <thead className="sticky top-0 z-10 bg-slate-50/80 backdrop-blur">
                                         <tr className="text-left text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-                                            <th className="px-5 py-3">Produit</th>
-                                            <th className="px-5 py-3">Catégorie</th>
-                                            <th className="px-5 py-3 hidden md:table-cell">SKU</th>
-                                            <th className="px-5 py-3 text-right">Prix</th>
-                                            <th className="px-5 py-3 hidden sm:table-cell">Stock</th>
-                                            <th className="px-5 py-3 hidden lg:table-cell">Statut</th>
-                                            <th className="px-5 py-3 text-right">Actions</th>
+                                            <th className="px-5 py-3">{t('products.title')}</th>
+                                            <th className="px-5 py-3">{t('products.category')}</th>
+                                            <th className="px-5 py-3 hidden md:table-cell">{t('products.sku')}</th>
+                                            <th className="px-5 py-3 text-right">{t('products.price')}</th>
+                                            <th className="px-5 py-3 hidden sm:table-cell">{t('products.stock')}</th>
+                                            <th className="px-5 py-3 hidden lg:table-cell">{t('products.status')}</th>
+                                            <th className="px-5 py-3 text-right">{t('common.actions')}</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-100">
                                         {filteredProducts.map((product) => {
-                                            const st = stockStatus(product.stock);
+                                            const st = stockStatus(product.stock, t);
                                             return (
                                                 <tr key={product.id} className="group transition hover:bg-slate-50/60">
                                                     <td className="px-5 py-3">
@@ -370,7 +372,7 @@ export default function ProductsIndex({ products, categories }) {
                                                                     {st.label}
                                                                 </>
                                                             ) : (
-                                                                'Inactif'
+                                                                t('products.inactive')
                                                             )}
                                                         </span>
                                                     </td>
@@ -379,14 +381,14 @@ export default function ProductsIndex({ products, categories }) {
                                                             <button
                                                                 onClick={() => openEditModal(product)}
                                                                 className="rounded-lg p-2 text-slate-500 hover:bg-indigo-50 hover:text-indigo-600"
-                                                                title="Modifier"
+                                                                title={t('common.edit')}
                                                             >
                                                                 <Pencil size={15} />
                                                             </button>
                                                             <button
                                                                 onClick={() => handleDelete(product)}
                                                                 className="rounded-lg p-2 text-slate-500 hover:bg-red-50 hover:text-red-600"
-                                                                title="Supprimer"
+                                                                title={t('common.delete')}
                                                             >
                                                                 <Trash2 size={15} />
                                                             </button>
@@ -444,7 +446,7 @@ export default function ProductsIndex({ products, categories }) {
                     </div>
 
                     <div className="mt-3 text-xs text-slate-400">
-                        {filteredProducts.length} / {products.length} produit{products.length > 1 ? 's' : ''}
+                        {filteredProducts.length} / {t('products.productsCount', { count: products.length })}
                     </div>
                 </div>
             </PosLayout>
@@ -462,10 +464,10 @@ export default function ProductsIndex({ products, categories }) {
                         <div className="flex items-start justify-between border-b border-slate-100 px-4 py-4 sm:px-6 sm:py-5">
                             <div>
                                 <h2 className="text-lg font-bold text-slate-900">
-                                    {editingProduct ? 'Modifier le produit' : 'Nouveau produit'}
+                                    {editingProduct ? t('products.editProduct') : t('products.newProduct')}
                                 </h2>
                                 <p className="text-xs text-slate-500">
-                                    {editingProduct ? 'Mettez à jour les informations ci-dessous.' : 'Ajoutez un produit à votre catalogue.'}
+                                    {editingProduct ? t('products.updateInfo') : t('products.addToCatalog')}
                                 </p>
                             </div>
                             <button
@@ -477,7 +479,7 @@ export default function ProductsIndex({ products, categories }) {
                         </div>
                         <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-5 p-4 sm:p-6 md:grid-cols-[180px_1fr]">
                             <div className="flex flex-col gap-2">
-                                <div className="text-xs font-medium text-slate-600">Image</div>
+                                <div className="text-xs font-medium text-slate-600">{t('products.image')}</div>
                                 {formData.image ? (
                                     <div className="relative overflow-hidden rounded-xl border border-slate-200">
                                         <img src={formData.image} alt="" className="aspect-video w-full object-cover" />
@@ -493,13 +495,13 @@ export default function ProductsIndex({ products, categories }) {
                                     <label className="flex aspect-video cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 transition hover:border-indigo-300 hover:bg-indigo-50/50">
                                         <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" disabled={uploadingImage} />
                                         <Upload size={20} className="mb-1 text-slate-400" />
-                                        <span className="text-xs text-slate-500">{uploadingImage ? 'Upload...' : 'Télécharger'}</span>
+                                        <span className="text-xs text-slate-500">{uploadingImage ? t('products.uploading') : t('products.upload')}</span>
                                     </label>
                                 )}
                                 {errors.image && <div className="text-xs text-red-600">{errors.image}</div>}
                             </div>
                             <div className="grid grid-cols-1 gap-4">
-                                <Field label="Nom" error={errors.name}>
+                                <Field label={t('products.name')} error={errors.name}>
                                     <input
                                         type="text"
                                         required
@@ -508,7 +510,7 @@ export default function ProductsIndex({ products, categories }) {
                                         className={inputCls(errors.name)}
                                     />
                                 </Field>
-                                <Field label="Description" error={errors.description}>
+                                <Field label={t('products.description')} error={errors.description}>
                                     <textarea
                                         value={formData.description}
                                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -517,7 +519,7 @@ export default function ProductsIndex({ products, categories }) {
                                     />
                                 </Field>
                                 <div className="grid grid-cols-2 gap-3">
-                                    <Field label="Prix (DA)" error={errors.price}>
+                                    <Field label={t('products.priceDa')} error={errors.price}>
                                         <input
                                             type="number"
                                             required
@@ -528,7 +530,7 @@ export default function ProductsIndex({ products, categories }) {
                                             className={inputCls(errors.price)}
                                         />
                                     </Field>
-                                    <Field label="Stock" error={errors.stock}>
+                                    <Field label={t('products.stock')} error={errors.stock}>
                                         <input
                                             type="number"
                                             required
@@ -540,7 +542,7 @@ export default function ProductsIndex({ products, categories }) {
                                     </Field>
                                 </div>
                                 <div className="grid grid-cols-2 gap-3">
-                                    <Field label="Catégorie" error={errors.category_id}>
+                                    <Field label={t('products.category')} error={errors.category_id}>
                                         <select
                                             value={formData.category_id}
                                             onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
@@ -553,7 +555,7 @@ export default function ProductsIndex({ products, categories }) {
                                             ))}
                                         </select>
                                     </Field>
-                                    <Field label="SKU" error={errors.sku}>
+                                    <Field label={t('products.sku')} error={errors.sku}>
                                         <input
                                             type="text"
                                             value={formData.sku}
@@ -569,7 +571,7 @@ export default function ProductsIndex({ products, categories }) {
                                         onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
                                         className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                                     />
-                                    <span className="text-sm text-slate-700">Produit actif (visible à la vente)</span>
+                                    <span className="text-sm text-slate-700">{t('products.active')}</span>
                                 </label>
                                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end gap-2 pt-2">
                                     <button
@@ -577,14 +579,14 @@ export default function ProductsIndex({ products, categories }) {
                                         onClick={() => setShowModal(false)}
                                         className="order-2 sm:order-1 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100"
                                     >
-                                        Annuler
+                                        {t('common.cancel')}
                                     </button>
                                     <button
                                         type="submit"
                                         disabled={submitting}
                                         className="order-1 sm:order-2 inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 transition hover:shadow-xl hover:shadow-indigo-500/40 disabled:opacity-60"
                                     >
-                                        {submitting ? 'Enregistrement…' : editingProduct ? 'Mettre à jour' : 'Créer'}
+                                        {submitting ? t('common.saving') : editingProduct ? t('common.update') : t('common.create')}
                                     </button>
                                 </div>
                             </div>

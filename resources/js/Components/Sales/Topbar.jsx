@@ -1,5 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import { Bell, Menu, Search } from 'lucide-react';
+import LanguageSwitcher from '../LanguageSwitcher';
 
 export default function Topbar({ searchQuery, onSearchChange, onMenuClick }) {
     const { auth } = usePage().props;
@@ -37,6 +38,7 @@ export default function Topbar({ searchQuery, onSearchChange, onMenuClick }) {
             {!showSearch && <div className="flex-1" />}
 
             <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+                <LanguageSwitcher />
                 <button
                     className="relative flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
                     aria-label="Notifications"

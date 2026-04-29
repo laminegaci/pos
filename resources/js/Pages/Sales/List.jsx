@@ -1,31 +1,33 @@
 import { Head, Link } from '@inertiajs/react';
 import { useState } from 'react';
 import { Download, Eye, Upload, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import PosLayout from '../../Layouts/PosLayout';
 
 export default function SalesList({ sales }) {
+    const { t } = useTranslation();
     const [selectedSale, setSelectedSale] = useState(null);
 
     return (
         <PosLayout>
-            <Head title="Historique des ventes" />
+            <Head title={t('sales.history')} />
             <div className="flex flex-1 flex-col overflow-hidden">
                 <div className="flex items-center justify-between border-b border-slate-200/60 bg-white/60 px-6 py-4">
                     <div>
-                        <h1 className="text-xl font-bold text-slate-900">Historique des ventes</h1>
-                        <p className="text-sm text-slate-500">{sales.total} vente(s)</p>
+                        <h1 className="text-xl font-bold text-slate-900">{t('sales.history')}</h1>
+                        <p className="text-sm text-slate-500">{t('sales.salesCount', { count: sales.total })}</p>
                     </div>
                     <div className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
                         <button
                             onClick={() => window.location.href = '/ventes/export'}
                             className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition hover:text-slate-900"
-                            title="Exporter"
+                            title={t('common.export')}
                         >
                             <Download size={15} />
                         </button>
                         <label
                             className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-slate-500 transition hover:text-slate-900"
-                            title="Importer"
+                            title={t('common.import')}
                         >
                             <Upload size={15} />
                             <input type="file" accept=".csv,.xlsx,.xls" className="hidden" />
@@ -39,11 +41,11 @@ export default function SalesList({ sales }) {
                             <thead className="border-b border-slate-200/60 bg-slate-50/50">
                                 <tr>
                                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">#</th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Date</th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Client</th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Caissier</th>
-                                    <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">Montant</th>
-                                    <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">Statut</th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">{t('sales.date')}</th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">{t('sales.client')}</th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">{t('sales.cashier')}</th>
+                                    <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">{t('sales.amount')}</th>
+                                    <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">{t('sales.status')}</th>
                                     <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500"></th>
                                 </tr>
                             </thead>
@@ -76,7 +78,7 @@ export default function SalesList({ sales }) {
                                                 className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600 transition hover:border-indigo-400 hover:text-indigo-600"
                                             >
                                                 <Eye size={14} />
-                                                Voir
+                                                {t('common.view')}
                                             </Link>
                                         </td>
                                     </tr>
@@ -86,7 +88,7 @@ export default function SalesList({ sales }) {
 
                         {sales.data.length === 0 && (
                             <div className="py-12 text-center text-slate-500">
-                                Aucune vente trouvée
+                                {t('sales.noSaleFound')}
                             </div>
                         )}
                     </div>
@@ -95,15 +97,15 @@ export default function SalesList({ sales }) {
                         <div className="mt-4 flex items-center justify-center gap-2">
                             {sales.prev_page_url && (
                                 <Link href={sales.prev_page_url} preserveScroll className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm hover:bg-slate-50">
-                                    Précédent
+                                    {t('common.previous')}
                                 </Link>
                             )}
                             <span className="text-sm text-slate-600">
-                                Page {sales.current_page} sur {sales.last_page}
+                                {t('common.page')} {sales.current_page} {t('common.of')} {sales.last_page}
                             </span>
                             {sales.next_page_url && (
                                 <Link href={sales.next_page_url} preserveScroll className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm hover:bg-slate-50">
-                                    Suivant
+                                    {t('common.next')}
                                 </Link>
                             )}
                         </div>
@@ -115,28 +117,28 @@ export default function SalesList({ sales }) {
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
                     <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
                         <div className="mb-4 flex items-center justify-between">
-                            <h2 className="text-lg font-bold text-slate-900">Vente #{selectedSale.id}</h2>
+                            <h2 className="text-lg font-bold text-slate-900">{t('sales.sale')} #{selectedSale.id}</h2>
                             <button onClick={() => setSelectedSale(null)} className="text-slate-400 hover:text-slate-600">
                                 <X size={20} />
                             </button>
                         </div>
                         <div className="space-y-4">
                             <div>
-                                <p className="text-xs text-slate-500">Date</p>
+                                <p className="text-xs text-slate-500">{t('sales.date')}</p>
                                 <p className="text-sm text-slate-900">
                                     {new Date(selectedSale.created_at).toLocaleString('fr-FR')}
                                 </p>
                             </div>
                             <div>
-                                <p className="text-xs text-slate-500">Client</p>
+                                <p className="text-xs text-slate-500">{t('sales.client')}</p>
                                 <p className="text-sm text-slate-900">{selectedSale.client || '—'}</p>
                             </div>
                             <div>
-                                <p className="text-xs text-slate-500">Caissier</p>
+                                <p className="text-xs text-slate-500">{t('sales.cashier')}</p>
                                 <p className="text-sm text-slate-900">{selectedSale.user}</p>
                             </div>
                             <div>
-                                <p className="text-xs text-slate-500">Montant</p>
+                                <p className="text-xs text-slate-500">{t('sales.amount')}</p>
                                 <p className="text-lg font-bold text-slate-900">
                                     {selectedSale.total.toLocaleString('fr-FR', { style: 'currency', currency: 'DZD' })}
                                 </p>

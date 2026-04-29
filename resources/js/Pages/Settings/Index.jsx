@@ -1,5 +1,5 @@
-import { Head } from '@inertiajs/react';
-import { useState } from 'react';
+import { Head, useForm, usePage  } from '@inertiajs/react';
+import { useMemo, useState } from 'react';
 import {
     Bell,
     Building2,
@@ -18,20 +18,8 @@ import {
     Users,
     X,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import PosLayout from '../../Layouts/PosLayout';
-
-const TABS = [
-    { id: 'general', label: 'Général', icon: Store },
-    { id: 'company', label: 'Entreprise', icon: Building2 },
-    { id: 'billing', label: 'Facturation', icon: Receipt },
-    { id: 'payments', label: 'Paiements', icon: CreditCard },
-    // { id: 'printer', label: 'Imprimante', icon: Printer },
-    { id: 'users', label: 'Utilisateurs', icon: Users },
-    { id: 'notifications', label: 'Notifications', icon: Bell },
-    { id: 'appearance', label: 'Apparence', icon: Palette },
-    { id: 'security', label: 'Sécurité', icon: Shield },
-    { id: 'backup', label: 'Sauvegarde', icon: Database },
-];
 
 function Field({ label, hint, children }) {
     return (
@@ -99,11 +87,13 @@ function SectionCard({ title, description, children }) {
     );
 }
 
-export default function SettingsIndex({ users = [] }) {
+export default function SettingsIndex({ users = [], settings: initialSettings }) {
+    const { t } = useTranslation();
+    const { props } = usePage();
     const [activeTab, setActiveTab] = useState('general');
     const [saved, setSaved] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [settings, setSettings] = useState({
+    const [settings, setSettings] = useState(initialSettings || {
         shopName: 'POS',
         shopCode: 'POS-01',
         currency: 'DZD',
@@ -135,21 +125,40 @@ export default function SettingsIndex({ users = [] }) {
         backupFrequency: 'daily',
     });
 
+    const TABS = useMemo(() => [
+        { id: 'general', label: t('settings.tabs.general'), icon: Store },
+        { id: 'company', label: t('settings.tabs.company'), icon: Building2 },
+        { id: 'billing', label: t('settings.tabs.billing'), icon: Receipt },
+        { id: 'payments', label: t('settings.tabs.payments'), icon: CreditCard },
+        { id: 'users', label: t('settings.tabs.users'), icon: Users },
+        { id: 'notifications', label: t('settings.tabs.notifications'), icon: Bell },
+        { id: 'appearance', label: t('settings.tabs.appearance'), icon: Palette },
+        { id: 'security', label: t('settings.tabs.security'), icon: Shield },
+        { id: 'backup', label: t('settings.tabs.backup'), icon: Database },
+    ], [t]);
+
     function update(patch) {
         setSettings({ ...settings, ...patch });
+        setFormData({ ...formData, ...patch });
     }
+
+    const { data: formData, setData: setFormData, put: saveSettings, processing } = useForm(settings);
 
     function save(e) {
         e.preventDefault();
-        setSaved(true);
-        setTimeout(() => setSaved(false), 2000);
+        saveSettings('/parametres', {
+            preserveScroll: true,
+            onSuccess: () => {
+                setSaved(true);
+                setTimeout(() => setSaved(false), 2000);
+            },
+        });
     }
 
     return (
         <PosLayout>
-            <Head title="Paramètres" />
+            <Head title={t('settings.title')} />
             <div className="flex flex-1 overflow-hidden">
-                {/* Mobile sidebar backdrop */}
                 <div
                     className={`fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm transition-opacity lg:hidden ${
                         sidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
@@ -157,14 +166,13 @@ export default function SettingsIndex({ users = [] }) {
                     onClick={() => setSidebarOpen(false)}
                 />
 
-                {/* Sidebar */}
                 <aside
                     className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-slate-200/60 bg-white/95 backdrop-blur-xl transition-transform duration-200 lg:static lg:z-auto lg:w-64 lg:translate-x-0 lg:flex-shrink-0 lg:p-4 ${
                         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
                     }`}
                 >
                     <div className="mb-4 flex items-center justify-between px-2 lg:hidden">
-                        <h1 className="text-lg font-bold text-slate-900">Paramètres</h1>
+                        <h1 className="text-lg font-bold text-slate-900">{t('settings.title')}</h1>
                         <button
                             onClick={() => setSidebarOpen(false)}
                             className="flex h-8 w-8 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100"
@@ -173,18 +181,18 @@ export default function SettingsIndex({ users = [] }) {
                         </button>
                     </div>
                     <div className="mb-4 px-2 hidden lg:block">
-                        <h1 className="text-lg font-bold text-slate-900">Paramètres</h1>
-                        <p className="text-xs text-slate-500">Configuration du POS</p>
+                        <h1 className="text-lg font-bold text-slate-900">{t('settings.title')}</h1>
+                        <p className="text-xs text-slate-500">{t('settings.subtitle')}</p>
                     </div>
                     <nav className="space-y-0.5 overflow-y-auto flex-1">
-                        {TABS.map((t) => {
-                            const Icon = t.icon;
-                            const active = activeTab === t.id;
+                        {TABS.map((tab) => {
+                            const Icon = tab.icon;
+                            const active = activeTab === tab.id;
                             return (
                                 <button
-                                    key={t.id}
+                                    key={tab.id}
                                     onClick={() => {
-                                        setActiveTab(t.id);
+                                        setActiveTab(tab.id);
                                         setSidebarOpen(false);
                                     }}
                                     className={`flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm transition ${
@@ -194,7 +202,7 @@ export default function SettingsIndex({ users = [] }) {
                                     }`}
                                 >
                                     <Icon size={16} className={active ? 'text-white' : 'text-slate-400'} />
-                                    <span className="font-medium">{t.label}</span>
+                                    <span className="font-medium">{tab.label}</span>
                                 </button>
                             );
                         })}
@@ -211,17 +219,17 @@ export default function SettingsIndex({ users = [] }) {
                             <Menu size={20} />
                         </button>
                         <div className="text-sm font-semibold text-slate-700">
-                            {TABS.find((t) => t.id === activeTab)?.label}
+                            {TABS.find((tab) => tab.id === activeTab)?.label}
                         </div>
                         <div className="flex items-center gap-3">
                             {saved && (
-                                <span className="text-xs font-medium text-emerald-600">✓ Paramètres enregistrés</span>
+                                <span className="text-xs font-medium text-emerald-600">✓ {t('settings.saved')}</span>
                             )}
                             <button
                                 type="submit"
                                 className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:from-indigo-700 hover:to-violet-700"
                             >
-                                <Save size={14} /> <span className="hidden sm:inline">Enregistrer</span>
+                                <Save size={14} /> <span className="hidden sm:inline">{t('common.save')}</span>
                             </button>
                         </div>
                     </div>
@@ -229,29 +237,29 @@ export default function SettingsIndex({ users = [] }) {
                     <div className="flex-1 overflow-y-auto p-4 sm:p-6">
                         {activeTab === 'general' && (
                             <div className="space-y-4">
-                                <SectionCard title="Magasin" description="Identité et configuration régionale.">
+                                <SectionCard title={t('settings.general.shop')} description={t('settings.general.shopDesc')}>
                                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                        <Field label="Nom du magasin">
+                                        <Field label={t('settings.general.shopName')}>
                                             <Input value={settings.shopName} onChange={(e) => update({ shopName: e.target.value })} />
                                         </Field>
-                                        <Field label="Code magasin">
+                                        <Field label={t('settings.general.shopCode')}>
                                             <Input value={settings.shopCode} onChange={(e) => update({ shopCode: e.target.value })} />
                                         </Field>
-                                        <Field label="Devise">
+                                        <Field label={t('settings.general.currency')}>
                                             <Select value={settings.currency} onChange={(e) => update({ currency: e.target.value })}>
                                                 <option value="DZD">Dinar algérien (DA)</option>
                                                 <option value="EUR">Euro (€)</option>
                                                 <option value="USD">Dollar US ($)</option>
                                             </Select>
                                         </Field>
-                                        <Field label="Langue">
+                                        <Field label={t('settings.general.language')}>
                                             <Select value={settings.language} onChange={(e) => update({ language: e.target.value })}>
                                                 <option value="fr">Français</option>
                                                 <option value="ar">العربية</option>
                                                 <option value="en">English</option>
                                             </Select>
                                         </Field>
-                                        <Field label="Fuseau horaire">
+                                        <Field label={t('settings.general.timezone')}>
                                             <Select value={settings.timezone} onChange={(e) => update({ timezone: e.target.value })}>
                                                 <option value="Africa/Algiers">Africa/Algiers (GMT+1)</option>
                                                 <option value="Europe/Paris">Europe/Paris (GMT+1)</option>
@@ -265,24 +273,24 @@ export default function SettingsIndex({ users = [] }) {
 
                         {activeTab === 'company' && (
                             <div className="space-y-4">
-                                <SectionCard title="Informations légales" description="Apparaissent sur les tickets et factures.">
+                                <SectionCard title={t('settings.company.title')} description={t('settings.company.desc')}>
                                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                        <Field label="Raison sociale">
+                                        <Field label={t('settings.company.company')}>
                                             <Input value={settings.company} onChange={(e) => update({ company: e.target.value })} />
                                         </Field>
-                                        <Field label="Registre de commerce (RC)">
+                                        <Field label={t('settings.company.rc')}>
                                             <Input value={settings.rc} onChange={(e) => update({ rc: e.target.value })} />
                                         </Field>
-                                        <Field label="NIF">
+                                        <Field label={t('settings.company.nif')}>
                                             <Input value={settings.nif} onChange={(e) => update({ nif: e.target.value })} />
                                         </Field>
-                                        <Field label="Téléphone">
+                                        <Field label={t('settings.company.phone')}>
                                             <Input value={settings.phone} onChange={(e) => update({ phone: e.target.value })} />
                                         </Field>
-                                        <Field label="Email">
+                                        <Field label={t('settings.company.email')}>
                                             <Input type="email" value={settings.email} onChange={(e) => update({ email: e.target.value })} />
                                         </Field>
-                                        <Field label="Adresse">
+                                        <Field label={t('settings.company.address')}>
                                             <Input value={settings.address} onChange={(e) => update({ address: e.target.value })} />
                                         </Field>
                                     </div>
@@ -292,9 +300,9 @@ export default function SettingsIndex({ users = [] }) {
 
                         {activeTab === 'billing' && (
                             <div className="space-y-4">
-                                <SectionCard title="Facturation" description="Taxes et format des tickets.">
+                                <SectionCard title={t('settings.billing.title')} description={t('settings.billing.desc')}>
                                     <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                        <Field label="Taux de TVA (%)" hint="Valeur par défaut appliquée aux ventes.">
+                                        <Field label={t('settings.billing.vat')} hint={t('settings.billing.vatHint')}>
                                             <Input
                                                 type="number"
                                                 value={settings.vatRate}
@@ -302,7 +310,7 @@ export default function SettingsIndex({ users = [] }) {
                                             />
                                         </Field>
                                     </div>
-                                    <Field label="Pied de ticket">
+                                    <Field label={t('settings.billing.footer')}>
                                         <textarea
                                             rows={3}
                                             value={settings.receiptFooter}
@@ -314,14 +322,14 @@ export default function SettingsIndex({ users = [] }) {
                                         <Toggle
                                             checked={settings.showLogo}
                                             onChange={(v) => update({ showLogo: v })}
-                                            label="Afficher le logo sur les tickets"
-                                            hint="Le logo sera imprimé en haut de chaque ticket."
+                                            label={t('settings.billing.showLogo')}
+                                            hint={t('settings.billing.showLogoHint')}
                                         />
                                         <Toggle
                                             checked={settings.printAuto}
                                             onChange={(v) => update({ printAuto: v })}
-                                            label="Impression automatique"
-                                            hint="Imprimer le ticket dès la validation de la vente."
+                                            label={t('settings.billing.printAuto')}
+                                            hint={t('settings.billing.printAutoHint')}
                                         />
                                     </div>
                                 </SectionCard>
@@ -330,59 +338,34 @@ export default function SettingsIndex({ users = [] }) {
 
                         {activeTab === 'payments' && (
                             <div className="space-y-4">
-                                <SectionCard title="Moyens de paiement" description="Activez les modes acceptés en caisse.">
+                                <SectionCard title={t('settings.payments.title')} description={t('settings.payments.desc')}>
                                     <div className="space-y-2">
                                         <Toggle
                                             checked={settings.cashEnabled}
                                             onChange={(v) => update({ cashEnabled: v })}
-                                            label="Espèces"
-                                            hint="Paiement en dinars algériens."
+                                            label={t('settings.payments.cash')}
+                                            hint={t('settings.payments.cashHint')}
                                         />
                                         <Toggle
                                             checked={settings.cardEnabled}
                                             onChange={(v) => update({ cardEnabled: v })}
-                                            label="Carte bancaire"
-                                            hint="TPE connecté ou paiement manuel."
+                                            label={t('settings.payments.card')}
+                                            hint={t('settings.payments.cardHint')}
                                         />
                                         <Toggle
                                             checked={settings.creditEnabled}
                                             onChange={(v) => update({ creditEnabled: v })}
-                                            label="Crédit client"
-                                            hint="Autoriser le paiement différé pour les clients professionnels."
+                                            label={t('settings.payments.credit')}
+                                            hint={t('settings.payments.creditHint')}
                                         />
                                     </div>
                                 </SectionCard>
                             </div>
                         )}
 
-                        {/* {activeTab === 'printer' && (
-                            <div className="space-y-4">
-                                <SectionCard title="Imprimante ticket" description="Configuration matérielle.">
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <Field label="Imprimante">
-                                            <Input value={settings.printerName} onChange={(e) => update({ printerName: e.target.value })} />
-                                        </Field>
-                                        <Field label="Format papier">
-                                            <Select value={settings.paperSize} onChange={(e) => update({ paperSize: e.target.value })}>
-                                                <option value="58mm">58 mm</option>
-                                                <option value="80mm">80 mm</option>
-                                                <option value="A4">A4</option>
-                                            </Select>
-                                        </Field>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        className="mt-4 inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-                                    >
-                                        <Printer size={14} /> Imprimer un ticket de test
-                                    </button>
-                                </SectionCard>
-                            </div>
-                        )} */}
-
                         {activeTab === 'users' && (
                             <div className="space-y-4">
-                                <SectionCard title="Utilisateurs" description="Comptes autorisés à utiliser le POS.">
+                                <SectionCard title={t('settings.users.title')} description={t('settings.users.desc')}>
                                     <div className="space-y-2">
                                         {users.map((u) => (
                                             <div key={u.email} className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3">
@@ -405,7 +388,7 @@ export default function SettingsIndex({ users = [] }) {
                                         type="button"
                                         className="mt-4 inline-flex items-center gap-2 rounded-xl border border-dashed border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-indigo-400 hover:text-indigo-600"
                                     >
-                                        <User size={14} /> Inviter un utilisateur
+                                        <User size={14} /> {t('settings.users.invite')}
                                     </button>
                                 </SectionCard>
                             </div>
@@ -413,25 +396,25 @@ export default function SettingsIndex({ users = [] }) {
 
                         {activeTab === 'notifications' && (
                             <div className="space-y-4">
-                                <SectionCard title="Notifications" description="Choisissez les événements qui déclenchent une alerte.">
+                                <SectionCard title={t('settings.notifications.title')} description={t('settings.notifications.desc')}>
                                     <div className="space-y-2">
                                         <Toggle
                                             checked={settings.notifLowStock}
                                             onChange={(v) => update({ notifLowStock: v })}
-                                            label="Alertes stock bas"
-                                            hint="Notifier quand un produit passe sous 10 unités."
+                                            label={t('settings.notifications.lowStock')}
+                                            hint={t('settings.notifications.lowStockHint')}
                                         />
                                         <Toggle
                                             checked={settings.notifDailyReport}
                                             onChange={(v) => update({ notifDailyReport: v })}
-                                            label="Rapport quotidien"
-                                            hint="Recevoir le résumé des ventes chaque soir à 20h."
+                                            label={t('settings.notifications.dailyReport')}
+                                            hint={t('settings.notifications.dailyReportHint')}
                                         />
                                         <Toggle
                                             checked={settings.notifNewSale}
                                             onChange={(v) => update({ notifNewSale: v })}
-                                            label="Nouvelle vente"
-                                            hint="Notification en temps réel à chaque encaissement."
+                                            label={t('settings.notifications.newSale')}
+                                            hint={t('settings.notifications.newSaleHint')}
                                         />
                                     </div>
                                 </SectionCard>
@@ -440,32 +423,32 @@ export default function SettingsIndex({ users = [] }) {
 
                         {activeTab === 'appearance' && (
                             <div className="space-y-4">
-                                <SectionCard title="Apparence" description="Personnalisez le thème de l'interface.">
-                                    <Field label="Thème">
+                                <SectionCard title={t('settings.appearance.title')} description={t('settings.appearance.desc')}>
+                                    <Field label={t('settings.appearance.theme')}>
                                         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                                             {[
-                                                { id: 'light', label: 'Clair', bg: 'bg-white' },
-                                                { id: 'dark', label: 'Sombre', bg: 'bg-slate-900' },
-                                                { id: 'auto', label: 'Système', bg: 'bg-gradient-to-br from-white to-slate-900' },
-                                            ].map((t) => (
+                                                { id: 'light', label: t('settings.appearance.light'), bg: 'bg-white' },
+                                                { id: 'dark', label: t('settings.appearance.dark'), bg: 'bg-slate-900' },
+                                                { id: 'auto', label: t('settings.appearance.system'), bg: 'bg-gradient-to-br from-white to-slate-900' },
+                                            ].map((th) => (
                                                 <button
-                                                    key={t.id}
+                                                    key={th.id}
                                                     type="button"
-                                                    onClick={() => update({ theme: t.id })}
+                                                    onClick={() => update({ theme: th.id })}
                                                     className={`rounded-xl border p-3 text-left transition ${
-                                                        settings.theme === t.id
+                                                        settings.theme === th.id
                                                             ? 'border-indigo-500 ring-4 ring-indigo-100'
                                                             : 'border-slate-200 hover:border-slate-300'
                                                     }`}
                                                 >
-                                                    <div className={`mb-2 h-12 rounded-lg border border-slate-200 ${t.bg}`} />
-                                                    <div className="text-sm font-medium text-slate-800">{t.label}</div>
+                                                    <div className={`mb-2 h-12 rounded-lg border border-slate-200 ${th.bg}`} />
+                                                    <div className="text-sm font-medium text-slate-800">{th.label}</div>
                                                 </button>
                                             ))}
                                         </div>
                                     </Field>
                                     <div className="mt-4">
-                                        <Field label="Couleur d'accent">
+                                        <Field label={t('settings.appearance.accent')}>
                                             <div className="flex gap-2">
                                                 {[
                                                     { id: 'indigo', cls: 'from-indigo-500 to-violet-500' },
@@ -494,17 +477,17 @@ export default function SettingsIndex({ users = [] }) {
 
                         {activeTab === 'security' && (
                             <div className="space-y-4">
-                                <SectionCard title="Sécurité" description="Protection du compte et de la session.">
+                                <SectionCard title={t('settings.security.title')} description={t('settings.security.desc')}>
                                     <div className="space-y-2">
                                         <Toggle
                                             checked={settings.twoFactor}
                                             onChange={(v) => update({ twoFactor: v })}
-                                            label="Authentification à deux facteurs"
-                                            hint="Exiger un code à usage unique à la connexion."
+                                            label={t('settings.security.twoFactor')}
+                                            hint={t('settings.security.twoFactorHint')}
                                         />
                                     </div>
                                     <div className="mt-4">
-                                        <Field label="Timeout de session (minutes)" hint="Déconnexion automatique après inactivité.">
+                                        <Field label={t('settings.security.sessionTimeout')} hint={t('settings.security.sessionTimeoutHint')}>
                                             <Input
                                                 type="number"
                                                 value={settings.sessionTimeout}
@@ -516,7 +499,7 @@ export default function SettingsIndex({ users = [] }) {
                                         type="button"
                                         className="mt-4 inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
                                     >
-                                        <Lock size={14} /> Changer le mot de passe
+                                        <Lock size={14} /> {t('settings.security.changePassword')}
                                     </button>
                                 </SectionCard>
                             </div>
@@ -524,20 +507,20 @@ export default function SettingsIndex({ users = [] }) {
 
                         {activeTab === 'backup' && (
                             <div className="space-y-4">
-                                <SectionCard title="Sauvegardes" description="Protégez vos données de caisse.">
+                                <SectionCard title={t('settings.backup.title')} description={t('settings.backup.desc')}>
                                     <div className="mb-4 space-y-2">
                                         <Toggle
                                             checked={settings.autoBackup}
                                             onChange={(v) => update({ autoBackup: v })}
-                                            label="Sauvegarde automatique"
-                                            hint="Les sauvegardes sont chiffrées et stockées localement."
+                                            label={t('settings.backup.auto')}
+                                            hint={t('settings.backup.autoHint')}
                                         />
                                     </div>
-                                    <Field label="Fréquence">
+                                    <Field label={t('settings.backup.frequency')}>
                                         <Select value={settings.backupFrequency} onChange={(e) => update({ backupFrequency: e.target.value })}>
-                                            <option value="hourly">Toutes les heures</option>
-                                            <option value="daily">Quotidienne</option>
-                                            <option value="weekly">Hebdomadaire</option>
+                                            <option value="hourly">{t('settings.backup.hourly')}</option>
+                                            <option value="daily">{t('settings.backup.daily')}</option>
+                                            <option value="weekly">{t('settings.backup.weekly')}</option>
                                         </Select>
                                     </Field>
                                     <div className="mt-5 flex gap-2">
@@ -545,13 +528,13 @@ export default function SettingsIndex({ users = [] }) {
                                             type="button"
                                             className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:from-indigo-700 hover:to-violet-700"
                                         >
-                                            <Database size={14} /> Sauvegarder maintenant
+                                            <Database size={14} /> {t('settings.backup.now')}
                                         </button>
                                         <button
                                             type="button"
                                             className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
                                         >
-                                            <Globe size={14} /> Restaurer
+                                            <Globe size={14} /> {t('settings.backup.restore')}
                                         </button>
                                     </div>
                                 </SectionCard>

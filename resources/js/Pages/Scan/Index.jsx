@@ -1,21 +1,12 @@
 import { Head } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ScanLine, Package, Plus, Minus, Trash2, ShoppingBag } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import PosLayout from '../../Layouts/PosLayout';
 import { formatCurrency } from '../../lib/formatCurrency';
 
-const CATEGORIES = [
-    { id: 'all', label: 'Tout' },
-    { id: 'bureaux', label: 'Bureaux' },
-    { id: 'rangement_bureau', label: 'Rangement' },
-    { id: 'bureaux_direction', label: 'Bureaux Direction' },
-    { id: 'bureaux_compacts', label: 'Bureaux Compacts' },
-    { id: 'bureaux_ergonomiques', label: 'Bureaux Ergonomiques' },
-    { id: 'bureaux_gaming', label: 'Bureaux Gaming' },
-    { id: 'mobilier_professionnel', label: 'Mobilier Pro' },
-];
-
 export default function ScanIndex({ products = [] }) {
+    const { t } = useTranslation();
     const [scanInput, setScanInput] = useState('');
     const [cartItems, setCartItems] = useState([]);
     const [lastScanned, setLastScanned] = useState(null);
@@ -55,7 +46,7 @@ export default function ScanIndex({ products = [] }) {
         );
 
         if (!product) {
-            setError(`Produit non trouvé: ${code}`);
+            setError(t('scan.notFound', { code }));
             setLastScanned(null);
             return;
         }
@@ -115,12 +106,12 @@ export default function ScanIndex({ products = [] }) {
 
     return (
         <>
-            <Head title="Scan" />
+            <Head title={t('scan.title')} />
             <PosLayout>
                 <div className="flex flex-1 flex-col overflow-hidden px-8 py-6">
                     <div className="mb-6">
-                        <h1 className="text-2xl font-bold tracking-tight text-slate-900">Scan</h1>
-                        <p className="text-sm text-slate-500">Scanner ou saisir un code-barres (F2)</p>
+                        <h1 className="text-2xl font-bold tracking-tight text-slate-900">{t('scan.title')}</h1>
+                        <p className="text-sm text-slate-500">{t('scan.subtitle')}</p>
                     </div>
 
                     <div className="mb-6">
@@ -131,11 +122,11 @@ export default function ScanIndex({ products = [] }) {
                                 type="text"
                                 value={scanInput}
                                 onChange={(e) => setScanInput(e.target.value)}
-                                placeholder="Scanner ou taper le code..."
+                                placeholder={t('scan.placeholder')}
                                 className="w-full rounded-2xl border border-slate-200 bg-white py-4 pl-14 pr-4 text-lg font-mono tracking-wider shadow-[0_2px_8px_rgba(15,23,42,0.08)] focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                             />
                             <div className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-400">
-                                F2 pour focus
+                                {t('scan.f2Focus')}
                             </div>
                         </div>
 
@@ -169,10 +160,10 @@ export default function ScanIndex({ products = [] }) {
                             <table className="w-full">
                                 <thead className="sticky top-0 bg-white">
                                     <tr className="border-b border-slate-200 text-left text-xs font-medium uppercase text-slate-500">
-                                        <th className="pb-3">Produit</th>
-                                        <th className="pb-3 text-center">Qté</th>
-                                        <th className="pb-3 text-right">Prix</th>
-                                        <th className="pb-3 text-right">Total</th>
+                                        <th className="pb-3">{t('products.title')}</th>
+                                        <th className="pb-3 text-center">{t('sales.qtyShort')}</th>
+                                        <th className="pb-3 text-right">{t('products.price')}</th>
+                                        <th className="pb-3 text-right">{t('sales.total')}</th>
                                         <th className="pb-3"></th>
                                     </tr>
                                 </thead>
@@ -225,7 +216,7 @@ export default function ScanIndex({ products = [] }) {
                         <div className="flex flex-1 items-center justify-center">
                             <div className="flex flex-col items-center gap-3 text-slate-400">
                                 <ScanLine className="h-12 w-12" />
-                                <p>Aucun produit scanné</p>
+                                <p>{t('scan.noScanned')}</p>
                             </div>
                         </div>
                     )}
@@ -235,23 +226,23 @@ export default function ScanIndex({ products = [] }) {
                     <div>
                         <div className="mb-4 flex items-center gap-2 text-lg font-semibold text-slate-900">
                             <ShoppingBag size={20} />
-                            Panier
+                            {t('sales.cart')}
                             <span className="ml-auto text-sm font-normal text-slate-500">
-                                {cartProducts.length} article(s)
+                                {t('sales.articlesCount', { count: cartProducts.length })}
                             </span>
                         </div>
 
                         <div className="space-y-3">
                             <div className="flex justify-between text-sm">
-                                <span className="text-slate-500">Sous-total</span>
+                                <span className="text-slate-500">{t('sales.subtotal')}</span>
                                 <span className="font-medium">{formatCurrency(subtotal)}</span>
                             </div>
                             <div className="flex justify-between text-sm">
-                                <span className="text-slate-500">Remise</span>
+                                <span className="text-slate-500">{t('sales.discount')}</span>
                                 <span className="text-red-500">-{formatCurrency(remise)}</span>
                             </div>
                             <div className="flex justify-between border-t border-slate-200 pt-3 text-lg">
-                                <span className="font-bold">Total</span>
+                                <span className="font-bold">{t('sales.total')}</span>
                                 <span className="font-bold text-indigo-600">{formatCurrency(total)}</span>
                             </div>
                         </div>
@@ -262,14 +253,14 @@ export default function ScanIndex({ products = [] }) {
                             onClick={clearCart}
                             className="w-full rounded-xl border border-slate-200 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
                         >
-                            Vider le panier
+                            {t('sales.clearCart')}
                         </button>
                         <button
-                            onClick={() => alert(`Encaissement: ${formatCurrency(total)}`)}
+                            onClick={() => alert(t('scan.encashment', { amount: formatCurrency(total) }))}
                             disabled={cartProducts.length === 0}
                             className="w-full rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                            Encaisser (F9)
+                            {t('scan.cashOut')}
                         </button>
                     </div>
                 </div>

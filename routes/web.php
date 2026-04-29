@@ -92,6 +92,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/ventes/{sale}/facture', [SaleController::class, 'invoice'])->name('sales.invoice');
 
     Route::get('/parametres', [UserController::class, 'settings'])->name('settings.index');
+    Route::put('/parametres', [UserController::class, 'updateSettings'])->name('settings.update');
 
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
     Route::get('/profile/password', [ProfileController::class, 'password'])->name('profile.password');
