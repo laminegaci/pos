@@ -389,5 +389,29 @@
       "clients": "Clients",
       "sales": "Ventes"
     }
+  },
+  "cart": {
+    "open": "Ouvrir le panier",
+    "itemsCount_one": "{{count}} article",
+    "itemsCount_other": "{{count}} articles",
+    "empty": "Le panier est vide",
+    "emptyHint": "Touchez un produit dans la grille pour l’ajouter.",
+    "unit": "unité",
+    "decrease": "Diminuer la quantité",
+    "increase": "Augmenter la quantité",
+    "maxStock": "Stock max atteint ({{count}})",
+    "maxStockToast": "Stock insuffisant pour « {{name}} » : {{count}} disponible(s).",
+    "outOfStock": "« {{name}} » est en rupture de stock.",
+    "confirmClear": "Confirmer ?",
+    "discountType": "Type de remise",
+    "received": "Montant reçu",
+    "exact": "Exact",
+    "change": "À rendre",
+    "missing": "Manque",
+    "insufficient": "Le montant reçu est inférieur au total.",
+    "processing": "Encaissement…",
+    "enterReceived": "Saisir le montant reçu (rendu monnaie)",
+    "percent": "Remise en pourcentage",
+    "amount": "Remise en dinars"
   }
 }

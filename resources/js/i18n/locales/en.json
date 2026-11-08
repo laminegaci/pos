@@ -389,5 +389,29 @@
       "clients": "Clients",
       "sales": "Sales"
     }
+  },
+  "cart": {
+    "open": "Open cart",
+    "itemsCount_one": "{{count}} item",
+    "itemsCount_other": "{{count}} items",
+    "empty": "Your cart is empty",
+    "emptyHint": "Tap a product in the grid to add it.",
+    "unit": "unit",
+    "decrease": "Decrease quantity",
+    "increase": "Increase quantity",
+    "maxStock": "Max stock reached ({{count}})",
+    "maxStockToast": "Not enough stock for “{{name}}”: {{count}} available.",
+    "outOfStock": "“{{name}}” is out of stock.",
+    "confirmClear": "Confirm?",
+    "discountType": "Discount type",
+    "received": "Amount received",
+    "exact": "Exact",
+    "change": "Change due",
+    "missing": "Missing",
+    "insufficient": "The amount received is lower than the total.",
+    "processing": "Processing…",
+    "enterReceived": "Enter amount received (change)",
+    "percent": "Percentage discount",
+    "amount": "Discount in dinars"
   }
 }
