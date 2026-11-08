@@ -358,5 +358,32 @@
     "title": "Langue",
     "fr": "Français",
     "en": "Anglais"
+  },
+  "topbar": {
+    "online": "En ligne",
+    "offline": "Hors ligne",
+    "sync": "Synchroniser",
+    "syncing": "Synchronisation…",
+    "lastSync": "Dernière synchro à {{time}}",
+    "syncOffline": "Synchronisation indisponible hors ligne",
+    "darkMode": "Mode sombre",
+    "lightMode": "Mode clair",
+    "fullscreen": "Plein écran",
+    "exitFullscreen": "Quitter le plein écran"
+  },
+  "search": {
+    "placeholder": "Rechercher produits, clients, ventes…",
+    "clear": "Effacer",
+    "offline": "Hors ligne : seules les pages sont recherchées.",
+    "noResults": "Aucun résultat pour « {{query}} »",
+    "sale": "Vente",
+    "stock_one": "{{count}} en stock",
+    "stock_other": "{{count}} en stock",
+    "groups": {
+      "pages": "Pages",
+      "products": "Produits",
+      "clients": "Clients",
+      "sales": "Ventes"
+    }
   }
 }

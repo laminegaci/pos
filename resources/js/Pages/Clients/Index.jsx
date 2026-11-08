@@ -67,7 +67,7 @@ export default function ClientsIndex({ clients }) {
     const { t } = useTranslation();
     const [showModal, setShowModal] = useState(false);
     const [editing, setEditing] = useState(null);
-    const [searchQuery, setSearchQuery] = useState('');
+    const [searchQuery, setSearchQuery] = useState(() => new URLSearchParams(window.location.search).get('q') ?? '');
     const [filterType, setFilterType] = useState('all');
     const [errors, setErrors] = useState({});
     const [submitting, setSubmitting] = useState(false);

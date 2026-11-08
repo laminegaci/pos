@@ -61,7 +61,7 @@ export default function ProductsIndex({ products, categories }) {
     const { t } = useTranslation();
     const [showModal, setShowModal] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
-    const [searchQuery, setSearchQuery] = useState('');
+    const [searchQuery, setSearchQuery] = useState(() => new URLSearchParams(window.location.search).get('q') ?? '');
     const [filterCategory, setFilterCategory] = useState('all');
     const [viewMode, setViewMode] = useState('table');
     const [errors, setErrors] = useState({});

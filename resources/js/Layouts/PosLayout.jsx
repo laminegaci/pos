@@ -8,7 +8,7 @@ export default function PosLayout({ searchQuery, onSearchChange, children }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     return (
-        <div className="flex h-[100dvh] w-full overflow-hidden bg-gradient-to-br from-slate-50 via-white to-indigo-50/40 text-slate-900">
+        <div className="flex h-[100dvh] w-full overflow-hidden bg-gradient-to-br from-slate-50 via-white to-indigo-50/40 text-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950/40 dark:text-slate-100">
             <Sidebar mobileOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
             <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
                 <Topbar

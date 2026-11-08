@@ -358,5 +358,32 @@
     "title": "Language",
     "fr": "French",
     "en": "English"
+  },
+  "topbar": {
+    "online": "Online",
+    "offline": "Offline",
+    "sync": "Sync",
+    "syncing": "Syncing…",
+    "lastSync": "Last synced at {{time}}",
+    "syncOffline": "Sync unavailable while offline",
+    "darkMode": "Dark mode",
+    "lightMode": "Light mode",
+    "fullscreen": "Fullscreen",
+    "exitFullscreen": "Exit fullscreen"
+  },
+  "search": {
+    "placeholder": "Search products, clients, sales…",
+    "clear": "Clear",
+    "offline": "Offline: only pages are searched.",
+    "noResults": "No results for “{{query}}”",
+    "sale": "Sale",
+    "stock_one": "{{count}} in stock",
+    "stock_other": "{{count}} in stock",
+    "groups": {
+      "pages": "Pages",
+      "products": "Products",
+      "clients": "Clients",
+      "sales": "Sales"
+    }
   }
 }

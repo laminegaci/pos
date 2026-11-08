@@ -5,6 +5,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SaleController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\UserController;
 use App\Models\Client;
 use App\Models\Product;
@@ -83,6 +84,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/clients/{client}', [ClientController::class, 'update'])->name('clients.update');
     Route::delete('/clients/{client}', [ClientController::class, 'destroy'])->name('clients.destroy');
     Route::get('/clients/export', [ClientController::class, 'export'])->name('clients.export');
+
+    Route::get('/recherche', SearchController::class)->name('search');
 
     Route::get('/rapports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('/ventes/export', [SaleController::class, 'export'])->name('sales.export');
