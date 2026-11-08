@@ -314,7 +314,11 @@
       "weekly": "Weekly",
       "now": "Backup now",
       "restore": "Restore"
-    }
+    },
+    "unsaved": "Unsaved changes",
+    "saveErrors_one": "{{count}} field is invalid. Fix it and save again.",
+    "saveErrors_other": "{{count}} fields are invalid. Fix them and save again.",
+    "tabHasErrors": "This tab has errors"
   },
   "scan": {
     "title": "Scan",

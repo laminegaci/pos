@@ -1,11 +1,13 @@
-import { Head, useForm, usePage  } from '@inertiajs/react';
-import { useMemo, useState } from 'react';
+import { Head, useForm } from '@inertiajs/react';
+import { createContext, useContext, useMemo, useState } from 'react';
 import {
+    AlertCircle,
     Bell,
     Building2,
     CreditCard,
     Database,
     Globe,
+    Loader2,
     Lock,
     Menu,
     Palette,
@@ -21,53 +23,75 @@ import {
 import { useTranslation } from 'react-i18next';
 import PosLayout from '../../Layouts/PosLayout';
 
+const ErrorsContext = createContext({});
+
+const baseControl =
+    "w-full rounded-xl border bg-white px-3 py-2 text-sm outline-none transition focus:ring-4";
+const controlState = (hasError) =>
+    hasError
+        ? "border-red-300 focus:border-red-400 focus:ring-red-100"
+        : "border-slate-200 focus:border-indigo-400 focus:ring-indigo-100";
+
 function Field({ label, hint, children }) {
+    const errors = useContext(ErrorsContext);
+    const name = children?.props?.name;
+    const error = name ? errors[name] : null;
     return (
         <div>
             <label className="mb-1 block text-xs font-semibold text-slate-600">{label}</label>
             {children}
-            {hint && <p className="mt-1 text-xs text-slate-400">{hint}</p>}
+            {error ? (
+                <p className="mt-1 flex items-center gap-1 text-xs text-red-600">
+                    <AlertCircle size={12} /> {error}
+                </p>
+            ) : (
+                hint && <p className="mt-1 text-xs text-slate-400">{hint}</p>
+            )}
         </div>
     );
 }
 
 function Input(props) {
-    return (
-        <input
-            {...props}
-            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
-        />
-    );
+    const errors = useContext(ErrorsContext);
+    const hasError = !!errors[props.name];
+    return <input {...props} aria-invalid={hasError} className={`${baseControl} ${controlState(hasError)}`} />;
 }
 
 function Select({ children, ...props }) {
+    const errors = useContext(ErrorsContext);
+    const hasError = !!errors[props.name];
     return (
-        <select
-            {...props}
-            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
-        >
+        <select {...props} aria-invalid={hasError} className={`${baseControl} ${controlState(hasError)}`}>
             {children}
         </select>
     );
 }
 
-function Toggle({ checked, onChange, label, hint }) {
+function Toggle({ name, checked, onChange, label, hint }) {
+    const errors = useContext(ErrorsContext);
+    const error = name ? errors[name] : null;
     return (
-        <label className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3">
+        <label className={`flex items-center justify-between rounded-xl border bg-white px-4 py-3 ${error ? "border-red-300" : "border-slate-200"}`}>
             <div className="min-w-0 flex-1">
                 <div className="text-sm font-medium text-slate-800">{label}</div>
-                {hint && <div className="text-xs text-slate-400">{hint}</div>}
+                {error ? (
+                    <div className="text-xs text-red-600">{error}</div>
+                ) : (
+                    hint && <div className="text-xs text-slate-400">{hint}</div>
+                )}
             </div>
             <button
                 type="button"
+                role="switch"
+                aria-checked={checked}
                 onClick={() => onChange(!checked)}
                 className={`relative ml-4 inline-flex h-6 w-11 flex-shrink-0 rounded-full transition-colors ${
-                    checked ? 'bg-gradient-to-br from-indigo-600 to-violet-600' : 'bg-slate-200'
+                    checked ? "bg-gradient-to-br from-indigo-600 to-violet-600" : "bg-slate-200"
                 }`}
             >
                 <span
                     className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
-                        checked ? 'translate-x-5' : 'translate-x-0.5'
+                        checked ? "translate-x-5" : "translate-x-0.5"
                     }`}
                 />
             </button>
@@ -87,44 +111,97 @@ function SectionCard({ title, description, children }) {
     );
 }
 
+const DEFAULT_SETTINGS = {
+    shopName: "POS",
+    shopCode: "POS-01",
+    currency: "DZD",
+    language: "fr",
+    timezone: "Africa/Algiers",
+    company: "",
+    rc: "",
+    nif: "",
+    address: "",
+    phone: "",
+    email: "",
+    vatRate: 19,
+    receiptFooter: "Merci pour votre achat !",
+    showLogo: true,
+    printAuto: true,
+    cashEnabled: true,
+    cardEnabled: true,
+    creditEnabled: false,
+    printerName: "Epson TM-T20III",
+    paperSize: "80mm",
+    theme: "light",
+    accentColor: "indigo",
+    notifLowStock: true,
+    notifDailyReport: true,
+    notifNewSale: false,
+    twoFactor: false,
+    sessionTimeout: 30,
+    autoBackup: true,
+    backupFrequency: "daily",
+};
+
+// Which tab holds each field, to jump to the first invalid one after a failed save.
+const FIELD_TAB = {
+    shopName: "general", shopCode: "general", currency: "general", language: "general", timezone: "general",
+    company: "company", rc: "company", nif: "company", address: "company", phone: "company", email: "company",
+    vatRate: "billing", receiptFooter: "billing", showLogo: "billing", printAuto: "billing", printerName: "billing", paperSize: "billing",
+    cashEnabled: "payments", cardEnabled: "payments", creditEnabled: "payments",
+    notifLowStock: "notifications", notifDailyReport: "notifications", notifNewSale: "notifications",
+    theme: "appearance", accentColor: "appearance",
+    twoFactor: "security", sessionTimeout: "security",
+    autoBackup: "backup", backupFrequency: "backup",
+};
+
+// Inputs need strings, never null (nullable DB columns come back as null).
+function normalize(values) {
+    const out = { ...DEFAULT_SETTINGS };
+    for (const key of Object.keys(DEFAULT_SETTINGS)) {
+        const v = values?.[key];
+        if (v !== null && v !== undefined) out[key] = v;
+        else if (typeof DEFAULT_SETTINGS[key] === "string" && values && key in values) out[key] = "";
+    }
+    return out;
+}
+
 export default function SettingsIndex({ users = [], settings: initialSettings }) {
     const { t } = useTranslation();
-    const { props } = usePage();
-    const [activeTab, setActiveTab] = useState('general');
-    const [saved, setSaved] = useState(false);
+    const [activeTab, setActiveTab] = useState("general");
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [settings, setSettings] = useState(initialSettings || {
-        shopName: 'POS',
-        shopCode: 'POS-01',
-        currency: 'DZD',
-        language: 'fr',
-        timezone: 'Africa/Algiers',
-        company: 'Mon Entreprise',
-        rc: '',
-        nif: '',
-        address: '',
-        phone: '',
-        email: 'contact@pos.local',
-        vatRate: 19,
-        receiptFooter: 'Merci pour votre achat !',
-        showLogo: true,
-        printAuto: true,
-        cashEnabled: true,
-        cardEnabled: true,
-        creditEnabled: false,
-        printerName: 'Epson TM-T20III',
-        paperSize: '80mm',
-        theme: 'light',
-        accentColor: 'indigo',
-        notifLowStock: true,
-        notifDailyReport: true,
-        notifNewSale: false,
-        twoFactor: false,
-        sessionTimeout: 30,
-        autoBackup: true,
-        backupFrequency: 'daily',
-    });
 
+    const {
+        data: settings,
+        setData,
+        put,
+        processing,
+        errors,
+        clearErrors,
+        isDirty,
+        recentlySuccessful,
+        setDefaults,
+    } = useForm(normalize(initialSettings));
+
+    const errorCount = Object.keys(errors).length;
+
+    function update(patch) {
+        setData((prev) => ({ ...prev, ...patch }));
+        clearErrors(...Object.keys(patch));
+    }
+
+    function save(e) {
+        e.preventDefault();
+        if (processing) return;
+        put("/parametres", {
+            preserveScroll: true,
+            onSuccess: () => setDefaults(),
+            onError: (errs) => {
+                const first = Object.keys(errs).find((k) => FIELD_TAB[k]);
+                if (first) setActiveTab(FIELD_TAB[first]);
+            },
+        });
+    }
     const TABS = useMemo(() => [
         { id: 'general', label: t('settings.tabs.general'), icon: Store },
         { id: 'company', label: t('settings.tabs.company'), icon: Building2 },
@@ -137,25 +214,8 @@ export default function SettingsIndex({ users = [], settings: initialSettings })
         { id: 'backup', label: t('settings.tabs.backup'), icon: Database },
     ], [t]);
 
-    function update(patch) {
-        setSettings({ ...settings, ...patch });
-        setFormData({ ...formData, ...patch });
-    }
-
-    const { data: formData, setData: setFormData, put: saveSettings, processing } = useForm(settings);
-
-    function save(e) {
-        e.preventDefault();
-        saveSettings('/parametres', {
-            preserveScroll: true,
-            onSuccess: () => {
-                setSaved(true);
-                setTimeout(() => setSaved(false), 2000);
-            },
-        });
-    }
-
     return (
+        <ErrorsContext.Provider value={errors}>
         <PosLayout>
             <Head title={t('settings.title')} />
             <div className="flex flex-1 overflow-hidden">
@@ -203,6 +263,9 @@ export default function SettingsIndex({ users = [], settings: initialSettings })
                                 >
                                     <Icon size={16} className={active ? 'text-white' : 'text-slate-400'} />
                                     <span className="font-medium">{tab.label}</span>
+                                    {Object.keys(errors).some((k) => FIELD_TAB[k] === tab.id) && (
+                                        <span className="ml-auto h-2 w-2 rounded-full bg-red-500" aria-label={t('settings.tabHasErrors')} />
+                                    )}
                                 </button>
                             );
                         })}
@@ -222,17 +285,29 @@ export default function SettingsIndex({ users = [], settings: initialSettings })
                             {TABS.find((tab) => tab.id === activeTab)?.label}
                         </div>
                         <div className="flex items-center gap-3">
-                            {saved && (
-                                <span className="text-xs font-medium text-emerald-600">✓ {t('settings.saved')}</span>
+                            {recentlySuccessful && !isDirty && (
+                                <span role="status" className="text-xs font-medium text-emerald-600">✓ {t('settings.saved')}</span>
+                            )}
+                            {isDirty && !processing && (
+                                <span className="hidden text-xs font-medium text-amber-600 sm:inline">{t('settings.unsaved')}</span>
                             )}
                             <button
                                 type="submit"
-                                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:from-indigo-700 hover:to-violet-700"
+                                disabled={processing}
+                                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:from-indigo-700 hover:to-violet-700 disabled:cursor-wait disabled:opacity-70"
                             >
-                                <Save size={14} /> <span className="hidden sm:inline">{t('common.save')}</span>
+                                {processing ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                                <span className="hidden sm:inline">{processing ? t('common.saving') : t('common.save')}</span>
                             </button>
                         </div>
                     </div>
+
+                    {errorCount > 0 && (
+                        <div role="alert" className="mx-4 mt-4 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 sm:mx-6">
+                            <AlertCircle size={16} className="mt-0.5 shrink-0" />
+                            <span>{t('settings.saveErrors', { count: errorCount })}</span>
+                        </div>
+                    )}
 
                     <div className="flex-1 overflow-y-auto p-4 sm:p-6">
                         {activeTab === 'general' && (
@@ -240,27 +315,27 @@ export default function SettingsIndex({ users = [], settings: initialSettings })
                                 <SectionCard title={t('settings.general.shop')} description={t('settings.general.shopDesc')}>
                                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                         <Field label={t('settings.general.shopName')}>
-                                            <Input value={settings.shopName} onChange={(e) => update({ shopName: e.target.value })} />
+                                            <Input name="shopName" value={settings.shopName ?? ''} onChange={(e) => update({ shopName: e.target.value })} />
                                         </Field>
                                         <Field label={t('settings.general.shopCode')}>
-                                            <Input value={settings.shopCode} onChange={(e) => update({ shopCode: e.target.value })} />
+                                            <Input name="shopCode" value={settings.shopCode ?? ''} onChange={(e) => update({ shopCode: e.target.value })} />
                                         </Field>
                                         <Field label={t('settings.general.currency')}>
-                                            <Select value={settings.currency} onChange={(e) => update({ currency: e.target.value })}>
+                                            <Select name="currency" value={settings.currency ?? ''} onChange={(e) => update({ currency: e.target.value })}>
                                                 <option value="DZD">Dinar algérien (DA)</option>
                                                 <option value="EUR">Euro (€)</option>
                                                 <option value="USD">Dollar US ($)</option>
                                             </Select>
                                         </Field>
                                         <Field label={t('settings.general.language')}>
-                                            <Select value={settings.language} onChange={(e) => update({ language: e.target.value })}>
+                                            <Select name="language" value={settings.language ?? ''} onChange={(e) => update({ language: e.target.value })}>
                                                 <option value="fr">Français</option>
                                                 <option value="ar">العربية</option>
                                                 <option value="en">English</option>
                                             </Select>
                                         </Field>
                                         <Field label={t('settings.general.timezone')}>
-                                            <Select value={settings.timezone} onChange={(e) => update({ timezone: e.target.value })}>
+                                            <Select name="timezone" value={settings.timezone ?? ''} onChange={(e) => update({ timezone: e.target.value })}>
                                                 <option value="Africa/Algiers">Africa/Algiers (GMT+1)</option>
                                                 <option value="Europe/Paris">Europe/Paris (GMT+1)</option>
                                                 <option value="UTC">UTC</option>
@@ -276,22 +351,22 @@ export default function SettingsIndex({ users = [], settings: initialSettings })
                                 <SectionCard title={t('settings.company.title')} description={t('settings.company.desc')}>
                                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                         <Field label={t('settings.company.company')}>
-                                            <Input value={settings.company} onChange={(e) => update({ company: e.target.value })} />
+                                            <Input name="company" value={settings.company ?? ''} onChange={(e) => update({ company: e.target.value })} />
                                         </Field>
                                         <Field label={t('settings.company.rc')}>
-                                            <Input value={settings.rc} onChange={(e) => update({ rc: e.target.value })} />
+                                            <Input name="rc" value={settings.rc ?? ''} onChange={(e) => update({ rc: e.target.value })} />
                                         </Field>
                                         <Field label={t('settings.company.nif')}>
-                                            <Input value={settings.nif} onChange={(e) => update({ nif: e.target.value })} />
+                                            <Input name="nif" value={settings.nif ?? ''} onChange={(e) => update({ nif: e.target.value })} />
                                         </Field>
                                         <Field label={t('settings.company.phone')}>
-                                            <Input value={settings.phone} onChange={(e) => update({ phone: e.target.value })} />
+                                            <Input name="phone" value={settings.phone ?? ''} onChange={(e) => update({ phone: e.target.value })} />
                                         </Field>
                                         <Field label={t('settings.company.email')}>
-                                            <Input type="email" value={settings.email} onChange={(e) => update({ email: e.target.value })} />
+                                            <Input type="email" name="email" value={settings.email ?? ''} onChange={(e) => update({ email: e.target.value })} />
                                         </Field>
                                         <Field label={t('settings.company.address')}>
-                                            <Input value={settings.address} onChange={(e) => update({ address: e.target.value })} />
+                                            <Input name="address" value={settings.address ?? ''} onChange={(e) => update({ address: e.target.value })} />
                                         </Field>
                                     </div>
                                 </SectionCard>
@@ -305,28 +380,28 @@ export default function SettingsIndex({ users = [], settings: initialSettings })
                                         <Field label={t('settings.billing.vat')} hint={t('settings.billing.vatHint')}>
                                             <Input
                                                 type="number"
-                                                value={settings.vatRate}
-                                                onChange={(e) => update({ vatRate: Number(e.target.value) })}
+                                                name="vatRate" value={settings.vatRate ?? ''}
+                                                onChange={(e) => update({ vatRate: e.target.value === '' ? '' : Number(e.target.value) })}
                                             />
                                         </Field>
                                     </div>
                                     <Field label={t('settings.billing.footer')}>
                                         <textarea
                                             rows={3}
-                                            value={settings.receiptFooter}
+                                            name="receiptFooter" value={settings.receiptFooter ?? ''}
                                             onChange={(e) => update({ receiptFooter: e.target.value })}
                                             className="w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
                                         />
                                     </Field>
                                     <div className="mt-4 space-y-2">
                                         <Toggle
-                                            checked={settings.showLogo}
+                                            name="showLogo" checked={!!settings.showLogo}
                                             onChange={(v) => update({ showLogo: v })}
                                             label={t('settings.billing.showLogo')}
                                             hint={t('settings.billing.showLogoHint')}
                                         />
                                         <Toggle
-                                            checked={settings.printAuto}
+                                            name="printAuto" checked={!!settings.printAuto}
                                             onChange={(v) => update({ printAuto: v })}
                                             label={t('settings.billing.printAuto')}
                                             hint={t('settings.billing.printAutoHint')}
@@ -341,19 +416,19 @@ export default function SettingsIndex({ users = [], settings: initialSettings })
                                 <SectionCard title={t('settings.payments.title')} description={t('settings.payments.desc')}>
                                     <div className="space-y-2">
                                         <Toggle
-                                            checked={settings.cashEnabled}
+                                            name="cashEnabled" checked={!!settings.cashEnabled}
                                             onChange={(v) => update({ cashEnabled: v })}
                                             label={t('settings.payments.cash')}
                                             hint={t('settings.payments.cashHint')}
                                         />
                                         <Toggle
-                                            checked={settings.cardEnabled}
+                                            name="cardEnabled" checked={!!settings.cardEnabled}
                                             onChange={(v) => update({ cardEnabled: v })}
                                             label={t('settings.payments.card')}
                                             hint={t('settings.payments.cardHint')}
                                         />
                                         <Toggle
-                                            checked={settings.creditEnabled}
+                                            name="creditEnabled" checked={!!settings.creditEnabled}
                                             onChange={(v) => update({ creditEnabled: v })}
                                             label={t('settings.payments.credit')}
                                             hint={t('settings.payments.creditHint')}
@@ -399,19 +474,19 @@ export default function SettingsIndex({ users = [], settings: initialSettings })
                                 <SectionCard title={t('settings.notifications.title')} description={t('settings.notifications.desc')}>
                                     <div className="space-y-2">
                                         <Toggle
-                                            checked={settings.notifLowStock}
+                                            name="notifLowStock" checked={!!settings.notifLowStock}
                                             onChange={(v) => update({ notifLowStock: v })}
                                             label={t('settings.notifications.lowStock')}
                                             hint={t('settings.notifications.lowStockHint')}
                                         />
                                         <Toggle
-                                            checked={settings.notifDailyReport}
+                                            name="notifDailyReport" checked={!!settings.notifDailyReport}
                                             onChange={(v) => update({ notifDailyReport: v })}
                                             label={t('settings.notifications.dailyReport')}
                                             hint={t('settings.notifications.dailyReportHint')}
                                         />
                                         <Toggle
-                                            checked={settings.notifNewSale}
+                                            name="notifNewSale" checked={!!settings.notifNewSale}
                                             onChange={(v) => update({ notifNewSale: v })}
                                             label={t('settings.notifications.newSale')}
                                             hint={t('settings.notifications.newSaleHint')}
@@ -480,7 +555,7 @@ export default function SettingsIndex({ users = [], settings: initialSettings })
                                 <SectionCard title={t('settings.security.title')} description={t('settings.security.desc')}>
                                     <div className="space-y-2">
                                         <Toggle
-                                            checked={settings.twoFactor}
+                                            name="twoFactor" checked={!!settings.twoFactor}
                                             onChange={(v) => update({ twoFactor: v })}
                                             label={t('settings.security.twoFactor')}
                                             hint={t('settings.security.twoFactorHint')}
@@ -490,8 +565,8 @@ export default function SettingsIndex({ users = [], settings: initialSettings })
                                         <Field label={t('settings.security.sessionTimeout')} hint={t('settings.security.sessionTimeoutHint')}>
                                             <Input
                                                 type="number"
-                                                value={settings.sessionTimeout}
-                                                onChange={(e) => update({ sessionTimeout: Number(e.target.value) })}
+                                                name="sessionTimeout" value={settings.sessionTimeout ?? ''}
+                                                onChange={(e) => update({ sessionTimeout: e.target.value === '' ? '' : Number(e.target.value) })}
                                             />
                                         </Field>
                                     </div>
@@ -510,14 +585,14 @@ export default function SettingsIndex({ users = [], settings: initialSettings })
                                 <SectionCard title={t('settings.backup.title')} description={t('settings.backup.desc')}>
                                     <div className="mb-4 space-y-2">
                                         <Toggle
-                                            checked={settings.autoBackup}
+                                            name="autoBackup" checked={!!settings.autoBackup}
                                             onChange={(v) => update({ autoBackup: v })}
                                             label={t('settings.backup.auto')}
                                             hint={t('settings.backup.autoHint')}
                                         />
                                     </div>
                                     <Field label={t('settings.backup.frequency')}>
-                                        <Select value={settings.backupFrequency} onChange={(e) => update({ backupFrequency: e.target.value })}>
+                                        <Select name="backupFrequency" value={settings.backupFrequency ?? ''} onChange={(e) => update({ backupFrequency: e.target.value })}>
                                             <option value="hourly">{t('settings.backup.hourly')}</option>
                                             <option value="daily">{t('settings.backup.daily')}</option>
                                             <option value="weekly">{t('settings.backup.weekly')}</option>
@@ -544,5 +619,6 @@ export default function SettingsIndex({ users = [], settings: initialSettings })
                 </form>
             </div>
         </PosLayout>
+        </ErrorsContext.Provider>
     );
 }

@@ -143,4 +143,6 @@ return [
         'min' => 'The field must be at least :min characters',
         'max' => 'The field must not exceed :max characters',
     ],
+
+    'settings_saved' => 'Settings saved successfully.',
 ];

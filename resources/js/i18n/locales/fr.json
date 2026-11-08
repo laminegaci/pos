@@ -314,7 +314,11 @@
       "weekly": "Hebdomadaire",
       "now": "Sauvegarder maintenant",
       "restore": "Restaurer"
-    }
+    },
+    "unsaved": "Modifications non enregistrées",
+    "saveErrors_one": "{{count}} champ est invalide. Corrigez-le puis enregistrez à nouveau.",
+    "saveErrors_other": "{{count}} champs sont invalides. Corrigez-les puis enregistrez à nouveau.",
+    "tabHasErrors": "Cet onglet contient des erreurs"
   },
   "scan": {
     "title": "Scan",

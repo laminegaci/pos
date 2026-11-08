@@ -143,4 +143,6 @@ return [
         'min' => 'Le champ doit contenir au moins :min caractères',
         'max' => 'Le champ ne doit pas dépasser :max caractères',
     ],
+
+    'settings_saved' => 'Paramètres enregistrés avec succès.',
 ];
