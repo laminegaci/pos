@@ -426,7 +426,9 @@
     "processing": "Encaissement…",
     "enterReceived": "Saisir le montant reçu (rendu monnaie)",
     "percent": "Remise en pourcentage",
-    "amount": "Remise en dinars"
+    "amount": "Remise en dinars",
+    "soundOn": "Activer les sons",
+    "soundOff": "Couper les sons"
   },
   "saleConfirm": {
     "title": "Vente #{{id}} confirmée",

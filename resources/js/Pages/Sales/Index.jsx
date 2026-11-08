@@ -7,6 +7,7 @@ import ProductGrid from '../../Components/Sales/ProductGrid';
 import Cart from '../../Components/Sales/Cart';
 import Toast from '../../Components/Toast';
 import SaleConfirmationModal from '../../Components/Sales/SaleConfirmationModal';
+import { sounds } from '../../lib/sounds';
 
 const CART_STORAGE_KEY = 'pos.cart';
 const NO_DISCOUNT = { type: 'amount', value: 0 };
@@ -60,6 +61,7 @@ export default function SalesIndex({ caisse, categories, products, clients = [],
 
     useEffect(() => {
         if (flash?.sale) {
+            sounds.success();
             setConfirmation({
                 sale: flash.sale,
                 lines: checkoutSnapshot.current?.lines ?? [],
@@ -119,6 +121,7 @@ export default function SalesIndex({ caisse, categories, products, clients = [],
 
     const warnStock = (productId) => {
         const product = productsById[productId];
+        sounds.error();
         setToast({
             message: product?.stock > 0 ? t('cart.maxStockToast', { name: product.name, count: product.stock }) : t('cart.outOfStock', { name: product?.name }),
             type: 'error',
@@ -141,15 +144,20 @@ export default function SalesIndex({ caisse, categories, products, clients = [],
     const addToCart = (productId) => {
         const current = cartItems.find((i) => i.productId === productId)?.quantity ?? 0;
         if (current + 1 > stockOf(productId)) return warnStock(productId);
+        sounds.add();
         setQuantity(productId, current + 1);
     };
 
     const decrementItem = (productId) => {
         const current = cartItems.find((i) => i.productId === productId)?.quantity ?? 0;
+        sounds.remove();
         setQuantity(productId, current - 1);
     };
 
-    const removeItem = (productId) => setCartItems((prev) => prev.filter((i) => i.productId !== productId));
+    const removeItem = (productId) => {
+        sounds.remove();
+        setCartItems((prev) => prev.filter((i) => i.productId !== productId));
+    };
 
     const clearCart = () => {
         setCartItems([]);
@@ -171,7 +179,10 @@ export default function SalesIndex({ caisse, categories, products, clients = [],
             {
                 preserveScroll: true,
                 onSuccess: () => clearCart(),
-                onError: () => setToast({ message: t('sales.checkoutFailed'), type: 'error' }),
+                onError: () => {
+                    sounds.error();
+                    setToast({ message: t('sales.checkoutFailed'), type: 'error' });
+                },
                 onFinish: () => setSubmitting(false),
             },
         );
@@ -231,7 +242,10 @@ export default function SalesIndex({ caisse, categories, products, clients = [],
                     onDecrement={decrementItem}
                     onSetQuantity={setQuantity}
                     onRemove={removeItem}
-                    onClear={clearCart}
+                    onClear={() => {
+                        sounds.remove();
+                        clearCart();
+                    }}
                     onCheckout={handleCheckout}
                     submitting={submitting}
                 />

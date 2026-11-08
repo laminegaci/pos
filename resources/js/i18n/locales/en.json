@@ -426,7 +426,9 @@
     "processing": "Processing…",
     "enterReceived": "Enter amount received (change)",
     "percent": "Percentage discount",
-    "amount": "Discount in dinars"
+    "amount": "Discount in dinars",
+    "soundOn": "Turn sounds on",
+    "soundOff": "Mute sounds"
   },
   "saleConfirm": {
     "title": "Sale #{{id}} confirmed",

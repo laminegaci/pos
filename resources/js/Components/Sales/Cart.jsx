@@ -1,9 +1,36 @@
 import { useEffect, useRef, useState } from 'react';
-import { AlertTriangle, Banknote, CreditCard, Loader2, Minus, Percent, Plus, ShoppingBag, Trash2, X } from 'lucide-react';
+import { AlertTriangle, Banknote, CreditCard, Loader2, Minus, Percent, Plus, ShoppingBag, Trash2, Volume2, VolumeX, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { formatCurrency } from '../../lib/formatCurrency';
+import { isSoundEnabled, onSoundChange, setSoundEnabled, sounds } from '../../lib/sounds';
 import ClientSelector from './ClientSelector';
 import ProductImage from './ProductImage';
+
+function SoundToggle() {
+    const { t } = useTranslation();
+    const [on, setOn] = useState(isSoundEnabled);
+
+    useEffect(() => onSoundChange(setOn), []);
+
+    const toggle = () => {
+        setSoundEnabled(!on);
+        if (!on) sounds.add(); // audible confirmation when turning sound back on
+    };
+
+    const label = on ? t('cart.soundOff') : t('cart.soundOn');
+    return (
+        <button
+            type="button"
+            onClick={toggle}
+            aria-pressed={on}
+            aria-label={label}
+            title={label}
+            className="flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+        >
+            {on ? <Volume2 size={16} /> : <VolumeX size={16} />}
+        </button>
+    );
+}
 
 function QuantityControl({ line, onDecrement, onIncrement, onSetQuantity }) {
     const { t } = useTranslation();
@@ -255,10 +282,11 @@ export default function Cart({
             if (e.key !== 'F9') return;
             e.preventDefault();
             if (canCheckout) onCheckout({ received });
+            else if (!empty && !submitting) sounds.error();
         };
         window.addEventListener('keydown', onKey);
         return () => window.removeEventListener('keydown', onKey);
-    }, [canCheckout, onCheckout, received]);
+    }, [canCheckout, onCheckout, received, empty, submitting]);
 
     const handleClear = () => {
         if (!confirmClear) return setConfirmClear(true);
@@ -304,6 +332,7 @@ export default function Cart({
                         </span>
                     </div>
                     <div className="flex items-center gap-2">
+                        <SoundToggle />
                         <button
                             type="button"
                             onClick={handleClear}
