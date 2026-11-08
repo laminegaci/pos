@@ -440,5 +440,10 @@
     "newSale": "Nouvelle vente",
     "printTicket": "Imprimer le ticket ({{format}})",
     "downloadA4": "Facture A4 (PDF)"
+  },
+  "sidebar": {
+    "label": "Navigation principale",
+    "cartBadge_one": "{{count}} article au panier",
+    "cartBadge_other": "{{count}} articles au panier"
   }
 }

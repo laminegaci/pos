@@ -51,6 +51,7 @@ export default function SalesIndex({ caisse, categories, products, clients = [],
         } catch {
             // storage unavailable: the cart simply isn't persisted
         }
+        window.dispatchEvent(new Event('pos:cart')); // updates the sidebar badge
     }, [cartItems, selectedClientId, discount]);
 
     // Snapshot of the cart taken at checkout, shown in the confirmation modal

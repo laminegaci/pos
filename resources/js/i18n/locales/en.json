@@ -440,5 +440,10 @@
     "newSale": "New sale",
     "printTicket": "Print receipt ({{format}})",
     "downloadA4": "A4 invoice (PDF)"
+  },
+  "sidebar": {
+    "label": "Main navigation",
+    "cartBadge_one": "{{count}} item in cart",
+    "cartBadge_other": "{{count}} items in cart"
   }
 }
