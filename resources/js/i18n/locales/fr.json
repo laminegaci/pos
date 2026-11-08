@@ -318,7 +318,21 @@
     "unsaved": "Modifications non enregistrées",
     "saveErrors_one": "{{count}} champ est invalide. Corrigez-le puis enregistrez à nouveau.",
     "saveErrors_other": "{{count}} champs sont invalides. Corrigez-les puis enregistrez à nouveau.",
-    "tabHasErrors": "Cet onglet contient des erreurs"
+    "tabHasErrors": "Cet onglet contient des erreurs",
+    "printing": {
+      "title": "Impression",
+      "desc": "Format du papier et imprimante utilisés pour les tickets de caisse.",
+      "paperSize": "Format papier",
+      "p80": "Rouleau thermique standard (Epson TM-T20, Xprinter…)",
+      "p58": "Petites imprimantes mobiles / Bluetooth",
+      "pA4": "Imprimante de bureau, facture pleine page",
+      "recommended": "Recommandé",
+      "printerName": "Nom de l’imprimante",
+      "printerNameHint": "Pour mémoire : le choix réel se fait dans la fenêtre d’impression.",
+      "test": "Imprimer un ticket test",
+      "noSale": "Aucune vente à imprimer pour l’instant",
+      "tip": "Astuce : dans la fenêtre d’impression, choisissez l’imprimante thermique, marges « Aucune » et décochez « En-têtes et pieds de page ». Pour imprimer sans fenêtre, lancez Chrome/Edge avec l’option --kiosk-printing."
+    }
   },
   "scan": {
     "title": "Scan",
@@ -413,5 +427,16 @@
     "enterReceived": "Saisir le montant reçu (rendu monnaie)",
     "percent": "Remise en pourcentage",
     "amount": "Remise en dinars"
+  },
+  "saleConfirm": {
+    "title": "Vente #{{id}} confirmée",
+    "walkIn": "Client de passage",
+    "print": "Imprimer la facture",
+    "preparing": "Préparation de la facture…",
+    "download": "Télécharger PDF",
+    "view": "Voir la vente",
+    "newSale": "Nouvelle vente",
+    "printTicket": "Imprimer le ticket ({{format}})",
+    "downloadA4": "Facture A4 (PDF)"
   }
 }

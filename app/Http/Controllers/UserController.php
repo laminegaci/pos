@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\UpdateSettingsRequest;
+use App\Models\Sale;
 use App\Models\Settings;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -25,6 +26,8 @@ class UserController extends Controller
         return Inertia::render('Settings/Index', [
             'users' => $users,
             'settings' => Settings::current()->toFrontend(),
+            // Used by the "print a test ticket" button.
+            'lastSaleId' => Sale::where('status', 'completed')->max('id'),
         ]);
     }
 

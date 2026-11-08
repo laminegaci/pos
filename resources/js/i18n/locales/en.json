@@ -318,7 +318,21 @@
     "unsaved": "Unsaved changes",
     "saveErrors_one": "{{count}} field is invalid. Fix it and save again.",
     "saveErrors_other": "{{count}} fields are invalid. Fix them and save again.",
-    "tabHasErrors": "This tab has errors"
+    "tabHasErrors": "This tab has errors",
+    "printing": {
+      "title": "Printing",
+      "desc": "Paper format and printer used for receipts.",
+      "paperSize": "Paper size",
+      "p80": "Standard thermal roll (Epson TM-T20, Xprinter…)",
+      "p58": "Small mobile / Bluetooth printers",
+      "pA4": "Office printer, full-page invoice",
+      "recommended": "Recommended",
+      "printerName": "Printer name",
+      "printerNameHint": "For reference: the actual printer is chosen in the print dialog.",
+      "test": "Print a test receipt",
+      "noSale": "No sale to print yet",
+      "tip": "Tip: in the print dialog, pick the thermal printer, set margins to “None” and untick “Headers and footers”. To print without the dialog, start Chrome/Edge with --kiosk-printing."
+    }
   },
   "scan": {
     "title": "Scan",
@@ -413,5 +427,16 @@
     "enterReceived": "Enter amount received (change)",
     "percent": "Percentage discount",
     "amount": "Discount in dinars"
+  },
+  "saleConfirm": {
+    "title": "Sale #{{id}} confirmed",
+    "walkIn": "Walk-in customer",
+    "print": "Print invoice",
+    "preparing": "Preparing invoice…",
+    "download": "Download PDF",
+    "view": "View sale",
+    "newSale": "New sale",
+    "printTicket": "Print receipt ({{format}})",
+    "downloadA4": "A4 invoice (PDF)"
   }
 }

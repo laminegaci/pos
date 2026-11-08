@@ -166,7 +166,7 @@ function normalize(values) {
     return out;
 }
 
-export default function SettingsIndex({ users = [], settings: initialSettings }) {
+export default function SettingsIndex({ users = [], settings: initialSettings, lastSaleId = null }) {
     const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState("general");
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -407,6 +407,77 @@ export default function SettingsIndex({ users = [], settings: initialSettings })
                                             hint={t('settings.billing.printAutoHint')}
                                         />
                                     </div>
+                                </SectionCard>
+
+                                <SectionCard title={t('settings.printing.title')} description={t('settings.printing.desc')}>
+                                    <Field label={t('settings.printing.paperSize')}>
+                                        <div name="paperSize" role="radiogroup" className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                                            {[
+                                                { id: '80mm', title: '80 mm', hint: t('settings.printing.p80'), recommended: true, w: 'w-10' },
+                                                { id: '58mm', title: '58 mm', hint: t('settings.printing.p58'), w: 'w-7' },
+                                                { id: 'A4', title: 'A4', hint: t('settings.printing.pA4'), w: 'w-12' },
+                                            ].map((p) => {
+                                                const selected = settings.paperSize === p.id;
+                                                return (
+                                                    <button
+                                                        key={p.id}
+                                                        type="button"
+                                                        role="radio"
+                                                        aria-checked={selected}
+                                                        onClick={() => update({ paperSize: p.id })}
+                                                        className={`flex items-start gap-3 rounded-xl border p-3 text-left transition ${
+                                                            selected
+                                                                ? 'border-indigo-500 bg-indigo-50/50 ring-4 ring-indigo-100'
+                                                                : 'border-slate-200 hover:border-slate-300'
+                                                        }`}
+                                                    >
+                                                        <span className="hidden h-12 w-12 shrink-0 items-end justify-center rounded-lg bg-slate-100 xl:flex">
+                                                            <span className={`${p.w} ${p.id === 'A4' ? 'h-10' : 'h-11'} rounded-t-sm border border-b-0 border-slate-300 bg-white`} />
+                                                        </span>
+                                                        <span className="min-w-0">
+                                                            <span className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-sm font-semibold text-slate-800">
+                                                                <span className="whitespace-nowrap">{p.title}</span>
+                                                                {p.recommended && (
+                                                                    <span className="rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700">
+                                                                        {t('settings.printing.recommended')}
+                                                                    </span>
+                                                                )}
+                                                            </span>
+                                                            <span className="mt-0.5 block text-xs text-slate-500">{p.hint}</span>
+                                                        </span>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </Field>
+                                    <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                        <Field label={t('settings.printing.printerName')} hint={t('settings.printing.printerNameHint')}>
+                                            <Input name="printerName" value={settings.printerName ?? ''} onChange={(e) => update({ printerName: e.target.value })} />
+                                        </Field>
+                                        <div className="flex items-end">
+                                            <a
+                                                href={
+                                                    lastSaleId
+                                                        ? settings.paperSize === 'A4'
+                                                            ? `/ventes/${lastSaleId}/facture?stream=1`
+                                                            : `/ventes/${lastSaleId}/ticket?format=${settings.paperSize}&print=1`
+                                                        : undefined
+                                                }
+                                                target="_blank"
+                                                rel="noopener"
+                                                aria-disabled={!lastSaleId}
+                                                className={`inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 transition hover:bg-slate-50 ${
+                                                    lastSaleId ? '' : 'pointer-events-none opacity-50'
+                                                }`}
+                                                title={lastSaleId ? undefined : t('settings.printing.noSale')}
+                                            >
+                                                <Printer size={15} /> {t('settings.printing.test')}
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <p className="mt-4 rounded-xl bg-slate-50 px-3 py-2 text-xs leading-relaxed text-slate-500">
+                                        {t('settings.printing.tip')}
+                                    </p>
                                 </SectionCard>
                             </div>
                         )}

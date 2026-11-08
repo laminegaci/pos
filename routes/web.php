@@ -9,6 +9,7 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\UserController;
 use App\Models\Client;
 use App\Models\Product;
+use App\Models\Settings;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -51,6 +52,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'categories' => $categories,
             'products' => $products,
             'clients' => $clients,
+            'printAuto' => (bool) Settings::current()->print_auto,
+            'paperSize' => Settings::current()->paper_size,
         ]);
     });
 
@@ -93,6 +96,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/ventes', [SaleController::class, 'store'])->name('sales.store');
     Route::get('/ventes/{sale}', [SaleController::class, 'show'])->name('sales.show');
     Route::get('/ventes/{sale}/facture', [SaleController::class, 'invoice'])->name('sales.invoice');
+    Route::get('/ventes/{sale}/ticket', [SaleController::class, 'ticket'])->name('sales.ticket');
 
     Route::get('/parametres', [UserController::class, 'settings'])->name('settings.index');
     Route::put('/parametres', [UserController::class, 'updateSettings'])->name('settings.update');

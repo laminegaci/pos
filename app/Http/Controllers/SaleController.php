@@ -8,6 +8,7 @@ use App\Exports\SaleExport;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Models\SaleItem;
+use App\Models\Settings;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -104,7 +105,20 @@ class SaleController extends Controller
             return $sale;
         });
 
-        return redirect('/')->with('success', "Vente #{$sale->id} enregistrée avec succès.");
+        $sale->load('client:id,name');
+
+        return redirect('/')
+            ->with('success', "Vente #{$sale->id} enregistrée avec succès.")
+            // Read by the Sales page to open the purchase confirmation modal.
+            ->with('sale', [
+                'id' => $sale->id,
+                'client' => $sale->client?->name,
+                'subtotal' => (float) $sale->subtotal,
+                'remise' => (float) $sale->remise,
+                'total' => (float) $sale->total,
+                'items_count' => (int) collect($data['items'])->sum('quantity'),
+                'created_at' => $sale->created_at?->toIso8601String(),
+            ]);
     }
 
     public function show(string $id): Response
@@ -157,6 +171,48 @@ class SaleController extends Controller
 
     public function invoice(Request $request, string $id): HttpResponse
     {
+        [$sale, $items] = $this->loadSaleWithItems($id);
+
+        $pdf = Pdf::loadView('invoices.sale', compact('sale', 'items'))->setPaper('a4');
+        $filename = "facture-{$sale->id}.pdf";
+
+        return $request->boolean('stream')
+            ? $pdf->stream($filename)
+            : $pdf->download($filename);
+    }
+
+    /**
+     * Thermal receipt (58/80 mm roll) as printable HTML.
+     * ?format=58mm|80mm overrides the shop setting, ?recu= shows the change due.
+     */
+    public function ticket(Request $request, string $id): HttpResponse
+    {
+        [$sale, $items] = $this->loadSaleWithItems($id);
+        $settings = Settings::current();
+
+        $format = $request->query('format');
+        if (! in_array($format, ['58mm', '80mm'], true)) {
+            $format = $settings->paper_size === '58mm' ? '58mm' : '80mm';
+        }
+
+        $received = $request->query('recu');
+        $received = is_numeric($received) && (float) $received > 0 ? (float) $received : null;
+
+        return response()->view('invoices.ticket', [
+            'sale' => $sale,
+            'items' => $items,
+            'settings' => $settings,
+            'format' => $format,
+            'received' => $received,
+            'change' => $received !== null ? max(0, $received - (float) $sale->total) : null,
+        ]);
+    }
+
+    /**
+     * @return array{0: Sale, 1: array<int, array{product_name: string, quantity: int, price: float, line_total: float}>}
+     */
+    private function loadSaleWithItems(string $id): array
+    {
         $sale = Sale::with(['client:id,name,email,phone', 'user:id,name'])
             ->where('status', 'completed')
             ->findOrFail($id);
@@ -179,11 +235,6 @@ class SaleController extends Controller
             ])
             ->all();
 
-        $pdf = Pdf::loadView('invoices.sale', compact('sale', 'items'))->setPaper('a4');
-        $filename = "facture-{$sale->id}.pdf";
-
-        return $request->boolean('stream')
-            ? $pdf->stream($filename)
-            : $pdf->download($filename);
+        return [$sale, $items];
     }
 }

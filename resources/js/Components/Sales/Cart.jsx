@@ -254,11 +254,11 @@ export default function Cart({
         const onKey = (e) => {
             if (e.key !== 'F9') return;
             e.preventDefault();
-            if (canCheckout) onCheckout();
+            if (canCheckout) onCheckout({ received });
         };
         window.addEventListener('keydown', onKey);
         return () => window.removeEventListener('keydown', onKey);
-    }, [canCheckout, onCheckout]);
+    }, [canCheckout, onCheckout, received]);
 
     const handleClear = () => {
         if (!confirmClear) return setConfirmClear(true);
@@ -433,7 +433,7 @@ export default function Cart({
 
                     <button
                         type="button"
-                        onClick={onCheckout}
+                        onClick={() => onCheckout({ received })}
                         disabled={!canCheckout}
                         className="mt-4 flex h-12 w-full items-center justify-between rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-500 px-5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 transition hover:shadow-xl hover:shadow-indigo-500/40 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
                     >

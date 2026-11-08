@@ -1,11 +1,12 @@
 import { Head, router, usePage } from '@inertiajs/react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import PosLayout from '../../Layouts/PosLayout';
 import CategoryTabs from '../../Components/Sales/CategoryTabs';
 import ProductGrid from '../../Components/Sales/ProductGrid';
 import Cart from '../../Components/Sales/Cart';
 import Toast from '../../Components/Toast';
+import SaleConfirmationModal from '../../Components/Sales/SaleConfirmationModal';
 
 const CART_STORAGE_KEY = 'pos.cart';
 const NO_DISCOUNT = { type: 'amount', value: 0 };
@@ -21,7 +22,7 @@ function loadStoredCart() {
     }
 }
 
-export default function SalesIndex({ caisse, categories, products, clients = [] }) {
+export default function SalesIndex({ caisse, categories, products, clients = [], printAuto = false, paperSize = '80mm' }) {
     const { t } = useTranslation();
     const { flash } = usePage().props;
     const [selectedCategory, setSelectedCategory] = useState('all');
@@ -51,10 +52,23 @@ export default function SalesIndex({ caisse, categories, products, clients = [] 
         }
     }, [cartItems, selectedClientId, discount]);
 
+    // Snapshot of the cart taken at checkout, shown in the confirmation modal
+    // (the cart itself is emptied once the sale is saved).
+    const checkoutSnapshot = useRef(null);
+    const [confirmation, setConfirmation] = useState(null);
+    const closeConfirmation = useCallback(() => setConfirmation(null), []);
+
     useEffect(() => {
-        if (flash?.success) setToast({ message: flash.success, type: 'success' });
+        if (flash?.sale) {
+            setConfirmation({
+                sale: flash.sale,
+                lines: checkoutSnapshot.current?.lines ?? [],
+                received: checkoutSnapshot.current?.received ?? null,
+            });
+            checkoutSnapshot.current = null;
+        } else if (flash?.success) setToast({ message: flash.success, type: 'success' });
         else if (flash?.error) setToast({ message: flash.error, type: 'error' });
-    }, [flash?.success, flash?.error]);
+    }, [flash?.sale?.id, flash?.success, flash?.error]);
 
     const filteredProducts = useMemo(() => {
         const q = searchQuery.trim().toLowerCase();
@@ -143,8 +157,9 @@ export default function SalesIndex({ caisse, categories, products, clients = [] 
         setDiscount(NO_DISCOUNT);
     };
 
-    const handleCheckout = useCallback(() => {
+    const handleCheckout = useCallback((payment = {}) => {
         if (cartLines.length === 0 || submitting) return;
+        checkoutSnapshot.current = { lines: cartLines, received: payment.received || null };
         setSubmitting(true);
         router.post(
             '/ventes',
@@ -166,6 +181,14 @@ export default function SalesIndex({ caisse, categories, products, clients = [] 
         <>
             <Head title={t('sales.sale')} />
             <Toast message={toast?.message} type={toast?.type} onClose={() => setToast(null)} />
+            <SaleConfirmationModal
+                sale={confirmation?.sale}
+                lines={confirmation?.lines}
+                received={confirmation?.received}
+                autoPrint={printAuto}
+                paperSize={paperSize}
+                onClose={closeConfirmation}
+            />
             <PosLayout searchQuery={searchQuery} onSearchChange={setSearchQuery}>
                 <div className="flex min-w-0 flex-1 flex-col overflow-hidden px-3 py-4 sm:px-5 sm:py-5 lg:px-8 lg:py-6">
                     <div className="mb-4 flex flex-wrap items-center gap-2 sm:gap-3 lg:mb-5">
