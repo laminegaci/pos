@@ -3,7 +3,7 @@ import { Bell, Menu } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from '../LanguageSwitcher';
 import GlobalSearch from './GlobalSearch';
-import { FullscreenToggle, OnlineStatus, SyncButton, ThemeToggle } from './TopbarActions';
+import { FullscreenToggle, NewProductButton, OnlineStatus, SyncButton, ThemeToggle } from './TopbarActions';
 
 export default function Topbar({ searchQuery, onSearchChange, onMenuClick }) {
     const { t } = useTranslation();
@@ -30,6 +30,7 @@ export default function Topbar({ searchQuery, onSearchChange, onMenuClick }) {
             </div>
 
             <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+                <NewProductButton />
                 <OnlineStatus />
                 <SyncButton />
                 <ThemeToggle />

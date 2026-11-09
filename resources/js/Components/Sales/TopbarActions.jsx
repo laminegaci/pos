@@ -1,5 +1,5 @@
-import { router } from '@inertiajs/react';
-import { Maximize, Minimize, Moon, RefreshCw, Sun } from 'lucide-react';
+import { Link, router } from '@inertiajs/react';
+import { Maximize, Minimize, Moon, PackagePlus, RefreshCw, Sun } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import useFullscreen from '../../hooks/useFullscreen';
@@ -87,5 +87,20 @@ export function FullscreenToggle() {
         <button type="button" onClick={toggleFullscreen} className={`${iconButton} hidden sm:flex`} title={label} aria-label={label}>
             {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
         </button>
+    );
+}
+
+/** Jump straight to the "new product" form. */
+export function NewProductButton() {
+    const { t } = useTranslation();
+    return (
+        <Link
+            href="/produits?nouveau=1"
+            title={t('products.newProduct')}
+            className="hidden h-9 items-center gap-1.5 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 px-3 text-xs font-semibold text-white shadow-sm shadow-indigo-500/30 transition hover:shadow-md md:flex"
+        >
+            <PackagePlus size={15} />
+            <span className="hidden xl:inline">{t('products.newProduct')}</span>
+        </Link>
     );
 }

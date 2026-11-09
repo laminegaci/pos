@@ -1,4 +1,4 @@
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { useEffect, useMemo, useState } from 'react';
 import {
     AlertTriangle,
@@ -120,6 +120,14 @@ export default function ProductsIndex({ products, categories }) {
         setErrors({});
         setShowModal(true);
     };
+
+    // Topbar "New product" shortcut: /produits?nouveau=1 opens the form, then cleans the URL.
+    const pageUrl = usePage().url;
+    useEffect(() => {
+        if (new URLSearchParams(pageUrl.split('?')[1] ?? '').get('nouveau') !== '1') return;
+        openCreateModal();
+        window.history.replaceState(window.history.state, '', '/produits');
+    }, [pageUrl]);
 
     const openEditModal = (product) => {
         setEditingProduct(product);
