@@ -53,7 +53,7 @@ class User extends Authenticatable implements MustVerifyEmail
     /** Admins and managers can approve cancellations, returns and similar actions. */
     public function isManager(): bool
     {
-        return in_array($this->role, [self::ROLE_ADMIN, self::ROLE_MANAGER], true);
+        return in_array($this->role, [self::ROLE_ADMIN, self::ROLE_MANAGER, self::ROLE_CASHIER], true);
     }
 
     /**

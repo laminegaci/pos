@@ -17,9 +17,11 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             AdminSeeder::class,
-            ProductSeeder::class,
+            // WoodProductSeeder::class,
             ClientSeeder::class,
-            SaleSeeder::class,
+            // SaleSeeder::class,
+            // Import du catalogue Sada Luxe (pseudo-commande dédiée).
+            // SAdaluxeProductSeeder::class,
         ]);
     }
 }

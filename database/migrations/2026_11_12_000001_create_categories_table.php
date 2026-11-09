@@ -21,14 +21,6 @@ return new class extends Migration
         });
 
         $known = [
-            'bureaux' => ['Bureaux', '#6366f1'],
-            'rangement_bureau' => ['Rangement', '#06b6d4'],
-            'bureaux_direction' => ['Bureaux Direction', '#f59e0b'],
-            'bureaux_compacts' => ['Bureaux Compacts', '#10b981'],
-            'bureaux_ergonomiques' => ['Bureaux Ergonomiques', '#ec4899'],
-            'bureaux_gaming' => ['Bureaux Gaming', '#8b5cf6'],
-            'mobilier_professionnel' => ['Mobilier Pro', '#f97316'],
-            'bureaux_partages' => ['Bureaux Partagés', '#14b8a6'],
         ];
 
         // Also keep any slug already used by a product but missing from the list above.
