@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Models\Settings;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class UpdateSettingsRequest extends FormRequest
 {
@@ -90,6 +92,31 @@ class UpdateSettingsRequest extends FormRequest
             // Backup
             'autoBackup' => ['sometimes', 'required', 'boolean'],
             'backupFrequency' => ['sometimes', 'required', Rule::in(['hourly', 'daily', 'weekly'])],
+        ];
+    }
+
+    /**
+     * At least one payment method must remain enabled after this update.
+     */
+    public function after(): array
+    {
+        return [
+            function (Validator $validator) {
+                if ($validator->errors()->isNotEmpty()) {
+                    return;
+                }
+
+                $current = Settings::current();
+                $enabled = fn (string $key, string $column) => $this->has($key)
+                    ? (bool) $this->boolean($key)
+                    : (bool) $current->{$column};
+
+                if (! $enabled('cashEnabled', 'cash_enabled')
+                    && ! $enabled('cardEnabled', 'card_enabled')
+                    && ! $enabled('creditEnabled', 'credit_enabled')) {
+                    $validator->errors()->add('cashEnabled', __('messages.settings_no_payment'));
+                }
+            },
         ];
     }
 

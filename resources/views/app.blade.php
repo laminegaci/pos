@@ -7,10 +7,19 @@
 
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
+        @php
+            try {
+                $shopTheme = \App\Models\Settings::current()->theme;
+            } catch (\Throwable) {
+                $shopTheme = 'light';
+            }
+        @endphp
         <script>
             (function () {
                 try {
+                    // A per-device choice (topbar toggle) wins over the shop default from Settings.
                     var t = localStorage.getItem('theme');
+                    if (t !== 'dark' && t !== 'light') t = @json($shopTheme);
                     if (t !== 'dark' && t !== 'light') t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
                     document.documentElement.classList.toggle('dark', t === 'dark');
                     document.documentElement.style.colorScheme = t;

@@ -16,6 +16,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -98,6 +99,7 @@ class SaleController extends Controller
             // Part of the total paid with a credit note (a payment, not a discount).
             'credit_note_code' => ['nullable', 'string', 'max:20', 'required_with:credit_note_amount'],
             'credit_note_amount' => ['nullable', 'numeric', 'gt:0', 'required_with:credit_note_code'],
+            'payment_method' => ['nullable', Rule::in(Sale::PAYMENT_METHODS)],
         ]);
 
         // Same product sent twice => one line, so the stock check sees the real total.
@@ -133,6 +135,20 @@ class SaleController extends Controller
                 throw ValidationException::withMessages(['credit_note_amount' => __('returns.credit_exceeds_total')]);
             }
 
+            // What is left to pay once the credit note has paid its part.
+            $paymentMethod = null;
+            if (round($total - $creditAmount, 2) > 0) {
+                $enabled = Settings::current()->enabledPaymentMethods();
+                // No method sent (older client): the first enabled one.
+                $paymentMethod = $data['payment_method'] ?? ($enabled[0] ?? null);
+                if (! $paymentMethod || ! in_array($paymentMethod, $enabled, true)) {
+                    throw ValidationException::withMessages(['payment_method' => __('messages.payment_method_invalid')]);
+                }
+                if ($paymentMethod === Sale::PAYMENT_CREDIT && empty($data['client_id'])) {
+                    throw ValidationException::withMessages(['payment_method' => __('messages.payment_credit_needs_client')]);
+                }
+            }
+
             $sale = Sale::create([
                 'user_id' => $request->user()->id,
                 'client_id' => $data['client_id'] ?? null,
@@ -140,6 +156,7 @@ class SaleController extends Controller
                 'remise' => $remise,
                 'total' => $total,
                 'credit_note_amount' => $creditAmount,
+                'payment_method' => $paymentMethod,
                 'status' => Sale::STATUS_COMPLETED,
             ]);
 
@@ -171,6 +188,7 @@ class SaleController extends Controller
                 'remise' => (float) $sale->remise,
                 'total' => (float) $sale->total,
                 'credit_note_amount' => (float) $sale->credit_note_amount,
+                'payment_method' => $sale->payment_method,
                 'items_count' => (int) array_sum($quantities),
                 'created_at' => $sale->created_at?->toIso8601String(),
             ]);
@@ -245,6 +263,7 @@ class SaleController extends Controller
                 'display_status' => $this->displayStatus($sale, $refunded),
                 'refunded' => $refunded,
                 'credit_note_amount' => (float) $sale->credit_note_amount,
+                'payment_method' => $sale->payment_method,
                 'cancel_reason' => $sale->cancel_reason,
                 'cancelled_at' => $sale->cancelled_at?->toIso8601String(),
                 'cancelled_by' => $sale->canceller?->name,
@@ -264,7 +283,7 @@ class SaleController extends Controller
     {
         [$sale, $items] = $this->loadSaleWithItems($id);
 
-        $pdf = Pdf::loadView('invoices.sale', compact('sale', 'items'))->setPaper('a4');
+        $pdf = Pdf::loadView('invoices.sale', ['sale' => $sale, 'items' => $items, 'settings' => Settings::current()])->setPaper('a4');
         $filename = "facture-{$sale->id}.pdf";
 
         return $request->boolean('stream')

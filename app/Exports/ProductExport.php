@@ -5,11 +5,19 @@ declare(strict_types=1);
 namespace App\Exports;
 
 use App\Models\Product;
+use App\Models\Settings;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 
 class ProductExport implements FromCollection, WithHeadings
 {
+    private string $currency;
+
+    public function __construct()
+    {
+        $this->currency = Settings::current()->currencySymbol();
+    }
+
     public function collection()
     {
         $categories = [
@@ -27,7 +35,7 @@ class ProductExport implements FromCollection, WithHeadings
             'Nom' => $p->name,
             'Description' => $p->description,
             'Catégorie' => $categories[$p->category_id] ?? $p->category_id,
-            'Prix (DA)' => (float) $p->price,
+            'Prix ('.$this->currency.')' => (float) $p->price,
             'Stock' => $p->unlimited_stock ? 'Illimité' : $p->stock,
             'SKU' => $p->sku,
             'Actif' => $p->active ? 'Oui' : 'Non',
@@ -37,6 +45,6 @@ class ProductExport implements FromCollection, WithHeadings
 
     public function headings(): array
     {
-        return ['ID', 'Nom', 'Description', 'Catégorie', 'Prix (DA)', 'Stock', 'SKU', 'Actif', 'Créé le'];
+        return ['ID', 'Nom', 'Description', 'Catégorie', 'Prix ('.$this->currency.')', 'Stock', 'SKU', 'Actif', 'Créé le'];
     }
 }

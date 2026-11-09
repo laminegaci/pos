@@ -8,6 +8,7 @@ use App\Models\Settings;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class UserController extends Controller
@@ -59,5 +60,34 @@ class UserController extends Controller
         Settings::current()->update(Settings::fromFrontend($request->validated()));
 
         return back()->with('success', __('messages.settings_saved'));
+    }
+
+    /** POST /parametres/logo — receipt logo (replaces the previous one). */
+    public function uploadLogo(Request $request): RedirectResponse
+    {
+        $request->validate(['logo' => ['required', 'image', 'mimes:png,jpg,jpeg,webp', 'max:1024']]);
+
+        $settings = Settings::current();
+        $path = $request->file('logo')->store('logos', 'public');
+
+        if ($settings->logo_path) {
+            Storage::disk('public')->delete($settings->logo_path);
+        }
+        $settings->update(['logo_path' => $path]);
+
+        return back()->with('success', __('messages.logo_saved'));
+    }
+
+    /** DELETE /parametres/logo */
+    public function deleteLogo(): RedirectResponse
+    {
+        $settings = Settings::current();
+
+        if ($settings->logo_path) {
+            Storage::disk('public')->delete($settings->logo_path);
+            $settings->update(['logo_path' => null]);
+        }
+
+        return back()->with('success', __('messages.logo_removed'));
     }
 }

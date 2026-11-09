@@ -1,7 +1,8 @@
 import '../css/app.css';
-import { createInertiaApp } from '@inertiajs/react';
+import { createInertiaApp, router } from '@inertiajs/react';
 import { createRoot, hydrateRoot } from 'react-dom/client';
 import { initI18n } from './i18n';
+import { setCurrency } from './lib/formatCurrency';
 
 createInertiaApp({
     title: (title) =>
@@ -15,6 +16,10 @@ createInertiaApp({
     },
 
     setup({ el, App, props }) {
+        setCurrency(props.initialPage.props?.shop?.currency);
+        // A saved currency change applies on the very next page, without a reload.
+        router.on('navigate', (event) => setCurrency(event.detail.page.props?.shop?.currency));
+
         if (import.meta.env.SSR) {
             const initialLocale = props.initialPage.props?.locale || 'fr';
             initI18n(initialLocale);

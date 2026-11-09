@@ -101,6 +101,12 @@ export default function SaleConfirmationModal({ sale, lines = [], received = nul
                     )}
 
                     <dl className="space-y-1.5 py-3 text-sm">
+                        {sale.payment_method && (
+                            <div className="flex justify-between text-slate-600 dark:text-slate-400">
+                                <dt>{t('cart.paymentMethod')}</dt>
+                                <dd>{t(`payment.${sale.payment_method}`)}</dd>
+                            </div>
+                        )}
                         <div className="flex justify-between text-slate-600 dark:text-slate-400">
                             <dt>{t('sales.subtotal')}</dt>
                             <dd className="tabular-nums">{formatCurrency(sale.subtotal)}</dd>

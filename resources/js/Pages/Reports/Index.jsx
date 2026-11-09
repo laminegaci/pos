@@ -94,7 +94,7 @@ function LineChart({ data }) {
             ))}
             {[0, 0.5, 1].map((t, i) => (
                 <text key={i} x={padding.left - 6} y={padding.top + innerH * (1 - t) + 4} textAnchor="end" className="fill-slate-400 text-[10px]">
-                    {formatCurrency(max * t).replace(',00 DA', ' DA')}
+                    {formatCurrency(max * t, { compact: true })}
                 </text>
             ))}
             <path d={area} fill="url(#areaFill)" />
@@ -161,7 +161,7 @@ function Donut({ slices, t }) {
                 {t('reports.total30d')}
             </text>
             <text x={cx} y={cy + 14} textAnchor="middle" className="fill-slate-900 text-sm font-bold">
-                {formatCurrency(total).replace(',00 DA', ' DA')}
+                {formatCurrency(total, { compact: true })}
             </text>
         </svg>
     );
@@ -249,7 +249,7 @@ export default function ReportsIndex({ kpis, daily, topProducts, byCategory, top
                                         {t(`categories.${s.category_id}`, s.category_id)}
                                     </span>
                                     <span className="font-semibold tabular-nums text-slate-700">
-                                        {formatCurrency(s.revenue).replace(',00 DA', ' DA')}
+                                        {formatCurrency(s.revenue, { compact: true })}
                                     </span>
                                 </div>
                             ))}
@@ -309,7 +309,7 @@ export default function ReportsIndex({ kpis, daily, topProducts, byCategory, top
                                         <div className="text-xs text-slate-400">{t('reports.salesNumber', { count: c.count })}</div>
                                     </div>
                                     <div className="text-sm font-semibold tabular-nums text-indigo-600">
-                                        {formatCurrency(c.revenue).replace(',00 DA', ' DA')}
+                                        {formatCurrency(c.revenue, { compact: true })}
                                     </div>
                                 </div>
                             ))}

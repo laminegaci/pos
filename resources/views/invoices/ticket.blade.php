@@ -1,6 +1,5 @@
 @php
-    $currency = ['DZD' => 'DA', 'EUR' => '€', 'USD' => '$'][$settings->currency] ?? $settings->currency;
-    $money = fn ($value) => number_format((float) $value, 2, ',', ' ').' '.$currency;
+    $money = fn ($value) => $settings->money($value);
     // Printable width: an 80 mm roll prints ~72 mm, a 58 mm roll ~48 mm.
     $width = $format === '58mm' ? '48mm' : '72mm';
     $small = $format === '58mm';
@@ -27,6 +26,7 @@
 
         .ticket { width: {{ $width }}; margin: 0 auto; padding: 3mm 0 8mm; }
         .center { text-align: center; }
+        .logo { display: block; margin: 0 auto 2mm; max-width: 60%; max-height: 22mm; filter: grayscale(1) contrast(1.3); }
         .right { text-align: right; }
         .bold { font-weight: 700; }
         .shop { font-size: {{ $small ? '14px' : '17px' }}; font-weight: 800; letter-spacing: .5px; text-transform: uppercase; }
@@ -66,6 +66,9 @@
     <div class="ticket">
         {{-- Shop header --}}
         <div class="center">
+        @if ($settings->show_logo && $settings->logoUrl())
+            <img class="logo" src="{{ $settings->logoUrl() }}" alt="">
+        @endif
             <div class="shop">{{ $settings->shop_name ?: config('app.name') }}</div>
             @if ($settings->company && $settings->company !== $settings->shop_name)
                 <div>{{ $settings->company }}</div>
@@ -101,6 +104,9 @@
         <div class="row"><span>Caisse</span><span>{{ $settings->shop_code }}</span></div>
         @if ($sale->user)
             <div class="row"><span>Caissier</span><span>{{ $sale->user->name }}</span></div>
+        @endif
+        @if ($sale->payment_method)
+            <div class="row"><span>Paiement</span><span>{{ ['cash' => 'Espèces', 'card' => 'Carte', 'credit' => 'Crédit'][$sale->payment_method] ?? $sale->payment_method }}</span></div>
         @endif
         <div class="row"><span>Client</span><span>{{ $sale->client?->name ?? 'Client de passage' }}</span></div>
 

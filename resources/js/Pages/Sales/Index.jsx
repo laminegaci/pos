@@ -184,6 +184,7 @@ export default function SalesIndex({ caisse, categories, products, clients = [],
                 client_id: selectedClientId,
                 remise,
                 items: cartLines.map((l) => ({ product_id: l.productId, quantity: l.quantity })),
+                ...(payment.paymentMethod ? { payment_method: payment.paymentMethod } : {}),
                 ...(creditNote && creditApplied > 0 ? { credit_note_code: creditNote.code, credit_note_amount: creditApplied } : {}),
             },
             {
@@ -193,7 +194,7 @@ export default function SalesIndex({ caisse, categories, products, clients = [],
                     sounds.error();
                     // e.g. "Not enough stock for X": the server is the source of truth.
                     setToast({
-                        message: errors?.items || errors?.credit_note_code || errors?.credit_note_amount || t('sales.checkoutFailed'),
+                        message: errors?.items || errors?.payment_method || errors?.credit_note_code || errors?.credit_note_amount || t('sales.checkoutFailed'),
                         type: 'error',
                     });
                     // The balance may have changed on another till: ask for the code again to show the real one.

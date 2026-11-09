@@ -49,7 +49,7 @@ class SaleReturnController extends Controller
         $return = $service->makeReturn($sale, $data['lines'], trim($data['reason']), $data['refund_method'], $request->user(), $approverId);
 
         return redirect()->route('sales.show', $sale->id)
-            ->with('success', __('returns.returned_ok', ['amount' => number_format((float) $return->amount, 2, ',', ' ').' DA']))
+            ->with('success', __('returns.returned_ok', ['amount' => Settings::current()->money($return->amount)]))
             // Read by the page to offer printing the return slip.
             ->with('return', [
                 'id' => $return->id,

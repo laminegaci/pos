@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Download, Eye, ReceiptText, Upload, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import PosLayout from '../../Layouts/PosLayout';
+import { formatCurrency } from '../../lib/formatCurrency';
 
 const STATUS_STYLES = {
     completed: 'bg-emerald-100 text-emerald-700',
@@ -103,11 +104,11 @@ export default function SalesList({ sales, filters = { status: 'all' } }) {
                                         <td className="px-4 py-3 text-sm text-slate-600">{sale.user}</td>
                                         <td className="px-4 py-3 text-right text-sm font-semibold text-slate-900">
                                             <span className={sale.status === 'cancelled' ? 'line-through' : ''}>
-                                                {sale.total.toLocaleString('fr-FR', { style: 'currency', currency: 'DZD' })}
+                                                {formatCurrency(sale.total)}
                                             </span>
                                             {sale.returned_amount > 0 && (
                                                 <div className="text-xs font-medium text-orange-600">
-                                                    −{sale.returned_amount.toLocaleString('fr-FR', { style: 'currency', currency: 'DZD' })}
+                                                    −{formatCurrency(sale.returned_amount)}
                                                 </div>
                                             )}
                                         </td>
@@ -184,7 +185,7 @@ export default function SalesList({ sales, filters = { status: 'all' } }) {
                             <div>
                                 <p className="text-xs text-slate-500">{t('sales.amount')}</p>
                                 <p className="text-lg font-bold text-slate-900">
-                                    {selectedSale.total.toLocaleString('fr-FR', { style: 'currency', currency: 'DZD' })}
+                                    {formatCurrency(selectedSale.total)}
                                 </p>
                             </div>
                         </div>

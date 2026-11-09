@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class Settings extends Model
 {
@@ -41,10 +42,12 @@ class Settings extends Model
         'backupFrequency' => 'backup_frequency',
     ];
 
+    public const CURRENCY_SYMBOLS = ['DZD' => 'DA', 'EUR' => '€', 'USD' => '$'];
+
     protected $fillable = [
         'shop_name', 'shop_code', 'currency', 'language', 'timezone',
         'company', 'rc', 'nif', 'address', 'phone', 'email',
-        'vat_rate', 'receipt_footer', 'show_logo', 'print_auto',
+        'vat_rate', 'receipt_footer', 'show_logo', 'logo_path', 'print_auto',
         'cash_enabled', 'card_enabled', 'credit_enabled',
         'printer_name', 'paper_size', 'theme', 'accent_color',
         'notif_low_stock', 'notif_daily_report', 'notif_new_sale',
@@ -81,6 +84,37 @@ class Settings extends Model
         return $settings;
     }
 
+    public function currencySymbol(): string
+    {
+        return self::CURRENCY_SYMBOLS[$this->currency] ?? (string) $this->currency;
+    }
+
+    public function money(float|int|string|null $value): string
+    {
+        return number_format((float) $value, 2, ',', ' ').' '.$this->currencySymbol();
+    }
+
+    /**
+     * Payment methods the till may offer, in display order.
+     *
+     * @return array<int, string>
+     */
+    public function enabledPaymentMethods(): array
+    {
+        return array_values(array_filter([
+            $this->cash_enabled ? 'cash' : null,
+            $this->card_enabled ? 'card' : null,
+            $this->credit_enabled ? 'credit' : null,
+        ]));
+    }
+
+    public function logoUrl(): ?string
+    {
+        return $this->logo_path && Storage::disk('public')->exists($this->logo_path)
+            ? Storage::disk('public')->url($this->logo_path)
+            : null;
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -90,6 +124,7 @@ class Settings extends Model
         foreach (self::FIELDS as $key => $column) {
             $data[$key] = $this->getAttribute($column);
         }
+        $data['logoUrl'] = $this->logoUrl();
 
         return $data;
     }

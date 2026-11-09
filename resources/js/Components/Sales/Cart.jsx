@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { AlertTriangle, Banknote, CreditCard, Loader2, Minus, Percent, Plus, ReceiptText, ShoppingBag, Trash2, Volume2, VolumeX, X } from 'lucide-react';
+import { AlertTriangle, Banknote, Clock, CreditCard, Loader2, Minus, Percent, Plus, ReceiptText, ShoppingBag, Trash2, Volume2, VolumeX, X } from 'lucide-react';
+import { usePage } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
-import { formatCurrency } from '../../lib/formatCurrency';
+import { currencySymbol, formatCurrency } from '../../lib/formatCurrency';
 import { isSoundEnabled, onSoundChange, setSoundEnabled, sounds } from '../../lib/sounds';
 import ClientSelector from './ClientSelector';
 import ProductImage from './ProductImage';
@@ -117,7 +118,7 @@ function DiscountInput({ discount, onChange, subtotal }) {
             </div>
             <div className="flex rounded-lg bg-slate-100 p-0.5 text-[11px] font-semibold dark:bg-slate-800" role="group" aria-label={t('cart.discountType')}>
                 {[
-                    { id: 'amount', label: 'DA' },
+                    { id: 'amount', label: currencySymbol() },
                     { id: 'percent', label: <Percent size={11} /> },
                 ].map((opt) => (
                     <button
@@ -248,6 +249,40 @@ function CreditNotePanel({ creditNote, applied, onChange }) {
     );
 }
 
+const METHOD_ICONS = { cash: Banknote, card: CreditCard, credit: Clock };
+
+/** Only the methods enabled in Settings are offered. */
+function PaymentMethodPicker({ methods, value, onChange }) {
+    const { t } = useTranslation();
+    if (methods.length === 0) {
+        return <p className="mt-3 text-center text-xs font-medium text-red-600 dark:text-red-400">{t('cart.noPaymentMethod')}</p>;
+    }
+    return (
+        <div className="mt-3" role="group" aria-label={t('cart.paymentMethod')}>
+            <div className="flex rounded-xl bg-slate-100 p-0.5 text-xs font-semibold dark:bg-slate-800">
+                {methods.map((m) => {
+                    const Icon = METHOD_ICONS[m] ?? Banknote;
+                    return (
+                        <button
+                            key={m}
+                            type="button"
+                            onClick={() => onChange(m)}
+                            aria-pressed={value === m}
+                            className={`flex h-8 flex-1 items-center justify-center gap-1.5 rounded-[10px] transition ${
+                                value === m
+                                    ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-600 dark:text-white'
+                                    : 'text-slate-500 hover:text-slate-800 dark:text-slate-400'
+                            }`}
+                        >
+                            <Icon size={13} /> {t(`payment.${m}`)}
+                        </button>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
 function CashPanel({ total, received, onReceivedChange }) {
     const { t } = useTranslation();
     const [open, setOpen] = useState(received !== '');
@@ -341,6 +376,8 @@ export default function Cart({
     submitting = false,
 }) {
     const { t } = useTranslation();
+    const methods = usePage().props.shop?.paymentMethods ?? ['cash'];
+    const [method, setMethod] = useState(null);
     const [mobileOpen, setMobileOpen] = useState(false);
     const [confirmClear, setConfirmClear] = useState(false);
     const [received, setReceived] = useState('');
@@ -351,7 +388,11 @@ export default function Cart({
     const receivedAmount = parseFloat(received) || 0;
     // Cash still to collect once the credit note (if any) has paid its part.
     const payable = due ?? total;
-    const insufficient = received !== '' && receivedAmount < payable;
+    // Selected method, falling back to the first enabled one (the setting may change at any time).
+    const paymentMethod = methods.includes(method) ? method : (methods[0] ?? null);
+    const needsMethod = payable > 0;
+    const creditWithoutClient = needsMethod && paymentMethod === 'credit' && !selectedClientId;
+    const insufficient = needsMethod && paymentMethod === 'cash' && received !== '' && receivedAmount < payable;
 
     // Reset local state once the cart is emptied (after checkout or clear).
     useEffect(() => {
@@ -385,17 +426,17 @@ export default function Cart({
     }, [confirmClear]);
 
     // F9 = checkout, using the same rules as the button.
-    const canCheckout = !empty && !submitting && !insufficient;
+    const canCheckout = !empty && !submitting && !insufficient && !creditWithoutClient && (!needsMethod || paymentMethod !== null);
     useEffect(() => {
         const onKey = (e) => {
             if (e.key !== 'F9') return;
             e.preventDefault();
-            if (canCheckout) onCheckout({ received });
+            if (canCheckout) onCheckout({ received: paymentMethod === 'cash' ? received : '', paymentMethod: needsMethod ? paymentMethod : null });
             else if (!empty && !submitting) sounds.error();
         };
         window.addEventListener('keydown', onKey);
         return () => window.removeEventListener('keydown', onKey);
-    }, [canCheckout, onCheckout, received, empty, submitting]);
+    }, [canCheckout, onCheckout, received, empty, submitting, paymentMethod, needsMethod]);
 
     const handleClear = () => {
         if (!confirmClear) return setConfirmClear(true);
@@ -584,11 +625,15 @@ export default function Cart({
                         <CreditNotePanel creditNote={creditNote} applied={creditApplied} onChange={onCreditNoteChange} />
                     )}
 
-                    {!empty && payable > 0 && <CashPanel total={payable} received={received} onReceivedChange={setReceived} />}
+                    {!empty && needsMethod && <PaymentMethodPicker methods={methods} value={paymentMethod} onChange={setMethod} />}
+
+                    {!empty && needsMethod && paymentMethod === 'cash' && (
+                        <CashPanel total={payable} received={received} onReceivedChange={setReceived} />
+                    )}
 
                     <button
                         type="button"
-                        onClick={() => onCheckout({ received })}
+                        onClick={() => onCheckout({ received: paymentMethod === 'cash' ? received : '', paymentMethod: needsMethod ? paymentMethod : null })}
                         disabled={!canCheckout}
                         className="mt-4 flex h-12 w-full items-center justify-between rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-500 px-5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 transition hover:shadow-xl hover:shadow-indigo-500/40 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
                     >
@@ -598,6 +643,9 @@ export default function Cart({
                         </span>
                         <kbd className="hidden rounded-md bg-white/20 px-2 py-0.5 text-xs font-medium backdrop-blur sm:block">F9</kbd>
                     </button>
+                    {creditWithoutClient && (
+                        <p className="mt-2 text-center text-xs font-medium text-amber-600 dark:text-amber-400">{t('cart.creditNeedsClient')}</p>
+                    )}
                     {insufficient && (
                         <p className="mt-2 text-center text-xs font-medium text-red-600 dark:text-red-400">{t('cart.insufficient')}</p>
                     )}

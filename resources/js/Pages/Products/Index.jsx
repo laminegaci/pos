@@ -21,7 +21,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import PosLayout from '../../Layouts/PosLayout';
 import ProductImage from '../../Components/Sales/ProductImage';
-import { formatCurrency } from '../../lib/formatCurrency';
+import { currencySymbol, formatCurrency } from '../../lib/formatCurrency';
 
 const LOW_STOCK = 10;
 
@@ -536,7 +536,7 @@ export default function ProductsIndex({ products, categories }) {
                                     />
                                 </Field>
                                 <div className="grid grid-cols-2 gap-3">
-                                    <Field label={t('products.priceDa')} error={errors.price}>
+                                    <Field label={t('products.priceDa', { symbol: currencySymbol() })} error={errors.price}>
                                         <input
                                             type="number"
                                             required

@@ -1,6 +1,5 @@
 @php
-    $currency = ['DZD' => 'DA', 'EUR' => '€', 'USD' => '$'][$settings->currency] ?? $settings->currency;
-    $money = fn ($value) => number_format((float) $value, 2, ',', ' ').' '.$currency;
+    $money = fn ($value) => $settings->money($value);
     $viaCreditNote = $return->refund_method === \App\Models\SaleReturn::REFUND_CREDIT_NOTE;
 @endphp
 <!DOCTYPE html>
@@ -18,6 +17,9 @@
 
     <div class="ticket">
         <div class="center">
+        @if ($settings->show_logo && $settings->logoUrl())
+            <img class="logo" src="{{ $settings->logoUrl() }}" alt="">
+        @endif
             <div class="shop">{{ $settings->shop_name ?: config('app.name') }}</div>
             @if ($settings->address)
                 <div class="muted">{{ $settings->address }}</div>

@@ -65,7 +65,7 @@
     "name": "Nom",
     "description": "Description",
     "price": "Prix",
-    "priceDa": "Prix (DA)",
+    "priceDa": "Prix ({{symbol}})",
     "category": "Catégorie",
     "sku": "SKU",
     "stock": "Stock",
@@ -272,7 +272,13 @@
       "showLogo": "Afficher le logo sur les tickets",
       "showLogoHint": "Le logo sera imprimé en haut de chaque ticket.",
       "printAuto": "Impression automatique",
-      "printAutoHint": "Imprimer le ticket dès la validation de la vente."
+      "printAutoHint": "Imprimer le ticket dès la validation de la vente.",
+      "logo": "Logo du ticket",
+      "logoHint": "PNG, JPG ou WebP, 1 Mo max. Imprimé en noir et blanc.",
+      "logoUpload": "Ajouter un logo",
+      "logoReplace": "Remplacer",
+      "logoRemove": "Supprimer",
+      "logoError": "Impossible d'enregistrer le logo."
     },
     "payments": {
       "title": "Moyens de paiement",
@@ -443,7 +449,10 @@
     "amount": "Remise en dinars",
     "soundOn": "Activer les sons",
     "soundOff": "Couper les sons",
-    "remaining": "{{count}} restant(s)"
+    "remaining": "{{count}} restant(s)",
+    "paymentMethod": "Moyen de paiement",
+    "creditNeedsClient": "Sélectionnez un client pour un paiement à crédit.",
+    "noPaymentMethod": "Aucun moyen de paiement actif. Activez-en un dans les paramètres."
   },
   "saleConfirm": {
     "title": "Vente #{{id}} confirmée",
@@ -552,5 +561,10 @@
     "cashier": "Caissier",
     "you": "vous",
     "adminOnly": "Seul un administrateur peut modifier les rôles."
+  },
+  "payment": {
+    "cash": "Espèces",
+    "card": "Carte",
+    "credit": "Crédit"
   }
 }

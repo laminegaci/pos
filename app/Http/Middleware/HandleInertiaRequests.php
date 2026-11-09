@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Settings;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -40,6 +41,17 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'shop' => function () {
+                $settings = Settings::current();
+
+                return [
+                    'currency' => $settings->currency,
+                    'currencySymbol' => $settings->currencySymbol(),
+                    'theme' => $settings->theme,
+                    'sessionTimeout' => (int) $settings->session_timeout,
+                    'paymentMethods' => $settings->enabledPaymentMethods(),
+                ];
+            },
             'locale' => $request->session()->get('locale', app()->getLocale()),
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),

@@ -2,9 +2,11 @@ import { usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import Sidebar from '../Components/Sales/Sidebar';
 import Topbar from '../Components/Sales/Topbar';
+import useIdleLogout from '../hooks/useIdleLogout';
 
 export default function PosLayout({ searchQuery, onSearchChange, children }) {
     const { auth } = usePage().props;
+    useIdleLogout();
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     return (

@@ -145,4 +145,9 @@ return [
     ],
 
     'settings_saved' => 'Settings saved successfully.',
+    'payment_method_invalid' => 'This payment method is not available.',
+    'payment_credit_needs_client' => 'Credit payment requires a client.',
+    'logo_saved' => 'Logo saved.',
+    'logo_removed' => 'Logo removed.',
+    'settings_no_payment' => 'At least one payment method must stay enabled.',
 ];

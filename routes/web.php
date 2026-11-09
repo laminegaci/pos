@@ -114,6 +114,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/parametres', [UserController::class, 'settings'])->name('settings.index');
     Route::put('/parametres', [UserController::class, 'updateSettings'])->name('settings.update');
+    Route::post('/parametres/logo', [UserController::class, 'uploadLogo'])->name('settings.logo.upload');
+    Route::delete('/parametres/logo', [UserController::class, 'deleteLogo'])->name('settings.logo.delete');
     Route::put('/parametres/utilisateurs/{user}/role', [UserController::class, 'updateRole'])->name('settings.users.role');
 
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');

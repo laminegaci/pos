@@ -17,6 +17,14 @@ class Sale extends Model
 
     public const STATUS_CANCELLED = 'cancelled';
 
+    public const PAYMENT_CASH = 'cash';
+
+    public const PAYMENT_CARD = 'card';
+
+    public const PAYMENT_CREDIT = 'credit';
+
+    public const PAYMENT_METHODS = [self::PAYMENT_CASH, self::PAYMENT_CARD, self::PAYMENT_CREDIT];
+
     protected $fillable = [
         'user_id',
         'client_id',
@@ -25,6 +33,7 @@ class Sale extends Model
         'total',
         'status',
         'credit_note_amount',
+        'payment_method',
         'cancelled_at',
         'cancelled_by',
         'cancel_approved_by',

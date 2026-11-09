@@ -5,9 +5,10 @@ import { useTranslation } from 'react-i18next';
 import PosLayout from '../../Layouts/PosLayout';
 import { CancelSaleModal, ReturnModal } from '../../Components/Sales/ReturnModals';
 import Toast from '../../Components/Toast';
+import { formatCurrency } from '../../lib/formatCurrency';
 import usePrintDocument from '../../lib/printDocument';
 
-const money = (v) => v.toLocaleString('fr-FR', { style: 'currency', currency: 'DZD' });
+const money = (v) => formatCurrency(v);
 
 const STATUS_STYLES = {
     completed: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300',
@@ -313,6 +314,12 @@ export default function SalesShow({ sale, items, returns = [], can }) {
                             <div className="rounded-2xl border border-slate-200/60 bg-white/60 p-6 dark:border-slate-800 dark:bg-slate-900/60">
                                 <h2 className="mb-4 text-lg font-semibold text-slate-900 dark:text-slate-100">{t('sales.summary')}</h2>
                                 <div className="space-y-2">
+                                    {sale.payment_method && (
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-slate-600 dark:text-slate-400">{t('cart.paymentMethod')}</span>
+                                            <span className="text-slate-900 dark:text-slate-100">{t(`payment.${sale.payment_method}`)}</span>
+                                        </div>
+                                    )}
                                     <div className="flex justify-between text-sm">
                                         <span className="text-slate-600 dark:text-slate-400">{t('sales.subtotal')}</span>
                                         <span className="text-slate-900 dark:text-slate-100">{money(sale.subtotal)}</span>

@@ -84,19 +84,19 @@
                 <tr>
                     <td>{{ $item['product_name'] }}</td>
                     <td class="c">{{ $item['quantity'] }}</td>
-                    <td class="r">{{ number_format($item['price'], 2, ',', ' ') }} DZD</td>
-                    <td class="r">{{ number_format($item['line_total'], 2, ',', ' ') }} DZD</td>
+                    <td class="r">{{ $settings->money($item['price']) }}</td>
+                    <td class="r">{{ $settings->money($item['line_total']) }}</td>
                 </tr>
             @endforeach
         </tbody>
     </table>
 
     <div class="totals">
-        <div class="row"><span>Sous-total</span><span>{{ number_format((float) $sale->subtotal, 2, ',', ' ') }} DZD</span></div>
+        <div class="row"><span>Sous-total</span><span>{{ $settings->money($sale->subtotal) }}</span></div>
         @if ((float) $sale->remise > 0)
-            <div class="row" style="color:#dc2626"><span>Remise</span><span>-{{ number_format((float) $sale->remise, 2, ',', ' ') }} DZD</span></div>
+            <div class="row" style="color:#dc2626"><span>Remise</span><span>-{{ $settings->money($sale->remise) }}</span></div>
         @endif
-        <div class="row grand"><span>Total</span><span>{{ number_format((float) $sale->total, 2, ',', ' ') }} DZD</span></div>
+        <div class="row grand"><span>Total</span><span>{{ $settings->money($sale->total) }}</span></div>
     </div>
 
     <div class="footer">

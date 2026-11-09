@@ -1,5 +1,5 @@
 import { Head, router, useForm, usePage } from '@inertiajs/react';
-import { createContext, useContext, useMemo, useState } from 'react';
+import { createContext, useContext, useMemo, useRef, useState } from 'react';
 import {
     AlertCircle,
     Bell,
@@ -10,7 +10,9 @@ import {
     Loader2,
     Lock,
     Menu,
+    ImagePlus,
     Palette,
+    Trash2,
     Printer,
     Receipt,
     Save,
@@ -22,6 +24,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import PosLayout from '../../Layouts/PosLayout';
+import { applyTheme, clearThemeOverride, resolveTheme } from '../../hooks/useTheme';
 
 const ErrorsContext = createContext({});
 
@@ -168,6 +171,80 @@ function normalize(values) {
 
 const ROLES = ['admin', 'manager', 'cashier'];
 
+/** Receipt logo: its own upload/delete requests, independent from the settings form. */
+function LogoField({ logoUrl }) {
+    const { t } = useTranslation();
+    const input = useRef(null);
+    const [busy, setBusy] = useState(false);
+    const [error, setError] = useState('');
+
+    const upload = (file) => {
+        if (!file) return;
+        setError('');
+        router.post('/parametres/logo', { logo: file }, {
+            forceFormData: true,
+            preserveScroll: true,
+            onStart: () => setBusy(true),
+            onError: (errs) => setError(errs.logo || t('settings.billing.logoError')),
+            onFinish: () => {
+                setBusy(false);
+                if (input.current) input.current.value = '';
+            },
+        });
+    };
+
+    const remove = () => router.delete('/parametres/logo', {
+        preserveScroll: true,
+        onStart: () => setBusy(true),
+        onFinish: () => setBusy(false),
+    });
+
+    return (
+        <div className="mt-4 flex items-center gap-4 rounded-xl border border-slate-200 p-3">
+            <div className="flex h-16 w-24 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-dashed border-slate-300 bg-slate-50">
+                {logoUrl ? (
+                    <img src={logoUrl} alt="" className="max-h-full max-w-full object-contain grayscale" />
+                ) : (
+                    <ImagePlus size={20} className="text-slate-400" />
+                )}
+            </div>
+            <div className="min-w-0 flex-1">
+                <div className="text-sm font-medium text-slate-800">{t('settings.billing.logo')}</div>
+                <p className="text-xs text-slate-500">{t('settings.billing.logoHint')}</p>
+                {error && <p role="alert" className="mt-1 text-xs text-red-600">{error}</p>}
+                <div className="mt-2 flex gap-2">
+                    <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => input.current?.click()}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                    >
+                        {busy ? <Loader2 size={13} className="animate-spin" /> : <ImagePlus size={13} />}
+                        {logoUrl ? t('settings.billing.logoReplace') : t('settings.billing.logoUpload')}
+                    </button>
+                    {logoUrl && (
+                        <button
+                            type="button"
+                            disabled={busy}
+                            onClick={remove}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
+                        >
+                            <Trash2 size={13} /> {t('settings.billing.logoRemove')}
+                        </button>
+                    )}
+                </div>
+                <input
+                    ref={input}
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    className="hidden"
+                    onChange={(e) => upload(e.target.files?.[0])}
+                />
+            </div>
+        </div>
+    );
+}
+
 export default function SettingsIndex({ users = [], settings: initialSettings, lastSaleId = null, canManageRoles = false }) {
     const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState("general");
@@ -205,7 +282,12 @@ export default function SettingsIndex({ users = [], settings: initialSettings, l
         if (processing) return;
         put("/parametres", {
             preserveScroll: true,
-            onSuccess: () => setDefaults(),
+            onSuccess: () => {
+                setDefaults();
+                // The saved theme is the new default: drop this device's own choice and show it now.
+                clearThemeOverride();
+                applyTheme(resolveTheme(settings.theme));
+            },
             onError: (errs) => {
                 const first = Object.keys(errs).find((k) => FIELD_TAB[k]);
                 if (first) setActiveTab(FIELD_TAB[first]);
@@ -410,6 +492,7 @@ export default function SettingsIndex({ users = [], settings: initialSettings, l
                                             label={t('settings.billing.showLogo')}
                                             hint={t('settings.billing.showLogoHint')}
                                         />
+                                        <LogoField logoUrl={initialSettings?.logoUrl ?? null} />
                                         <Toggle
                                             name="printAuto" checked={!!settings.printAuto}
                                             onChange={(v) => update({ printAuto: v })}

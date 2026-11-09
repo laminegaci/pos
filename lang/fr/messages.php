@@ -145,4 +145,9 @@ return [
     ],
 
     'settings_saved' => 'Paramètres enregistrés avec succès.',
+    'payment_method_invalid' => 'Moyen de paiement non disponible.',
+    'payment_credit_needs_client' => 'Le paiement à crédit nécessite un client.',
+    'logo_saved' => 'Logo enregistré.',
+    'logo_removed' => 'Logo supprimé.',
+    'settings_no_payment' => 'Au moins un moyen de paiement doit rester actif.',
 ];

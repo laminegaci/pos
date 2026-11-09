@@ -65,7 +65,7 @@
     "name": "Name",
     "description": "Description",
     "price": "Price",
-    "priceDa": "Price (DA)",
+    "priceDa": "Price ({{symbol}})",
     "category": "Category",
     "sku": "SKU",
     "stock": "Stock",
@@ -272,7 +272,13 @@
       "showLogo": "Show logo on receipts",
       "showLogoHint": "The logo will be printed at the top of each receipt.",
       "printAuto": "Auto print",
-      "printAutoHint": "Print the receipt as soon as the sale is validated."
+      "printAutoHint": "Print the receipt as soon as the sale is validated.",
+      "logo": "Receipt logo",
+      "logoHint": "PNG, JPG or WebP, 1 MB max. Printed in black and white.",
+      "logoUpload": "Add a logo",
+      "logoReplace": "Replace",
+      "logoRemove": "Remove",
+      "logoError": "Could not save the logo."
     },
     "payments": {
       "title": "Payment methods",
@@ -443,7 +449,10 @@
     "amount": "Discount in dinars",
     "soundOn": "Turn sounds on",
     "soundOff": "Mute sounds",
-    "remaining": "{{count}} left"
+    "remaining": "{{count}} left",
+    "paymentMethod": "Payment method",
+    "creditNeedsClient": "Select a client for a credit payment.",
+    "noPaymentMethod": "No payment method enabled. Enable one in settings."
   },
   "saleConfirm": {
     "title": "Sale #{{id}} confirmed",
@@ -552,5 +561,10 @@
     "cashier": "Cashier",
     "you": "you",
     "adminOnly": "Only an administrator can change roles."
+  },
+  "payment": {
+    "cash": "Cash",
+    "card": "Card",
+    "credit": "Credit"
   }
 }
