@@ -12,8 +12,9 @@ class SaleExport implements FromCollection, WithHeadings
 {
     public function collection()
     {
+        // Cancelled sales are listed too (with their status) so the export matches the history.
         return Sale::with(['client:id,name', 'user:id,name'])
-            ->where('status', 'completed')
+            ->withSum('returns as returned_amount', 'amount')
             ->orderByDesc('created_at')
             ->get()
             ->map(fn ($s) => [
@@ -24,12 +25,17 @@ class SaleExport implements FromCollection, WithHeadings
                 'Sous-total (DA)' => (float) $s->subtotal,
                 'Remise (DA)' => (float) $s->remise,
                 'Total (DA)' => (float) $s->total,
-                'Statut' => $s->status,
+                'Remboursé (DA)' => (float) ($s->returned_amount ?? 0),
+                'Payé par avoir (DA)' => (float) $s->credit_note_amount,
+                'Statut' => $s->isCancelled() ? 'Annulée' : 'Terminée',
             ]);
     }
 
     public function headings(): array
     {
-        return ['ID', 'Date', 'Client', 'Caissier', 'Sous-total (DA)', 'Remise (DA)', 'Total (DA)', 'Statut'];
+        return [
+            'ID', 'Date', 'Client', 'Caissier', 'Sous-total (DA)', 'Remise (DA)', 'Total (DA)',
+            'Remboursé (DA)', 'Payé par avoir (DA)', 'Statut',
+        ];
     }
 }

@@ -41,7 +41,13 @@
         <div class="meta">
             <h1>Facture #{{ $sale->id }}</h1>
             <div class="muted">Émise le {{ $sale->created_at->format('d/m/Y à H:i') }}</div>
-            <div style="margin-top:6px"><span class="badge">{{ $sale->status }}</span></div>
+            <div style="margin-top:6px">
+                @if ($sale->isCancelled())
+                    <span class="badge" style="background:#fee2e2;color:#991b1b">Annulée</span>
+                @else
+                    <span class="badge">{{ $sale->status }}</span>
+                @endif
+            </div>
         </div>
     </div>
 

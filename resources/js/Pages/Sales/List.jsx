@@ -1,10 +1,19 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
-import { Download, Eye, Upload, X } from 'lucide-react';
+import { Download, Eye, ReceiptText, Upload, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import PosLayout from '../../Layouts/PosLayout';
 
-export default function SalesList({ sales }) {
+const STATUS_STYLES = {
+    completed: 'bg-emerald-100 text-emerald-700',
+    partially_returned: 'bg-amber-100 text-amber-700',
+    returned: 'bg-orange-100 text-orange-700',
+    cancelled: 'bg-red-100 text-red-700',
+};
+
+const FILTERS = ['all', 'completed', 'returned', 'cancelled'];
+
+export default function SalesList({ sales, filters = { status: 'all' } }) {
     const { t } = useTranslation();
     const [selectedSale, setSelectedSale] = useState(null);
 
@@ -17,6 +26,13 @@ export default function SalesList({ sales }) {
                         <h1 className="text-xl font-bold text-slate-900">{t('sales.history')}</h1>
                         <p className="text-sm text-slate-500">{t('sales.salesCount', { count: sales.total })}</p>
                     </div>
+                    <div className="flex items-center gap-2">
+                    <Link
+                        href="/avoirs"
+                        className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-600 shadow-sm transition hover:text-indigo-600"
+                    >
+                        <ReceiptText size={15} /> {t('creditNotes.title')}
+                    </Link>
                     <div className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
                         <button
                             onClick={() => window.location.href = '/ventes/export'}
@@ -33,6 +49,27 @@ export default function SalesList({ sales }) {
                             <input type="file" accept=".csv,.xlsx,.xls" className="hidden" />
                         </label>
                     </div>
+                    </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2 border-b border-slate-200/60 bg-white/40 px-6 py-3" role="tablist">
+                    {FILTERS.map((f) => {
+                        const on = (filters.status || 'all') === f;
+                        return (
+                            <button
+                                key={f}
+                                type="button"
+                                role="tab"
+                                aria-selected={on}
+                                onClick={() => router.get('/ventes', f === 'all' ? {} : { status: f }, { preserveScroll: true, preserveState: true })}
+                                className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+                                    on ? 'bg-slate-900 text-white' : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:ring-slate-300'
+                                }`}
+                            >
+                                {t(`returns.filter.${f}`)}
+                            </button>
+                        );
+                    })}
                 </div>
 
                 <div className="flex-1 overflow-auto p-6">
@@ -51,7 +88,7 @@ export default function SalesList({ sales }) {
                             </thead>
                             <tbody className="divide-y divide-slate-200/40">
                                 {sales.data.map((sale) => (
-                                    <tr key={sale.id} className="hover:bg-slate-50/50">
+                                    <tr key={sale.id} className={`hover:bg-slate-50/50 ${sale.status === 'cancelled' ? 'opacity-60' : ''}`}>
                                         <td className="px-4 py-3 text-sm font-medium text-slate-900">#{sale.id}</td>
                                         <td className="px-4 py-3 text-sm text-slate-600">
                                             {new Date(sale.created_at).toLocaleString('fr-FR', {
@@ -65,11 +102,18 @@ export default function SalesList({ sales }) {
                                         <td className="px-4 py-3 text-sm text-slate-900">{sale.client || '—'}</td>
                                         <td className="px-4 py-3 text-sm text-slate-600">{sale.user}</td>
                                         <td className="px-4 py-3 text-right text-sm font-semibold text-slate-900">
-                                            {sale.total.toLocaleString('fr-FR', { style: 'currency', currency: 'DZD' })}
+                                            <span className={sale.status === 'cancelled' ? 'line-through' : ''}>
+                                                {sale.total.toLocaleString('fr-FR', { style: 'currency', currency: 'DZD' })}
+                                            </span>
+                                            {sale.returned_amount > 0 && (
+                                                <div className="text-xs font-medium text-orange-600">
+                                                    −{sale.returned_amount.toLocaleString('fr-FR', { style: 'currency', currency: 'DZD' })}
+                                                </div>
+                                            )}
                                         </td>
                                         <td className="px-4 py-3 text-center">
-                                            <span className="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
-                                                {sale.status}
+                                            <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[sale.display_status] ?? STATUS_STYLES.completed}`}>
+                                                {t(`returns.status.${sale.display_status}`, { defaultValue: sale.status })}
                                             </span>
                                         </td>
                                         <td className="px-4 py-3 text-center">

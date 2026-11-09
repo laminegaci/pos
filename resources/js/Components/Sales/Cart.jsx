@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { AlertTriangle, Banknote, CreditCard, Loader2, Minus, Percent, Plus, ShoppingBag, Trash2, Volume2, VolumeX, X } from 'lucide-react';
+import { AlertTriangle, Banknote, CreditCard, Loader2, Minus, Percent, Plus, ReceiptText, ShoppingBag, Trash2, Volume2, VolumeX, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { formatCurrency } from '../../lib/formatCurrency';
 import { isSoundEnabled, onSoundChange, setSoundEnabled, sounds } from '../../lib/sounds';
@@ -145,6 +145,109 @@ function DiscountInput({ discount, onChange, subtotal }) {
     );
 }
 
+/** Pay part (or all) of the sale with a credit note: type its code, we check the balance. */
+function CreditNotePanel({ creditNote, applied, onChange }) {
+    const { t } = useTranslation();
+    const [open, setOpen] = useState(false);
+    const [code, setCode] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+
+    const lookup = async (e) => {
+        e?.preventDefault();
+        const value = code.trim();
+        if (!value || loading) return;
+        setLoading(true);
+        setError('');
+        try {
+            const res = await fetch(`/avoirs/lookup?code=${encodeURIComponent(value)}`, {
+                headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin',
+            });
+            if (res.status === 404) throw new Error(t('creditNotes.notFound'));
+            if (!res.ok) throw new Error(t('creditNotes.lookupError'));
+            const note = await res.json();
+            if (note.balance <= 0) throw new Error(t('creditNotes.exhausted'));
+            onChange({ code: note.code, balance: note.balance, client: note.client });
+            setOpen(false);
+            setCode('');
+            sounds.add();
+        } catch (err) {
+            setError(err.message);
+            sounds.error();
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (creditNote) {
+        const left = Math.max(0, creditNote.balance - applied);
+        return (
+            <div className="mt-3 flex items-center justify-between gap-2 rounded-xl border border-indigo-200 bg-indigo-50/70 px-3 py-2 dark:border-indigo-500/30 dark:bg-indigo-500/10">
+                <div className="min-w-0">
+                    <div className="flex items-center gap-1.5 text-sm font-semibold text-indigo-800 dark:text-indigo-200">
+                        <ReceiptText size={14} /> {creditNote.code}
+                        <span className="tabular-nums">−{formatCurrency(applied)}</span>
+                    </div>
+                    <div className="truncate text-xs text-indigo-600/80 dark:text-indigo-300/80">
+                        {t('creditNotes.balanceAfter', { amount: formatCurrency(left) })}
+                    </div>
+                </div>
+                <button
+                    type="button"
+                    onClick={() => onChange(null)}
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-indigo-500 hover:bg-indigo-100 dark:hover:bg-indigo-500/20"
+                    aria-label={t('creditNotes.remove')}
+                    title={t('creditNotes.remove')}
+                >
+                    <X size={14} />
+                </button>
+            </div>
+        );
+    }
+
+    if (!open) {
+        return (
+            <button
+                type="button"
+                onClick={() => setOpen(true)}
+                className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-slate-300 py-2 text-xs font-medium text-slate-500 transition hover:border-indigo-300 hover:text-indigo-600 dark:border-slate-600 dark:text-slate-400 dark:hover:border-indigo-500/50 dark:hover:text-indigo-300"
+            >
+                <ReceiptText size={14} /> {t('creditNotes.use')}
+            </button>
+        );
+    }
+
+    return (
+        <form onSubmit={lookup} className="mt-3 rounded-xl border border-slate-200 bg-slate-50/80 p-3 dark:border-slate-700 dark:bg-slate-800/60">
+            <label className="mb-1.5 flex items-center justify-between text-xs font-semibold text-slate-600 dark:text-slate-300">
+                {t('creditNotes.codeLabel')}
+                <button type="button" onClick={() => { setOpen(false); setError(''); }} className="text-slate-400 hover:text-slate-600" aria-label={t('common.close')}>
+                    <X size={13} />
+                </button>
+            </label>
+            <div className="flex gap-2">
+                <input
+                    autoFocus
+                    type="text"
+                    value={code}
+                    onChange={(e) => { setCode(e.target.value.toUpperCase()); setError(''); }}
+                    placeholder="AV-000123"
+                    className="h-9 min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-2 font-mono text-sm uppercase outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+                />
+                <button
+                    type="submit"
+                    disabled={loading || !code.trim()}
+                    className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-indigo-600 px-3 text-xs font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
+                >
+                    {loading && <Loader2 size={13} className="animate-spin" />} {t('creditNotes.apply')}
+                </button>
+            </div>
+            {error && <p role="alert" className="mt-1.5 text-xs text-red-600 dark:text-red-400">{error}</p>}
+        </form>
+    );
+}
+
 function CashPanel({ total, received, onReceivedChange }) {
     const { t } = useTranslation();
     const [open, setOpen] = useState(received !== '');
@@ -222,6 +325,10 @@ export default function Cart({
     total,
     discount,
     onDiscountChange,
+    creditNote = null,
+    creditApplied = 0,
+    due,
+    onCreditNoteChange,
     clients = [],
     selectedClientId = null,
     onClientChange,
@@ -242,7 +349,9 @@ export default function Cart({
     const count = lines.reduce((sum, l) => sum + l.quantity, 0);
     const empty = lines.length === 0;
     const receivedAmount = parseFloat(received) || 0;
-    const insufficient = received !== '' && receivedAmount < total;
+    // Cash still to collect once the credit note (if any) has paid its part.
+    const payable = due ?? total;
+    const insufficient = received !== '' && receivedAmount < payable;
 
     // Reset local state once the cart is emptied (after checkout or clear).
     useEffect(() => {
@@ -458,7 +567,24 @@ export default function Cart({
                         </span>
                     </div>
 
-                    {!empty && <CashPanel total={total} received={received} onReceivedChange={setReceived} />}
+                    {!empty && creditApplied > 0 && (
+                        <div className="mt-2 space-y-1 text-sm">
+                            <div className="flex justify-between text-slate-600 dark:text-slate-400">
+                                <span>{t('creditNotes.paidBy')}</span>
+                                <span className="font-semibold tabular-nums text-indigo-600 dark:text-indigo-300">−{formatCurrency(creditApplied)}</span>
+                            </div>
+                            <div className="flex justify-between font-semibold text-slate-900 dark:text-slate-100">
+                                <span>{t('creditNotes.toPay')}</span>
+                                <span className="tabular-nums">{formatCurrency(payable)}</span>
+                            </div>
+                        </div>
+                    )}
+
+                    {!empty && onCreditNoteChange && (
+                        <CreditNotePanel creditNote={creditNote} applied={creditApplied} onChange={onCreditNoteChange} />
+                    )}
+
+                    {!empty && payable > 0 && <CashPanel total={payable} received={received} onReceivedChange={setReceived} />}
 
                     <button
                         type="button"

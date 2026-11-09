@@ -1,9 +1,10 @@
 import { Link } from '@inertiajs/react';
 import { CheckCircle2, Download, ExternalLink, Loader2, Plus, Printer, X } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { formatCurrency } from '../../lib/formatCurrency';
+import usePrintDocument from '../../lib/printDocument';
 
 /**
  * Thermal ticket (58/80 mm, printable HTML) or A4 invoice PDF, depending on the paper setting.
@@ -14,53 +15,6 @@ function printUrlFor(saleId, paperSize, received) {
     const amount = parseFloat(received);
     if (amount > 0) params.set('recu', String(amount));
     return `/ventes/${saleId}/ticket?${params}`;
-}
-
-/**
- * Loads the document in a hidden iframe and opens the browser print dialog.
- * Falls back to opening it in a new tab if the browser refuses.
- */
-function usePrintDocument() {
-    const frameRef = useRef(null);
-    const [printing, setPrinting] = useState(false);
-
-    useEffect(() => () => frameRef.current?.remove(), []);
-
-    const print = useCallback((url) => {
-        frameRef.current?.remove();
-        setPrinting(true);
-
-        const frame = document.createElement('iframe');
-        frame.setAttribute('aria-hidden', 'true');
-        frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;';
-        frame.src = url;
-
-        const fallback = () => {
-            setPrinting(false);
-            const sep = url.includes('?') ? '&' : '?';
-            window.open(url.includes('/ticket') ? `${url}${sep}print=1` : url, '_blank', 'noopener');
-        };
-        const timeout = setTimeout(fallback, 15000);
-
-        frame.onload = () => {
-            clearTimeout(timeout);
-            // Give the PDF viewer a moment to render before printing.
-            setTimeout(() => {
-                try {
-                    frame.contentWindow.focus();
-                    frame.contentWindow.print();
-                    setPrinting(false);
-                } catch {
-                    fallback();
-                }
-            }, 400);
-        };
-
-        document.body.appendChild(frame);
-        frameRef.current = frame;
-    }, []);
-
-    return { print, printing };
 }
 
 export default function SaleConfirmationModal({ sale, lines = [], received = null, autoPrint = false, paperSize = '80mm', onClose }) {
@@ -76,7 +30,9 @@ export default function SaleConfirmationModal({ sale, lines = [], received = nul
 
     const open = !!sale;
     const receivedAmount = received != null && received !== '' ? parseFloat(received) : null;
-    const change = receivedAmount != null && sale ? receivedAmount - sale.total : null;
+    const creditPaid = sale?.credit_note_amount ?? 0;
+    const due = sale ? Math.max(0, sale.total - creditPaid) : 0;
+    const change = receivedAmount != null && sale ? receivedAmount - due : null;
 
     useEffect(() => {
         if (!open) return;
@@ -159,6 +115,18 @@ export default function SaleConfirmationModal({ sale, lines = [], received = nul
                             <dt className="font-bold text-slate-900 dark:text-slate-100">{t('sales.total')}</dt>
                             <dd className="text-xl font-bold text-indigo-600 tabular-nums dark:text-indigo-400">{formatCurrency(sale.total)}</dd>
                         </div>
+                        {creditPaid > 0 && (
+                            <>
+                                <div className="flex justify-between text-slate-600 dark:text-slate-400">
+                                    <dt>{t('creditNotes.paidBy')}</dt>
+                                    <dd className="tabular-nums">−{formatCurrency(creditPaid)}</dd>
+                                </div>
+                                <div className="flex justify-between font-semibold text-slate-800 dark:text-slate-200">
+                                    <dt>{t('creditNotes.toPay')}</dt>
+                                    <dd className="tabular-nums">{formatCurrency(due)}</dd>
+                                </div>
+                            </>
+                        )}
                         {receivedAmount != null && (
                             <>
                                 <div className="flex justify-between text-slate-600 dark:text-slate-400">

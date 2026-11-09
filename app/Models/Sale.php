@@ -13,6 +13,10 @@ class Sale extends Model
 {
     use HasFactory;
 
+    public const STATUS_COMPLETED = 'completed';
+
+    public const STATUS_CANCELLED = 'cancelled';
+
     protected $fillable = [
         'user_id',
         'client_id',
@@ -20,6 +24,11 @@ class Sale extends Model
         'remise',
         'total',
         'status',
+        'credit_note_amount',
+        'cancelled_at',
+        'cancelled_by',
+        'cancel_approved_by',
+        'cancel_reason',
     ];
 
     protected function casts(): array
@@ -28,6 +37,8 @@ class Sale extends Model
             'subtotal' => 'decimal:2',
             'remise' => 'decimal:2',
             'total' => 'decimal:2',
+            'credit_note_amount' => 'decimal:2',
+            'cancelled_at' => 'datetime',
         ];
     }
 
@@ -44,5 +55,45 @@ class Sale extends Model
     public function items(): HasMany
     {
         return $this->hasMany(SaleItem::class);
+    }
+
+    public function returns(): HasMany
+    {
+        return $this->hasMany(SaleReturn::class);
+    }
+
+    public function creditNoteUses(): HasMany
+    {
+        return $this->hasMany(CreditNoteUse::class);
+    }
+
+    public function canceller(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'cancelled_by');
+    }
+
+    public function cancelApprover(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'cancel_approved_by');
+    }
+
+    public function isCancelled(): bool
+    {
+        return $this->status === self::STATUS_CANCELLED;
+    }
+
+    /** A whole ticket can only be cancelled the day it was made, and only if nothing was returned yet. */
+    public function canBeCancelled(): bool
+    {
+        return ! $this->isCancelled()
+            && $this->created_at !== null
+            && $this->created_at->isToday()
+            && ! $this->returns()->exists();
+    }
+
+    /** Total already refunded through returns. */
+    public function refundedAmount(): float
+    {
+        return round((float) $this->returns()->sum('amount'), 2);
     }
 }

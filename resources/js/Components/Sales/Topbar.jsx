@@ -1,10 +1,12 @@
 import { Link, usePage } from '@inertiajs/react';
 import { Bell, Menu } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from '../LanguageSwitcher';
 import GlobalSearch from './GlobalSearch';
 import { FullscreenToggle, OnlineStatus, SyncButton, ThemeToggle } from './TopbarActions';
 
 export default function Topbar({ searchQuery, onSearchChange, onMenuClick }) {
+    const { t } = useTranslation();
     const { auth } = usePage().props;
     const user = auth?.user;
     const showSearch = typeof onSearchChange === 'function';
@@ -50,7 +52,7 @@ export default function Topbar({ searchQuery, onSearchChange, onMenuClick }) {
                     </div>
                     <div className="hidden text-sm leading-tight md:block">
                         <div className="font-semibold text-slate-900 dark:text-slate-100">{user?.name || 'Utilisateur'}</div>
-                        <div className="text-xs text-slate-500 dark:text-slate-400">Caissier</div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400">{t(`roles.${user?.role}`, { defaultValue: t('roles.cashier') })}</div>
                     </div>
                 </Link>
             </div>

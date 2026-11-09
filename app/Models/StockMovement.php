@@ -17,6 +17,8 @@ class StockMovement extends Model
 
     public const TYPE_RETURN = 'return';
 
+    public const TYPE_CANCEL = 'cancel';
+
     protected $fillable = [
         'product_id', 'user_id', 'sale_id', 'type', 'quantity', 'stock_before', 'stock_after', 'note',
     ];

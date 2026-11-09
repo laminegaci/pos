@@ -43,6 +43,8 @@ export default function SalesIndex({ caisse, categories, products, clients = [],
         clients.some((c) => c.id === stored?.clientId) ? stored.clientId : null,
     );
     const [discount, setDiscount] = useState(() => stored?.discount ?? NO_DISCOUNT);
+    // Credit note used to pay (part of) this sale: { code, balance, client }. Not persisted: its balance may change.
+    const [creditNote, setCreditNote] = useState(null);
 
     useEffect(() => {
         try {
@@ -115,6 +117,9 @@ export default function SalesIndex({ caisse, categories, products, clients = [],
                   Math.round((discount.type === 'percent' ? (subtotal * discountValue) / 100 : discountValue) * 100) / 100,
               );
     const total = Math.max(0, subtotal - remise);
+    // The credit note pays as much as it can, never more than the total. It is a payment, not a discount.
+    const creditApplied = creditNote ? Math.min(creditNote.balance, total) : 0;
+    const due = Math.max(0, Math.round((total - creditApplied) * 100) / 100);
 
     const stockOf = (productId) => {
         const product = productsById[productId];
@@ -166,6 +171,7 @@ export default function SalesIndex({ caisse, categories, products, clients = [],
         setCartItems([]);
         setSelectedClientId(null);
         setDiscount(NO_DISCOUNT);
+        setCreditNote(null);
     };
 
     const handleCheckout = useCallback((payment = {}) => {
@@ -178,6 +184,7 @@ export default function SalesIndex({ caisse, categories, products, clients = [],
                 client_id: selectedClientId,
                 remise,
                 items: cartLines.map((l) => ({ product_id: l.productId, quantity: l.quantity })),
+                ...(creditNote && creditApplied > 0 ? { credit_note_code: creditNote.code, credit_note_amount: creditApplied } : {}),
             },
             {
                 preserveScroll: true,
@@ -185,14 +192,19 @@ export default function SalesIndex({ caisse, categories, products, clients = [],
                 onError: (errors) => {
                     sounds.error();
                     // e.g. "Not enough stock for X": the server is the source of truth.
-                    setToast({ message: errors?.items || t('sales.checkoutFailed'), type: 'error' });
+                    setToast({
+                        message: errors?.items || errors?.credit_note_code || errors?.credit_note_amount || t('sales.checkoutFailed'),
+                        type: 'error',
+                    });
+                    // The balance may have changed on another till: ask for the code again to show the real one.
+                    if (errors?.credit_note_code) setCreditNote(null);
                     // Stock may have changed on another till: refresh quantities.
                     router.reload({ only: ['products'] });
                 },
                 onFinish: () => setSubmitting(false),
             },
         );
-    }, [cartLines, submitting, selectedClientId, remise, t]);
+    }, [cartLines, submitting, selectedClientId, remise, creditNote, creditApplied, t]);
 
     return (
         <>
@@ -241,6 +253,10 @@ export default function SalesIndex({ caisse, categories, products, clients = [],
                     total={total}
                     discount={discount}
                     onDiscountChange={setDiscount}
+                    creditNote={creditNote}
+                    creditApplied={creditApplied}
+                    due={due}
+                    onCreditNoteChange={setCreditNote}
                     clients={clients}
                     selectedClientId={selectedClientId}
                     onClientChange={setSelectedClientId}

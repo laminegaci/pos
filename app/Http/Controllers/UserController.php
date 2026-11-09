@@ -19,7 +19,7 @@ class UserController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'role' => 'Caissier',
+                'role' => $user->role,
             ];
         });
 
@@ -28,7 +28,30 @@ class UserController extends Controller
             'settings' => Settings::current()->toFrontend(),
             // Used by the "print a test ticket" button.
             'lastSaleId' => Sale::where('status', 'completed')->max('id'),
+            'canManageRoles' => (bool) $request->user()?->isAdmin(),
         ]);
+    }
+
+    /** PUT /parametres/utilisateurs/{user}/role — admins only. */
+    public function updateRole(Request $request, User $user): RedirectResponse
+    {
+        abort_unless($request->user()->isAdmin(), 403);
+
+        $data = $request->validate(['role' => ['required', 'in:'.implode(',', User::ROLES)]]);
+
+        if ($user->id === $request->user()->id) {
+            return back()->withErrors(['role' => __('returns.role_self')]);
+        }
+
+        // Never leave the shop without an administrator.
+        if ($user->isAdmin() && $data['role'] !== User::ROLE_ADMIN && User::where('role', User::ROLE_ADMIN)->count() <= 1) {
+            return back()->withErrors(['role' => __('returns.role_last_admin')]);
+        }
+
+        $user->role = $data['role'];
+        $user->save();
+
+        return back()->with('success', __('returns.role_updated', ['name' => $user->name]));
     }
 
     public function updateSettings(UpdateSettingsRequest $request): RedirectResponse

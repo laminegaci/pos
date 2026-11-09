@@ -85,6 +85,15 @@
             @endif
         </div>
 
+        @if ($sale->isCancelled())
+            <div class="center bold" style="border:2px solid #000; margin:2mm 0; padding:1.5mm 0; font-size:15px; letter-spacing:2px;">
+                *** ANNULÉ ***
+            </div>
+            @if ($sale->cancelled_at)
+                <div class="center muted">le {{ $sale->cancelled_at->format('d/m/Y H:i') }}</div>
+            @endif
+        @endif
+
         <hr class="sep">
 
         {{-- Sale info --}}
@@ -118,6 +127,11 @@
         @endif
         <hr class="sep solid">
         <div class="row total"><span>TOTAL</span><span>{{ $money($sale->total) }}</span></div>
+
+        @if ((float) $sale->credit_note_amount > 0)
+            <div class="row"><span>Payé par avoir</span><span>-{{ $money($sale->credit_note_amount) }}</span></div>
+            <div class="row bold"><span>Reste à payer</span><span>{{ $money(max(0, (float) $sale->total - (float) $sale->credit_note_amount)) }}</span></div>
+        @endif
 
         @if ($received !== null)
             <hr class="sep">

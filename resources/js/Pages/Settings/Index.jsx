@@ -1,4 +1,4 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { createContext, useContext, useMemo, useState } from 'react';
 import {
     AlertCircle,
@@ -166,10 +166,20 @@ function normalize(values) {
     return out;
 }
 
-export default function SettingsIndex({ users = [], settings: initialSettings, lastSaleId = null }) {
+const ROLES = ['admin', 'manager', 'cashier'];
+
+export default function SettingsIndex({ users = [], settings: initialSettings, lastSaleId = null, canManageRoles = false }) {
     const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState("general");
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const { auth, errors: pageErrors } = usePage().props;
+    const [roleBusy, setRoleBusy] = useState(null);
+
+    // Changing a role is its own request (admins only): it does not touch the settings form.
+    const changeRole = (user, role) => {
+        setRoleBusy(user.id);
+        router.put(`/parametres/utilisateurs/${user.id}/role`, { role }, { preserveScroll: true, onFinish: () => setRoleBusy(null) });
+    };
 
     const {
         data: settings,
@@ -524,12 +534,35 @@ export default function SettingsIndex({ users = [], settings: initialSettings, l
                                                         <div className="text-xs text-slate-400">{u.email}</div>
                                                     </div>
                                                 </div>
-                                                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
-                                                    {u.role}
-                                                </span>
+                                                {canManageRoles && u.id !== auth?.user?.id ? (
+                                                    <select
+                                                        value={u.role}
+                                                        disabled={roleBusy === u.id}
+                                                        onChange={(e) => changeRole(u, e.target.value)}
+                                                        aria-label={t('roles.label')}
+                                                        className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-medium text-slate-700 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 disabled:opacity-60"
+                                                    >
+                                                        {ROLES.map((r) => (
+                                                            <option key={r} value={r}>
+                                                                {t(`roles.${r}`)}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                ) : (
+                                                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+                                                        {t(`roles.${u.role}`, { defaultValue: u.role })}
+                                                        {u.id === auth?.user?.id && ` · ${t('roles.you')}`}
+                                                    </span>
+                                                )}
                                             </div>
                                         ))}
                                     </div>
+                                    {pageErrors?.role && (
+                                        <p role="alert" className="mt-2 text-xs text-red-600">
+                                            {pageErrors.role}
+                                        </p>
+                                    )}
+                                    {!canManageRoles && <p className="mt-2 text-xs text-slate-400">{t('roles.adminOnly')}</p>}
                                     <button
                                         type="button"
                                         className="mt-4 inline-flex items-center gap-2 rounded-xl border border-dashed border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-indigo-400 hover:text-indigo-600"

@@ -8,6 +8,8 @@ use App\Models\Client;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Models\SaleItem;
+use App\Models\SaleReturn;
+use App\Models\SaleReturnItem;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -15,6 +17,15 @@ use Inertia\Response;
 
 class ReportController extends Controller
 {
+    /** Total refunded through returns in [from, to] (refunds count the day they are made). */
+    private function returned(Carbon $from, ?Carbon $to = null): float
+    {
+        return (float) SaleReturn::query()
+            ->where('created_at', '>=', $from)
+            ->when($to, fn ($q) => $q->where('created_at', '<=', $to))
+            ->sum('amount');
+    }
+
     public function index(): Response
     {
         $now = Carbon::now();
@@ -27,14 +38,18 @@ class ReportController extends Controller
         $revenueMonth = (float) Sale::where('status', 'completed')
             ->where('created_at', '>=', $startOfMonth)
             ->sum('total');
+        $returnedMonth = $this->returned($startOfMonth);
+        $revenueMonth -= $returnedMonth;
 
         $revenuePrevMonth = (float) Sale::where('status', 'completed')
             ->whereBetween('created_at', [$startOfPrevMonth, $endOfPrevMonth])
             ->sum('total');
+        $revenuePrevMonth -= $this->returned($startOfPrevMonth, $endOfPrevMonth);
 
         $revenueToday = (float) Sale::where('status', 'completed')
             ->where('created_at', '>=', $startOfToday)
             ->sum('total');
+        $revenueToday -= $this->returned($startOfToday);
 
         $salesCountMonth = Sale::where('status', 'completed')
             ->where('created_at', '>=', $startOfMonth)
@@ -59,6 +74,12 @@ class ReportController extends Controller
             ->get()
             ->keyBy('day');
 
+        $dailyReturns = SaleReturn::query()
+            ->where('created_at', '>=', $now->copy()->subDays(29)->startOfDay())
+            ->select(DB::raw('DATE(created_at) as day'), DB::raw('SUM(amount) as total'))
+            ->groupBy('day')
+            ->pluck('total', 'day');
+
         $days = [];
         for ($i = 29; $i >= 0; $i--) {
             $d = $now->copy()->subDays($i)->format('Y-m-d');
@@ -66,10 +87,34 @@ class ReportController extends Controller
             $days[] = [
                 'date' => $d,
                 'label' => Carbon::parse($d)->format('d/m'),
-                'total' => (float) ($row->total ?? 0),
+                'total' => (float) ($row->total ?? 0) - (float) ($dailyReturns[$d] ?? 0),
                 'count' => (int) ($row->count ?? 0),
             ];
         }
+
+        // Refunds of the last 30 days, to subtract from the rankings below.
+        $window = $now->copy()->subDays(29)->startOfDay();
+        $returnedByProduct = SaleReturnItem::query()
+            ->join('sale_returns', 'sale_returns.id', '=', 'sale_return_items.sale_return_id')
+            ->where('sale_returns.created_at', '>=', $window)
+            ->groupBy('sale_return_items.product_id')
+            ->select('sale_return_items.product_id', DB::raw('SUM(sale_return_items.quantity) as qty'), DB::raw('SUM(sale_return_items.line_total) as revenue'))
+            ->get()
+            ->keyBy('product_id');
+        $returnedByCategory = SaleReturnItem::query()
+            ->join('sale_returns', 'sale_returns.id', '=', 'sale_return_items.sale_return_id')
+            ->join('products', 'products.id', '=', 'sale_return_items.product_id')
+            ->where('sale_returns.created_at', '>=', $window)
+            ->groupBy('products.category_id')
+            ->select('products.category_id', DB::raw('SUM(sale_return_items.line_total) as revenue'))
+            ->pluck('revenue', 'category_id');
+        $returnedByClient = SaleReturn::query()
+            ->join('sales', 'sales.id', '=', 'sale_returns.sale_id')
+            ->where('sale_returns.created_at', '>=', $window)
+            ->whereNotNull('sales.client_id')
+            ->groupBy('sales.client_id')
+            ->select('sales.client_id', DB::raw('SUM(sale_returns.amount) as amount'))
+            ->pluck('amount', 'client_id');
 
         // Top produits (30j)
         $topProducts = SaleItem::query()
@@ -85,16 +130,17 @@ class ReportController extends Controller
                 DB::raw('SUM(sale_items.line_total) as revenue')
             )
             ->groupBy('products.id', 'products.name', 'products.category_id')
-            ->orderByDesc('revenue')
-            ->limit(8)
             ->get()
             ->map(fn ($r) => [
                 'id' => $r->id,
                 'name' => $r->name,
                 'category_id' => $r->category_id,
-                'qty' => (int) $r->qty,
-                'revenue' => (float) $r->revenue,
-            ]);
+                'qty' => (int) $r->qty - (int) ($returnedByProduct[$r->id]->qty ?? 0),
+                'revenue' => (float) $r->revenue - (float) ($returnedByProduct[$r->id]->revenue ?? 0),
+            ])
+            ->sortByDesc('revenue')
+            ->take(8)
+            ->values();
 
         // Répartition par catégorie (30j)
         $byCategory = SaleItem::query()
@@ -104,12 +150,13 @@ class ReportController extends Controller
             ->where('sales.created_at', '>=', $now->copy()->subDays(29)->startOfDay())
             ->select('products.category_id', DB::raw('SUM(sale_items.line_total) as revenue'))
             ->groupBy('products.category_id')
-            ->orderByDesc('revenue')
             ->get()
             ->map(fn ($r) => [
                 'category_id' => $r->category_id,
-                'revenue' => (float) $r->revenue,
-            ]);
+                'revenue' => (float) $r->revenue - (float) ($returnedByCategory[$r->category_id] ?? 0),
+            ])
+            ->sortByDesc('revenue')
+            ->values();
 
         // Top clients (30j)
         $topClients = Sale::query()
@@ -118,16 +165,17 @@ class ReportController extends Controller
             ->where('sales.created_at', '>=', $now->copy()->subDays(29)->startOfDay())
             ->select('clients.id', 'clients.name', 'clients.type', DB::raw('SUM(sales.total) as revenue'), DB::raw('COUNT(*) as count'))
             ->groupBy('clients.id', 'clients.name', 'clients.type')
-            ->orderByDesc('revenue')
-            ->limit(5)
             ->get()
             ->map(fn ($r) => [
                 'id' => $r->id,
                 'name' => $r->name,
                 'type' => $r->type,
-                'revenue' => (float) $r->revenue,
+                'revenue' => (float) $r->revenue - (float) ($returnedByClient[$r->id] ?? 0),
                 'count' => (int) $r->count,
-            ]);
+            ])
+            ->sortByDesc('revenue')
+            ->take(5)
+            ->values();
 
         // Ventes récentes
         $recentSales = Sale::with(['client:id,name', 'user:id,name'])
@@ -160,6 +208,7 @@ class ReportController extends Controller
         return Inertia::render('Reports/Index', [
             'kpis' => [
                 'revenueMonth' => $revenueMonth,
+                'returnedMonth' => $returnedMonth,
                 'revenueToday' => $revenueToday,
                 'salesCountMonth' => $salesCountMonth,
                 'salesCountToday' => $salesCountToday,

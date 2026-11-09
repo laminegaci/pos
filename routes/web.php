@@ -1,10 +1,12 @@
 <?php
 
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\CreditNoteController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SaleController;
+use App\Http\Controllers\SaleReturnController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\UserController;
 use App\Models\Client;
@@ -101,8 +103,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/ventes/{sale}/facture', [SaleController::class, 'invoice'])->name('sales.invoice');
     Route::get('/ventes/{sale}/ticket', [SaleController::class, 'ticket'])->name('sales.ticket');
 
+    // Cancellation and returns (a cashier needs a manager's credentials, see ApprovalService).
+    Route::post('/ventes/{sale}/annuler', [SaleReturnController::class, 'cancel'])->name('sales.cancel');
+    Route::post('/ventes/{sale}/retours', [SaleReturnController::class, 'store'])->name('sales.returns.store');
+    Route::get('/retours/{return}/ticket', [SaleReturnController::class, 'ticket'])->name('returns.ticket');
+
+    Route::get('/avoirs', [CreditNoteController::class, 'index'])->name('credit-notes.index');
+    Route::get('/avoirs/lookup', [CreditNoteController::class, 'lookup'])->name('credit-notes.lookup');
+    Route::get('/avoirs/{creditNote}/ticket', [CreditNoteController::class, 'ticket'])->name('credit-notes.ticket');
+
     Route::get('/parametres', [UserController::class, 'settings'])->name('settings.index');
     Route::put('/parametres', [UserController::class, 'updateSettings'])->name('settings.update');
+    Route::put('/parametres/utilisateurs/{user}/role', [UserController::class, 'updateRole'])->name('settings.users.role');
 
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
     Route::get('/profile/password', [ProfileController::class, 'password'])->name('profile.password');
