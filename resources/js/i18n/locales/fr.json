@@ -384,13 +384,16 @@
   },
   "categories": {
     "all": "Tout",
-    "bureaux": "Bureaux",
-    "rangement_bureau": "Rangement",
-    "bureaux_direction": "Bureaux Direction",
-    "bureaux_compacts": "Bureaux Compacts",
-    "bureaux_ergonomiques": "Bureaux Ergonomiques",
-    "bureaux_gaming": "Bureaux Gaming",
-    "mobilier_professionnel": "Mobilier Pro"
+    "manage": "Catégories",
+    "title": "Gérer les catégories",
+    "subtitle": "Créer, renommer, colorer ou supprimer des catégories.",
+    "namePlaceholder": "Nom de la nouvelle catégorie",
+    "add": "Ajouter",
+    "empty": "Aucune catégorie.",
+    "productsCount_one": "{{count}} produit",
+    "productsCount_other": "{{count}} produits",
+    "inUseHint": "Réaffectez d'abord ses produits pour la supprimer.",
+    "error": "Une erreur est survenue."
   },
   "language": {
     "title": "Langue",

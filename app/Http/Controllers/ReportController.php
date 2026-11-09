@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Client;
 use App\Models\Product;
 use App\Models\Sale;
@@ -206,6 +207,7 @@ class ReportController extends Controller
             ]);
 
         return Inertia::render('Reports/Index', [
+            'categories' => Category::options(),
             'kpis' => [
                 'revenueMonth' => $revenueMonth,
                 'returnedMonth' => $returnedMonth,

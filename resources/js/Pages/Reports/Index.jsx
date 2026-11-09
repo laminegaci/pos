@@ -15,16 +15,6 @@ import { useTranslation } from 'react-i18next';
 import PosLayout from '../../Layouts/PosLayout';
 import { formatCurrency } from '../../lib/formatCurrency';
 
-const CATEGORY_COLORS = {
-    bureaux: '#6366f1',
-    rangement_bureau: '#06b6d4',
-    bureaux_direction: '#f59e0b',
-    bureaux_compacts: '#10b981',
-    bureaux_ergonomiques: '#ec4899',
-    bureaux_gaming: '#8b5cf6',
-    mobilier_professionnel: '#f97316',
-    bureaux_partages: '#14b8a6',
-};
 
 function KpiCard({ icon: Icon, label, value, tone = 'indigo', delta, hint }) {
     const tones = {
@@ -138,7 +128,7 @@ function Donut({ slices, t }) {
             {slices.map((s, i) => {
                 const frac = s.revenue / total;
                 const length = frac * circumference;
-                const color = CATEGORY_COLORS[s.category_id] ?? '#94a3b8';
+                const color = colorOf(s.category_id);
                 const el = (
                     <circle
                         key={i}
@@ -181,7 +171,10 @@ function formatDateTime(iso) {
     }
 }
 
-export default function ReportsIndex({ kpis, daily, topProducts, byCategory, topClients, recentSales, lowStock }) {
+export default function ReportsIndex({ kpis, daily, topProducts, byCategory, topClients, recentSales, lowStock, categories = [] }) {
+    const categoryMeta = Object.fromEntries(categories.map((c) => [c.id, c]));
+    const colorOf = (id, fallback = '#94a3b8') => categoryMeta[id]?.color ?? fallback;
+    const labelOf = (id) => categoryMeta[id]?.label ?? id;
     const { t } = useTranslation();
     const topProductMax = useMemo(() => Math.max(1, ...topProducts.map((p) => p.revenue)), [topProducts]);
 
@@ -244,9 +237,9 @@ export default function ReportsIndex({ kpis, daily, topProducts, byCategory, top
                                     <span className="flex items-center gap-2 text-slate-600">
                                         <span
                                             className="h-2.5 w-2.5 rounded-full"
-                                            style={{ backgroundColor: CATEGORY_COLORS[s.category_id] ?? '#94a3b8' }}
+                                            style={{ backgroundColor: colorOf(s.category_id) }}
                                         />
-                                        {t(`categories.${s.category_id}`, s.category_id)}
+                                        {labelOf(s.category_id)}
                                     </span>
                                     <span className="font-semibold tabular-nums text-slate-700">
                                         {formatCurrency(s.revenue, { compact: true })}
@@ -270,7 +263,7 @@ export default function ReportsIndex({ kpis, daily, topProducts, byCategory, top
                                         <div className="flex items-center gap-2">
                                             <span
                                                 className="h-2 w-2 rounded-full"
-                                                style={{ backgroundColor: CATEGORY_COLORS[p.category_id] ?? '#94a3b8' }}
+                                                style={{ backgroundColor: colorOf(p.category_id) }}
                                             />
                                             <span className="truncate font-medium text-slate-700">{p.name}</span>
                                             <span className="text-slate-400 hidden sm:inline">· {t('reports.soldUnits', { count: p.qty })}</span>
@@ -284,7 +277,7 @@ export default function ReportsIndex({ kpis, daily, topProducts, byCategory, top
                                             className="h-full rounded-full"
                                             style={{
                                                 width: `${(p.revenue / topProductMax) * 100}%`,
-                                                backgroundColor: CATEGORY_COLORS[p.category_id] ?? '#6366f1',
+                                                backgroundColor: colorOf(p.category_id, '#6366f1'),
                                             }}
                                         />
                                     </div>
@@ -365,7 +358,7 @@ export default function ReportsIndex({ kpis, daily, topProducts, byCategory, top
                                     <div className="min-w-0 flex-1">
                                         <div className="truncate text-sm font-medium text-slate-800">{p.name}</div>
                                         <div className="text-[11px] text-slate-400">
-                                            {t(`categories.${p.category_id}`, p.category_id)}
+                                            {labelOf(p.category_id)}
                                         </div>
                                     </div>
                                     <span

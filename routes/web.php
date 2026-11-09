@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\CreditNoteController;
 use App\Http\Controllers\ProductController;
@@ -9,6 +10,7 @@ use App\Http\Controllers\SaleController;
 use App\Http\Controllers\SaleReturnController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\UserController;
+use App\Models\Category;
 use App\Models\Client;
 use App\Models\Product;
 use App\Models\Settings;
@@ -17,16 +19,7 @@ use Inertia\Inertia;
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/', function () {
-        $categories = [
-            ['id' => 'all', 'label' => 'Tout'],
-            ['id' => 'bureaux', 'label' => 'Bureaux'],
-            ['id' => 'rangement_bureau', 'label' => 'Rangement'],
-            ['id' => 'bureaux_direction', 'label' => 'Bureaux Direction'],
-            ['id' => 'bureaux_compacts', 'label' => 'Bureaux Compacts'],
-            ['id' => 'bureaux_ergonomiques', 'label' => 'Bureaux Ergonomiques'],
-            ['id' => 'bureaux_gaming', 'label' => 'Bureaux Gaming'],
-            ['id' => 'mobilier_professionnel', 'label' => 'Mobilier Pro'],
-        ];
+        $categories = [['id' => 'all', 'label' => 'Tout'], ...Category::options()];
 
         $products = Product::where('active', true)->get()->map(function ($p) {
             return [
@@ -86,6 +79,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/produits/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
     Route::get('/produits/{product}/mouvements', [ProductController::class, 'movements'])->name('products.movements');
     Route::get('/produits/export', [ProductController::class, 'export'])->name('products.export');
+
+    Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
+    Route::put('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
+    Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
 
     Route::get('/clients', [ClientController::class, 'index'])->name('clients.index');
     Route::post('/clients', [ClientController::class, 'store'])->name('clients.store');

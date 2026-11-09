@@ -11,6 +11,7 @@ import {
     LayoutGrid,
     List,
     Pencil,
+    Tags,
     Plus,
     Search,
     Trash2,
@@ -20,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import PosLayout from '../../Layouts/PosLayout';
+import CategoryManager from '../../Components/Sales/CategoryManager';
 import ProductImage from '../../Components/Sales/ProductImage';
 import { currencySymbol, formatCurrency } from '../../lib/formatCurrency';
 
@@ -64,6 +66,7 @@ function StatCard({ icon: Icon, label, value, tone = 'indigo', hint }) {
 export default function ProductsIndex({ products, categories }) {
     const { t } = useTranslation();
     const [showModal, setShowModal] = useState(false);
+    const [showCategories, setShowCategories] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
     const [searchQuery, setSearchQuery] = useState(() => new URLSearchParams(window.location.search).get('q') ?? '');
     const [filterCategory, setFilterCategory] = useState('all');
@@ -78,7 +81,7 @@ export default function ProductsIndex({ products, categories }) {
             name: '',
             description: '',
             price: '',
-            category_id: categories[0]?.id ?? 'bureaux',
+            category_id: categories[0]?.id ?? '',
             stock: '',
             unlimited_stock: false,
             stock_note: '',
@@ -89,6 +92,9 @@ export default function ProductsIndex({ products, categories }) {
     }
 
     const allCategories = useMemo(() => [{ id: 'all', label: t('common.all') }, ...categories], [categories, t]);
+    useEffect(() => {
+        if (filterCategory !== 'all' && !categories.some((c) => c.id === filterCategory)) setFilterCategory('all');
+    }, [categories, filterCategory]);
     const categoryLabel = (id) => categories.find((c) => c.id === id)?.label ?? id;
 
     const filteredProducts = useMemo(() => {
@@ -268,6 +274,13 @@ export default function ProductsIndex({ products, categories }) {
                                     );
                                 })}
                             </div>
+                            <button
+                                type="button"
+                                onClick={() => setShowCategories(true)}
+                                className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-white px-3.5 py-1.5 text-xs font-medium text-slate-600 ring-1 ring-slate-200 transition hover:bg-slate-50 hover:text-slate-900"
+                            >
+                                <Tags size={14} /> {t('categories.manage')}
+                            </button>
                             <div className="ml-1 flex shrink-0 items-center gap-1 rounded-full bg-white p-1 ring-1 ring-slate-200">
                                 <button
                                     onClick={() => setViewMode('table')}
@@ -475,6 +488,8 @@ export default function ProductsIndex({ products, categories }) {
                     </div>
                 </div>
             </PosLayout>
+
+            <CategoryManager open={showCategories} categories={categories} onClose={() => setShowCategories(false)} />
 
             {/* Modal */}
             {showModal && (

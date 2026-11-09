@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Exports;
 
+use App\Models\Category;
 use App\Models\Product;
 use App\Models\Settings;
 use Maatwebsite\Excel\Concerns\FromCollection;
@@ -20,15 +21,7 @@ class ProductExport implements FromCollection, WithHeadings
 
     public function collection()
     {
-        $categories = [
-            'bureaux' => 'Bureaux',
-            'rangement_bureau' => 'Rangement',
-            'bureaux_direction' => 'Bureaux Direction',
-            'bureaux_compacts' => 'Bureaux Compacts',
-            'bureaux_ergonomiques' => 'Bureaux Ergonomiques',
-            'bureaux_gaming' => 'Bureaux Gaming',
-            'mobilier_professionnel' => 'Mobilier Pro',
-        ];
+        $categories = Category::query()->pluck('name', 'slug');
 
         return Product::orderBy('name')->get()->map(fn ($p) => [
             'ID' => $p->id,

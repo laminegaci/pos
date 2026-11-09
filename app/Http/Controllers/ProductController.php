@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Exports\ProductExport;
+use App\Models\Category;
 use App\Models\Product;
 use App\Services\StockService;
 use Illuminate\Http\JsonResponse;
@@ -12,6 +13,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use Maatwebsite\Excel\Facades\Excel;
@@ -21,15 +23,11 @@ class ProductController extends Controller
     public function index(): Response
     {
         $products = Product::orderBy('created_at', 'desc')->get();
-        $categories = [
-            ['id' => 'bureaux', 'label' => 'Bureaux'],
-            ['id' => 'rangement_bureau', 'label' => 'Rangement'],
-            ['id' => 'bureaux_direction', 'label' => 'Bureaux Direction'],
-            ['id' => 'bureaux_compacts', 'label' => 'Bureaux Compacts'],
-            ['id' => 'bureaux_ergonomiques', 'label' => 'Bureaux Ergonomiques'],
-            ['id' => 'bureaux_gaming', 'label' => 'Bureaux Gaming'],
-            ['id' => 'mobilier_professionnel', 'label' => 'Mobilier Pro'],
-        ];
+        $counts = Product::query()->selectRaw('category_id, COUNT(*) as n')->groupBy('category_id')->pluck('n', 'category_id');
+        $categories = array_map(
+            fn (array $c) => [...$c, 'products_count' => (int) ($counts[$c['id']] ?? 0)],
+            Category::options(),
+        );
 
         return Inertia::render('Products/Index', [
             'products' => $products,
@@ -52,7 +50,7 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
-            'category_id' => 'required|string',
+            'category_id' => ['required', 'string', Rule::exists('categories', 'slug')],
             'stock' => 'required|integer|min:0',
             'unlimited_stock' => 'boolean',
             'stock_note' => 'nullable|string|max:255',

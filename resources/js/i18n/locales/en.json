@@ -384,13 +384,16 @@
   },
   "categories": {
     "all": "All",
-    "bureaux": "Desks",
-    "rangement_bureau": "Storage",
-    "bureaux_direction": "Executive Desks",
-    "bureaux_compacts": "Compact Desks",
-    "bureaux_ergonomiques": "Ergonomic Desks",
-    "bureaux_gaming": "Gaming Desks",
-    "mobilier_professionnel": "Professional Furniture"
+    "manage": "Categories",
+    "title": "Manage categories",
+    "subtitle": "Create, rename, recolor or delete categories.",
+    "namePlaceholder": "New category name",
+    "add": "Add",
+    "empty": "No categories.",
+    "productsCount_one": "{{count}} product",
+    "productsCount_other": "{{count}} products",
+    "inUseHint": "Reassign its products first to delete it.",
+    "error": "Something went wrong."
   },
   "language": {
     "title": "Language",

@@ -27,6 +27,12 @@ export default function SalesIndex({ caisse, categories, products, clients = [],
     const { t } = useTranslation();
     const { flash } = usePage().props;
     const [selectedCategory, setSelectedCategory] = useState('all');
+    // Products per category (active catalogue), shown on the chips.
+    const categoryCounts = useMemo(() => {
+        const counts = {};
+        for (const p of products) counts[p.category_id] = (counts[p.category_id] ?? 0) + 1;
+        return counts;
+    }, [products]);
     const [searchQuery, setSearchQuery] = useState('');
     const [viewMode, setViewMode] = useState('grid');
     const [submitting, setSubmitting] = useState(false);
@@ -235,6 +241,7 @@ export default function SalesIndex({ caisse, categories, products, clients = [],
                     <div className="mb-4">
                         <CategoryTabs
                             categories={categories}
+                            counts={categoryCounts}
                             selected={selectedCategory}
                             onSelect={setSelectedCategory}
                             viewMode={viewMode}
