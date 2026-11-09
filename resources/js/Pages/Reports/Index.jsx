@@ -105,7 +105,7 @@ function LineChart({ data }) {
     );
 }
 
-function Donut({ slices, t }) {
+function Donut({ slices, t, colorOf }) {
     const size = 180;
     const radius = 70;
     const stroke = 24;
@@ -229,7 +229,7 @@ export default function ReportsIndex({ kpis, daily, topProducts, byCategory, top
                     <div className="rounded-2xl border border-slate-200/60 bg-white p-5 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
                         <h2 className="mb-3 text-sm font-semibold text-slate-900">{t('reports.byCategory')}</h2>
                         <div className="flex items-center justify-center">
-                            <Donut slices={byCategory} t={t} />
+                            <Donut slices={byCategory} t={t} colorOf={colorOf} />
                         </div>
                         <div className="mt-3 space-y-1.5">
                             {byCategory.map((s) => (
