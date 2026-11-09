@@ -11,7 +11,15 @@
       "Bash(curl -s http://127.0.0.1:8000)",
       "Bash(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8000__TRACKED_VAR__)",
       "Bash(curl -s http://127.0.0.1:8000/produits)",
-      "Bash(git -C C:/laragon/www/pos-placo diff --stat)"
+      "Bash(git -C C:/laragon/www/pos-placo diff --stat)",
+      "Bash(./vendor/bin/pint app *)",
+      "Bash(node -e 'const f=require\\(\"./resources/js/i18n/locales/fr.json\"\\).products; const e=require\\(\"./resources/js/i18n/locales/en.json\"\\).products; for \\(const k of Object.keys\\(f\\)\\) if \\(/stock|status|Stock/i.test\\(k\\)\\) console.log\\(k, \"|\", f[k], \"|\", e[k]\\);')",
+      "Bash(node -e ' *)",
+      "Bash(node \"C:/Users/Amine/AppData/Local/Temp/claude/32b517835e4e1d18/2a068646-1692-4890-bc46-cd0ee7e2b54a/scratchpad/patch-products.cjs\")",
+      "Bash(./vendor/bin/pint tests/Feature/StockTest.php)",
+      "Bash(echo \"avant: stock $\\(php artisan tinker --execute='echo App\\\\Models\\\\Product::sum\\(\"stock\"\\);'\\) ventes $\\(php artisan tinker --execute='echo App\\\\Models\\\\Sale::count\\(\\);'\\) mouvements $\\(php artisan tinker --execute='echo App\\\\Models\\\\StockMovement::count\\(\\);'\\)\")",
+      "Bash(echo \"après: stock $\\(php artisan tinker --execute='echo App\\\\Models\\\\Product::sum\\(\"stock\"\\);'\\) ventes $\\(php artisan tinker --execute='echo App\\\\Models\\\\Sale::count\\(\\);'\\) mouvements $\\(php artisan tinker --execute='echo App\\\\Models\\\\StockMovement::count\\(\\);'\\)\")",
+      "Bash(echo \"stock $\\(php artisan tinker --execute='echo App\\\\Models\\\\Product::sum\\(\"stock\"\\);'\\) / ventes $\\(php artisan tinker --execute='echo App\\\\Models\\\\Sale::count\\(\\);'\\) / mouvements $\\(php artisan tinker --execute='echo App\\\\Models\\\\StockMovement::count\\(\\);'\\) / illimités $\\(php artisan tinker --execute='echo App\\\\Models\\\\Product::where\\(\"unlimited_stock\",true\\)->count\\(\\);'\\)\")"
     ]
   }
 }

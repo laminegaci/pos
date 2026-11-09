@@ -95,7 +95,8 @@ export default function SalesIndex({ caisse, categories, products, clients = [],
                         description: product.description,
                         category_id: product.category_id,
                         image: product.image,
-                        stock: product.stock,
+                        // null = unlimited (no cap, no warning)
+                        stock: product.unlimited_stock ? null : product.stock,
                         unitPrice: product.price,
                         quantity: item.quantity,
                         subtotal: product.price * item.quantity,
@@ -116,8 +117,9 @@ export default function SalesIndex({ caisse, categories, products, clients = [],
     const total = Math.max(0, subtotal - remise);
 
     const stockOf = (productId) => {
-        const stock = productsById[productId]?.stock;
-        return stock == null ? Infinity : stock;
+        const product = productsById[productId];
+        if (!product || product.unlimited_stock || product.stock == null) return Infinity;
+        return product.stock;
     };
 
     const warnStock = (productId) => {
@@ -180,9 +182,12 @@ export default function SalesIndex({ caisse, categories, products, clients = [],
             {
                 preserveScroll: true,
                 onSuccess: () => clearCart(),
-                onError: () => {
+                onError: (errors) => {
                     sounds.error();
-                    setToast({ message: t('sales.checkoutFailed'), type: 'error' });
+                    // e.g. "Not enough stock for X": the server is the source of truth.
+                    setToast({ message: errors?.items || t('sales.checkoutFailed'), type: 'error' });
+                    // Stock may have changed on another till: refresh quantities.
+                    router.reload({ only: ['products'] });
                 },
                 onFinish: () => setSubmitting(false),
             },

@@ -97,7 +97,21 @@
     "add": "Ajouter",
     "confirmDelete": "Supprimer « {{name}} » ?",
     "productsCount_one": "{{count}} produit",
-    "productsCount_other": "{{count}} produits"
+    "productsCount_other": "{{count}} produits",
+    "unlimited": "Illimité",
+    "unlimitedLabel": "Stock illimité",
+    "unlimitedHint": "Le stock n’est ni contrôlé ni décompté à la vente (services, produits sur commande…).",
+    "stockNote": "Motif du changement de stock",
+    "stockNotePlaceholder": "Inventaire, casse, livraison…",
+    "stockHistory": "Historique du stock",
+    "noMovements": "Aucun mouvement enregistré.",
+    "historyError": "Impossible de charger l’historique.",
+    "movementTypes": {
+      "initial": "Stock initial",
+      "sale": "Vente",
+      "adjustment": "Ajustement",
+      "return": "Retour"
+    }
   },
   "clients": {
     "title": "Clients",
@@ -428,7 +442,8 @@
     "percent": "Remise en pourcentage",
     "amount": "Remise en dinars",
     "soundOn": "Activer les sons",
-    "soundOff": "Couper les sons"
+    "soundOff": "Couper les sons",
+    "remaining": "{{count}} restant(s)"
   },
   "saleConfirm": {
     "title": "Vente #{{id}} confirmée",

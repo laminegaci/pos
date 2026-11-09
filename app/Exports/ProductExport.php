@@ -28,7 +28,7 @@ class ProductExport implements FromCollection, WithHeadings
             'Description' => $p->description,
             'Catégorie' => $categories[$p->category_id] ?? $p->category_id,
             'Prix (DA)' => (float) $p->price,
-            'Stock' => $p->stock,
+            'Stock' => $p->unlimited_stock ? 'Illimité' : $p->stock,
             'SKU' => $p->sku,
             'Actif' => $p->active ? 'Oui' : 'Non',
             'Créé le' => $p->created_at?->format('d/m/Y H:i'),

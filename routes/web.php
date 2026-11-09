@@ -35,6 +35,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 'category_id' => $p->category_id,
                 'image' => $p->image ?: "https://picsum.photos/seed/{$p->sku}/400/300",
                 'stock' => $p->stock,
+                'unlimited_stock' => (bool) $p->unlimited_stock,
             ];
         });
 
@@ -67,6 +68,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 'category_id' => $p->category_id,
                 'sku' => $p->sku,
                 'stock' => $p->stock,
+                'unlimited_stock' => (bool) $p->unlimited_stock,
             ];
         });
 
@@ -80,6 +82,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/produits/upload-image', [ProductController::class, 'uploadImage'])->name('products.uploadImage');
     Route::put('/produits/{product}', [ProductController::class, 'update'])->name('products.update');
     Route::delete('/produits/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
+    Route::get('/produits/{product}/mouvements', [ProductController::class, 'movements'])->name('products.movements');
     Route::get('/produits/export', [ProductController::class, 'export'])->name('products.export');
 
     Route::get('/clients', [ClientController::class, 'index'])->name('clients.index');

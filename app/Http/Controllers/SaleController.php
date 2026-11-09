@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\Settings;
+use App\Services\StockService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -57,7 +58,7 @@ class SaleController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, StockService $stock): RedirectResponse
     {
         $data = $request->validate([
             'client_id' => ['nullable', 'integer', 'exists:clients,id'],
@@ -67,20 +68,26 @@ class SaleController extends Controller
             'items.*.quantity' => ['required', 'integer', 'min:1'],
         ]);
 
-        $sale = DB::transaction(function () use ($data, $request) {
-            $productIds = collect($data['items'])->pluck('product_id')->all();
-            $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
+        // Same product sent twice => one line, so the stock check sees the real total.
+        $quantities = [];
+        foreach ($data['items'] as $item) {
+            $id = (int) $item['product_id'];
+            $quantities[$id] = ($quantities[$id] ?? 0) + (int) $item['quantity'];
+        }
+
+        $sale = DB::transaction(function () use ($data, $request, $stock, $quantities) {
+            $products = Product::whereIn('id', array_keys($quantities))->get()->keyBy('id');
 
             $subtotal = 0;
             $lines = [];
-            foreach ($data['items'] as $item) {
-                $product = $products[$item['product_id']];
+            foreach ($quantities as $productId => $quantity) {
+                $product = $products[$productId];
                 $unitPrice = (float) $product->price;
-                $lineTotal = $unitPrice * $item['quantity'];
+                $lineTotal = $unitPrice * $quantity;
                 $subtotal += $lineTotal;
                 $lines[] = [
                     'product_id' => $product->id,
-                    'quantity' => $item['quantity'],
+                    'quantity' => $quantity,
                     'unit_price' => $unitPrice,
                     'line_total' => $lineTotal,
                 ];
@@ -102,6 +109,10 @@ class SaleController extends Controller
                 SaleItem::create([...$line, 'sale_id' => $sale->id]);
             }
 
+            // Atomic check + decrement + journal. Throws (and rolls the whole sale
+            // back) if any product is inactive or lacks stock.
+            $stock->takeForSale($quantities, $products, $sale, $request->user()->id);
+
             return $sale;
         });
 
@@ -116,7 +127,7 @@ class SaleController extends Controller
                 'subtotal' => (float) $sale->subtotal,
                 'remise' => (float) $sale->remise,
                 'total' => (float) $sale->total,
-                'items_count' => (int) collect($data['items'])->sum('quantity'),
+                'items_count' => (int) array_sum($quantities),
                 'created_at' => $sale->created_at?->toIso8601String(),
             ]);
     }

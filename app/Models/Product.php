@@ -19,6 +19,7 @@ class Product extends Model
         'category_id',
         'image',
         'stock',
+        'unlimited_stock',
         'sku',
         'active',
     ];
@@ -28,6 +29,7 @@ class Product extends Model
         return [
             'price' => 'decimal:2',
             'stock' => 'integer',
+            'unlimited_stock' => 'boolean',
             'active' => 'boolean',
         ];
     }
@@ -35,5 +37,10 @@ class Product extends Model
     public function saleItems(): HasMany
     {
         return $this->hasMany(SaleItem::class);
+    }
+
+    public function stockMovements(): HasMany
+    {
+        return $this->hasMany(StockMovement::class);
     }
 }

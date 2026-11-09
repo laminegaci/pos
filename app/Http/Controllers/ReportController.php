@@ -145,6 +145,7 @@ class ReportController extends Controller
 
         // Alertes stock
         $lowStock = Product::where('active', true)
+            ->where('unlimited_stock', false)
             ->where('stock', '<', 10)
             ->orderBy('stock')
             ->limit(6)

@@ -97,7 +97,21 @@
     "add": "Add",
     "confirmDelete": "Delete \"{{name}}\"?",
     "productsCount_one": "{{count}} product",
-    "productsCount_other": "{{count}} products"
+    "productsCount_other": "{{count}} products",
+    "unlimited": "Unlimited",
+    "unlimitedLabel": "Unlimited stock",
+    "unlimitedHint": "Stock is neither checked nor deducted on sale (services, made-to-order items…).",
+    "stockNote": "Reason for the stock change",
+    "stockNotePlaceholder": "Inventory, breakage, delivery…",
+    "stockHistory": "Stock history",
+    "noMovements": "No movement recorded.",
+    "historyError": "Could not load the history.",
+    "movementTypes": {
+      "initial": "Initial stock",
+      "sale": "Sale",
+      "adjustment": "Adjustment",
+      "return": "Return"
+    }
   },
   "clients": {
     "title": "Clients",
@@ -428,7 +442,8 @@
     "percent": "Percentage discount",
     "amount": "Discount in dinars",
     "soundOn": "Turn sounds on",
-    "soundOff": "Mute sounds"
+    "soundOff": "Mute sounds",
+    "remaining": "{{count}} left"
   },
   "saleConfirm": {
     "title": "Sale #{{id}} confirmed",

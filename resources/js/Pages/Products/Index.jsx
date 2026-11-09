@@ -1,10 +1,12 @@
 import { Head, router } from '@inertiajs/react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
     AlertTriangle,
     Box,
     CheckCircle2,
     Download,
+    History,
+    Infinity as InfinityIcon,
     Layers,
     LayoutGrid,
     List,
@@ -23,7 +25,8 @@ import { formatCurrency } from '../../lib/formatCurrency';
 
 const LOW_STOCK = 10;
 
-function stockStatus(stock, t) {
+function stockStatus(stock, t, unlimited = false) {
+    if (unlimited) return { label: t('products.unlimited'), tone: 'indigo' };
     if (stock === 0) return { label: t('products.statusOut'), tone: 'red' };
     if (stock < LOW_STOCK) return { label: t('products.statusLow'), tone: 'amber' };
     return { label: t('products.statusInStock'), tone: 'emerald' };
@@ -31,6 +34,7 @@ function stockStatus(stock, t) {
 
 const toneClasses = {
     red: 'bg-red-50 text-red-700 ring-red-200',
+    indigo: 'bg-indigo-50 text-indigo-700 ring-indigo-200',
     amber: 'bg-amber-50 text-amber-700 ring-amber-200',
     emerald: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
     slate: 'bg-slate-100 text-slate-600 ring-slate-200',
@@ -76,6 +80,8 @@ export default function ProductsIndex({ products, categories }) {
             price: '',
             category_id: categories[0]?.id ?? 'bureaux',
             stock: '',
+            unlimited_stock: false,
+            stock_note: '',
             sku: '',
             image: '',
             active: true,
@@ -100,9 +106,11 @@ export default function ProductsIndex({ products, categories }) {
 
     const stats = useMemo(() => {
         const total = products.length;
-        const outOfStock = products.filter((p) => p.stock === 0).length;
-        const lowStock = products.filter((p) => p.stock > 0 && p.stock < LOW_STOCK).length;
-        const inventoryValue = products.reduce((sum, p) => sum + Number(p.price) * p.stock, 0);
+        // Unlimited products have no quantity to run out of, nor to value.
+        const tracked = products.filter((p) => !p.unlimited_stock);
+        const outOfStock = tracked.filter((p) => p.stock === 0).length;
+        const lowStock = tracked.filter((p) => p.stock > 0 && p.stock < LOW_STOCK).length;
+        const inventoryValue = tracked.reduce((sum, p) => sum + Number(p.price) * p.stock, 0);
         return { total, outOfStock, lowStock, inventoryValue };
     }, [products]);
 
@@ -121,6 +129,8 @@ export default function ProductsIndex({ products, categories }) {
             price: product.price,
             category_id: product.category_id,
             stock: product.stock,
+            unlimited_stock: !!product.unlimited_stock,
+            stock_note: '',
             sku: product.sku ?? '',
             image: product.image ?? '',
             active: product.active,
@@ -320,7 +330,7 @@ export default function ProductsIndex({ products, categories }) {
                                     </thead>
                                     <tbody className="divide-y divide-slate-100">
                                         {filteredProducts.map((product) => {
-                                            const st = stockStatus(product.stock, t);
+                                            const st = stockStatus(product.stock, t, product.unlimited_stock);
                                             return (
                                                 <tr key={product.id} className="group transition hover:bg-slate-50/60">
                                                     <td className="px-5 py-3">
@@ -342,6 +352,11 @@ export default function ProductsIndex({ products, categories }) {
                                                         {formatCurrency(product.price)}
                                                     </td>
                                                     <td className="px-5 py-3 hidden sm:table-cell">
+                                                        {product.unlimited_stock ? (
+                                                            <span className="inline-flex items-center gap-1.5 font-semibold text-indigo-600">
+                                                                <InfinityIcon size={16} /> {t('products.unlimited')}
+                                                            </span>
+                                                        ) : (
                                                         <div className="flex items-center gap-2">
                                                             <span className="font-semibold text-slate-900">{product.stock}</span>
                                                             <div className="h-1.5 w-16 overflow-hidden rounded-full bg-slate-100">
@@ -357,6 +372,7 @@ export default function ProductsIndex({ products, categories }) {
                                                                 />
                                                             </div>
                                                         </div>
+                                                        )}
                                                     </td>
                                                     <td className="px-5 py-3 hidden lg:table-cell">
                                                         <span
@@ -366,6 +382,7 @@ export default function ProductsIndex({ products, categories }) {
                                                         >
                                                             {product.active ? (
                                                                 <>
+                                                                    {st.tone === 'indigo' && <InfinityIcon size={12} />}
                                                                     {st.tone === 'emerald' && <CheckCircle2 size={12} />}
                                                                     {st.tone === 'amber' && <AlertTriangle size={12} />}
                                                                     {st.tone === 'red' && <XCircle size={12} />}
@@ -404,7 +421,7 @@ export default function ProductsIndex({ products, categories }) {
                             <div className="h-full overflow-y-auto p-2 sm:p-4">
                                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                                     {filteredProducts.map((product) => {
-                                        const st = stockStatus(product.stock);
+                                        const st = stockStatus(product.stock, t, product.unlimited_stock);
                                         return (
                                             <div
                                                 key={product.id}
@@ -419,7 +436,7 @@ export default function ProductsIndex({ products, categories }) {
                                                         <span
                                                             className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold ring-1 ${toneClasses[st.tone]}`}
                                                         >
-                                                            {product.stock} · {st.label}
+                                                            {product.unlimited_stock ? '∞' : product.stock} · {st.label}
                                                         </span>
                                                     </div>
                                                 </div>
@@ -533,14 +550,42 @@ export default function ProductsIndex({ products, categories }) {
                                     <Field label={t('products.stock')} error={errors.stock}>
                                         <input
                                             type="number"
-                                            required
+                                            required={!formData.unlimited_stock}
                                             min="0"
-                                            value={formData.stock}
+                                            disabled={formData.unlimited_stock}
+                                            placeholder={formData.unlimited_stock ? '∞' : undefined}
+                                            value={formData.unlimited_stock ? '' : formData.stock}
                                             onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
-                                            className={inputCls(errors.stock)}
+                                            className={`${inputCls(errors.stock)} disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400`}
                                         />
                                     </Field>
                                 </div>
+                                <label className="flex items-start gap-2 rounded-xl bg-indigo-50/60 px-3 py-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={formData.unlimited_stock}
+                                        onChange={(e) => setFormData({ ...formData, unlimited_stock: e.target.checked })}
+                                        className="mt-0.5 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                    />
+                                    <span>
+                                        <span className="flex items-center gap-1.5 text-sm font-medium text-slate-800">
+                                            <InfinityIcon size={14} className="text-indigo-500" /> {t('products.unlimitedLabel')}
+                                        </span>
+                                        <span className="block text-xs text-slate-500">{t('products.unlimitedHint')}</span>
+                                    </span>
+                                </label>
+                                {editingProduct && !formData.unlimited_stock && Number(formData.stock) !== Number(editingProduct.stock) && (
+                                    <Field label={t('products.stockNote')} error={errors.stock_note}>
+                                        <input
+                                            type="text"
+                                            maxLength={255}
+                                            value={formData.stock_note}
+                                            onChange={(e) => setFormData({ ...formData, stock_note: e.target.value })}
+                                            placeholder={t('products.stockNotePlaceholder')}
+                                            className={inputCls(errors.stock_note)}
+                                        />
+                                    </Field>
+                                )}
                                 <div className="grid grid-cols-2 gap-3">
                                     <Field label={t('products.category')} error={errors.category_id}>
                                         <select
@@ -573,6 +618,7 @@ export default function ProductsIndex({ products, categories }) {
                                     />
                                     <span className="text-sm text-slate-700">{t('products.active')}</span>
                                 </label>
+                                {editingProduct && !formData.unlimited_stock && <StockHistory productId={editingProduct.id} />}
                                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end gap-2 pt-2">
                                     <button
                                         type="button"
@@ -595,6 +641,76 @@ export default function ProductsIndex({ products, categories }) {
                 </div>
             )}
         </>
+    );
+}
+
+function StockHistory({ productId }) {
+    const { t, i18n } = useTranslation();
+    const [open, setOpen] = useState(false);
+    const [rows, setRows] = useState(null);
+    const [failed, setFailed] = useState(false);
+
+    useEffect(() => {
+        setOpen(false);
+        setRows(null);
+        setFailed(false);
+    }, [productId]);
+
+    useEffect(() => {
+        if (!open || rows) return;
+        const controller = new AbortController();
+        fetch(`/produits/${productId}/mouvements`, { headers: { Accept: 'application/json' }, signal: controller.signal })
+            .then((r) => (r.ok ? r.json() : Promise.reject(new Error(r.statusText))))
+            .then((d) => setRows(d.movements))
+            .catch((e) => e.name !== 'AbortError' && setFailed(true));
+        return () => controller.abort();
+    }, [open, rows, productId]);
+
+    return (
+        <div className="rounded-xl border border-slate-200">
+            <button
+                type="button"
+                onClick={() => setOpen((v) => !v)}
+                aria-expanded={open}
+                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-slate-700 hover:bg-slate-50"
+            >
+                <History size={15} className="text-slate-400" /> {t('products.stockHistory')}
+            </button>
+            {open && (
+                <div className="max-h-52 overflow-y-auto border-t border-slate-100 px-3 py-2">
+                    {failed && <div className="py-2 text-xs text-red-600">{t('products.historyError')}</div>}
+                    {!failed && !rows && <div className="py-2 text-xs text-slate-400">{t('common.loading')}</div>}
+                    {rows && rows.length === 0 && <div className="py-2 text-xs text-slate-400">{t('products.noMovements')}</div>}
+                    {rows && rows.length > 0 && (
+                        <ul className="divide-y divide-slate-100 text-xs">
+                            {rows.map((m) => (
+                                <li key={m.id} className="flex items-center justify-between gap-3 py-1.5">
+                                    <div className="min-w-0">
+                                        <div className="font-medium text-slate-700">
+                                            {t(`products.movementTypes.${m.type}`, { defaultValue: m.type })}
+                                            {m.sale_id ? ` #${m.sale_id}` : ''}
+                                        </div>
+                                        <div className="truncate text-slate-400">
+                                            {new Date(m.created_at).toLocaleString(i18n.resolvedLanguage, { dateStyle: 'short', timeStyle: 'short' })}
+                                            {m.user ? ` · ${m.user}` : ''}
+                                            {m.note ? ` · ${m.note}` : ''}
+                                        </div>
+                                    </div>
+                                    <div className="shrink-0 text-right tabular-nums">
+                                        <div className={`font-semibold ${m.quantity > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                                            {m.quantity > 0 ? `+${m.quantity}` : m.quantity}
+                                        </div>
+                                        <div className="text-slate-400">
+                                            {m.stock_before} → {m.stock_after}
+                                        </div>
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </div>
+            )}
+        </div>
     );
 }
 
