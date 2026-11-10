@@ -1,5 +1,5 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import { Box, ClipboardList, Loader2, LogOut, Receipt, ScanLine, BarChart3, Settings, ShoppingBag, Users } from 'lucide-react';
+import { Box, Building2, ClipboardList, Truck, Loader2, LogOut, Receipt, ScanLine, BarChart3, Settings, ShoppingBag, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -49,11 +49,13 @@ export default function Sidebar({ mobileOpen = false, onClose }) {
         { icon: BarChart3, label: t('navigation.reports'), href: '/rapports' },
         { icon: Users, label: t('navigation.clients'), href: '/clients' },
         { icon: Receipt, label: t('navigation.history'), href: '/ventes' },
-        { icon: ClipboardList, label: t('navigation.inventory'), href: '/inventaires', separatorAfter: true },
+        { icon: ClipboardList, label: t('navigation.inventory'), href: '/inventaires' },
+        { icon: Truck, label: t('navigation.purchases'), href: '/achats' },
+        { icon: Building2, label: t('navigation.suppliers'), href: '/fournisseurs', separatorAfter: true },
         { icon: Settings, label: t('navigation.settings'), href: '/parametres' },
     ];
 
-    // Alt+1…8 jumps to a page — handy at the till.
+    // Alt+1…9 jumps to a page — handy at the till.
     useEffect(() => {
         const onKey = (e) => {
             if (!e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
@@ -150,7 +152,7 @@ export default function Sidebar({ mobileOpen = false, onClose }) {
                                     <span role="tooltip" className={tooltip}>
                                         {label}
                                         {badge > 0 && <span className="text-indigo-300">· {t('sidebar.cartBadge', { count: badge })}</span>}
-                                        <kbd className="rounded bg-white/15 px-1 text-[10px] font-medium">Alt {index + 1}</kbd>
+                                        {index < 9 && <kbd className="rounded bg-white/15 px-1 text-[10px] font-medium">Alt {index + 1}</kbd>}
                                     </span>
                                 </div>
                                 {separatorAfter && <div className="h-px w-6 bg-slate-300/70 dark:bg-slate-600" aria-hidden="true" />}

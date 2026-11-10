@@ -21,13 +21,15 @@ class StockMovement extends Model
 
     public const TYPE_INVENTORY = 'inventory';
 
+    public const TYPE_PURCHASE = 'purchase';
+
     /** Reasons for a manual adjustment, split by direction. */
     public const REASONS_OUT = ['casse', 'perte', 'vol', 'peremption', 'correction', 'autre'];
 
     public const REASONS_IN = ['reception', 'correction', 'autre'];
 
     protected $fillable = [
-        'product_id', 'user_id', 'sale_id', 'type', 'reason', 'quantity', 'stock_before', 'stock_after', 'note',
+        'product_id', 'user_id', 'sale_id', 'reception_id', 'type', 'reason', 'quantity', 'stock_before', 'stock_after', 'note',
     ];
 
     protected function casts(): array
@@ -52,5 +54,10 @@ class StockMovement extends Model
     public function sale(): BelongsTo
     {
         return $this->belongsTo(Sale::class);
+    }
+
+    public function reception(): BelongsTo
+    {
+        return $this->belongsTo(Reception::class);
     }
 }

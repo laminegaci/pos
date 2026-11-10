@@ -6,11 +6,15 @@ use App\Http\Controllers\CreditNoteController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PurchaseOrderController;
+use App\Http\Controllers\ReceptionController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\SaleReturnController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\StockAdjustmentController;
+use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\SupplierPaymentController;
 use App\Http\Controllers\UserController;
 use App\Models\Category;
 use App\Models\Client;
@@ -85,6 +89,28 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/produits/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
     Route::get('/produits/{product}/mouvements', [ProductController::class, 'movements'])->name('products.movements');
     Route::post('/produits/{product}/ajustement', [StockAdjustmentController::class, 'store'])->name('products.adjust');
+
+    Route::get('/fournisseurs', [SupplierController::class, 'index'])->name('suppliers.index');
+    Route::post('/fournisseurs', [SupplierController::class, 'store'])->name('suppliers.store');
+    Route::get('/fournisseurs/{supplier}', [SupplierController::class, 'show'])->name('suppliers.show');
+    Route::put('/fournisseurs/{supplier}', [SupplierController::class, 'update'])->name('suppliers.update');
+    Route::delete('/fournisseurs/{supplier}', [SupplierController::class, 'destroy'])->name('suppliers.destroy');
+    Route::post('/fournisseurs/{supplier}/paiements', [SupplierPaymentController::class, 'store'])->name('suppliers.payments.store');
+    Route::delete('/paiements-fournisseurs/{payment}', [SupplierPaymentController::class, 'destroy'])->name('suppliers.payments.destroy');
+
+    Route::get('/achats', [PurchaseOrderController::class, 'index'])->name('purchases.index');
+    Route::get('/achats/nouveau', [PurchaseOrderController::class, 'create'])->name('purchases.create');
+    Route::get('/achats/suggestions', [PurchaseOrderController::class, 'suggestions'])->name('purchases.suggestions');
+    Route::post('/achats', [PurchaseOrderController::class, 'store'])->name('purchases.store');
+    Route::get('/achats/{purchase}', [PurchaseOrderController::class, 'show'])->name('purchases.show');
+    Route::get('/achats/{purchase}/modifier', [PurchaseOrderController::class, 'edit'])->name('purchases.edit');
+    Route::put('/achats/{purchase}', [PurchaseOrderController::class, 'update'])->name('purchases.update');
+    Route::post('/achats/{purchase}/commander', [PurchaseOrderController::class, 'order'])->name('purchases.order');
+    Route::post('/achats/{purchase}/annuler', [PurchaseOrderController::class, 'cancel'])->name('purchases.cancel');
+    Route::get('/achats/{purchase}/receptionner', [ReceptionController::class, 'createFromOrder'])->name('receptions.fromOrder');
+    Route::get('/receptions/nouvelle', [ReceptionController::class, 'create'])->name('receptions.create');
+    Route::post('/receptions', [ReceptionController::class, 'store'])->name('receptions.store');
+    Route::get('/receptions/{reception}', [ReceptionController::class, 'show'])->name('receptions.show');
 
     Route::get('/inventaires', [InventoryController::class, 'index'])->name('inventories.index');
     Route::post('/inventaires', [InventoryController::class, 'store'])->name('inventories.store');

@@ -11,6 +11,7 @@ return [
         'return' => 'Return',
         'cancel' => 'Sale cancellation',
         'inventory' => 'Inventory',
+        'purchase' => 'Purchase',
     ],
     'reasons' => [
         'casse' => 'Breakage',
