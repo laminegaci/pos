@@ -7,6 +7,7 @@ import ProductGrid from '../../Components/Sales/ProductGrid';
 import Cart from '../../Components/Sales/Cart';
 import Toast from '../../Components/Toast';
 import SaleConfirmationModal from '../../Components/Sales/SaleConfirmationModal';
+import CreditLimitModal from '../../Components/Sales/CreditLimitModal';
 import { sounds } from '../../lib/sounds';
 import useBarcodeScanner from '../../hooks/useBarcodeScanner';
 
@@ -38,6 +39,8 @@ export default function SalesIndex({ caisse, categories, products, clients = [],
     const [viewMode, setViewMode] = useState('grid');
     const [submitting, setSubmitting] = useState(false);
     const [toast, setToast] = useState(null);
+    // Credit limit exceeded: { payment, message, error } while a manager is asked to approve.
+    const [limitPrompt, setLimitPrompt] = useState(null);
 
     const productsById = useMemo(() => Object.fromEntries(products.map((p) => [p.id, p])), [products]);
 
@@ -215,13 +218,23 @@ export default function SalesIndex({ caisse, categories, products, clients = [],
                 remise,
                 items: cartLines.map((l) => ({ product_id: l.productId, quantity: l.quantity })),
                 ...(payment.paymentMethod ? { payment_method: payment.paymentMethod } : {}),
+                ...(payment.deposit ? { deposit_amount: payment.deposit.amount, deposit_method: payment.deposit.method } : {}),
+                ...(payment.approval ?? {}),
                 ...(creditNote && creditApplied > 0 ? { credit_note_code: creditNote.code, credit_note_amount: creditApplied } : {}),
             },
             {
                 preserveScroll: true,
-                onSuccess: () => clearCart(),
+                onSuccess: () => {
+                    setLimitPrompt(null);
+                    clearCart();
+                },
                 onError: (errors) => {
                     sounds.error();
+                    // Over the customer's credit limit (or wrong manager credentials): ask a manager, then resend.
+                    if (errors?.credit_limit || (payment.approval && errors?.approver_password)) {
+                        setLimitPrompt((prev) => ({ payment: { ...payment, approval: undefined }, message: errors.credit_limit ?? prev?.message, error: payment.approval ? errors.approver_password : null }));
+                        return;
+                    }
                     // e.g. "Not enough stock for X": the server is the source of truth.
                     setToast({
                         message: errors?.items || errors?.payment_method || errors?.credit_note_code || errors?.credit_note_amount || t('sales.checkoutFailed'),
@@ -241,6 +254,15 @@ export default function SalesIndex({ caisse, categories, products, clients = [],
         <>
             <Head title={t('sales.sale')} />
             <Toast message={toast?.message} type={toast?.type} onClose={() => setToast(null)} />
+            {limitPrompt && (
+                <CreditLimitModal
+                    message={limitPrompt.message}
+                    error={limitPrompt.error}
+                    busy={submitting}
+                    onCancel={() => setLimitPrompt(null)}
+                    onConfirm={(approval) => handleCheckout({ ...limitPrompt.payment, approval })}
+                />
+            )}
             <SaleConfirmationModal
                 sale={confirmation?.sale}
                 lines={confirmation?.lines}

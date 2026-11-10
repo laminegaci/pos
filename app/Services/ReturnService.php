@@ -45,6 +45,10 @@ class ReturnService
             if ($sale->returns()->exists()) {
                 throw ValidationException::withMessages(['sale' => __('returns.cancel_has_returns')]);
             }
+            // Customer payments were already allocated to this ticket: undo them first.
+            if ((float) $sale->credit_paid > 0) {
+                throw ValidationException::withMessages(['sale' => __('returns.cancel_has_payments')]);
+            }
 
             // Atomic guard: only one request can flip the status.
             $flipped = Sale::query()
@@ -145,6 +149,14 @@ class ReturnService
                 $amount = round((float) $sale->total - $sale->refundedAmount(), 2);
             }
             $amount = max(0.0, $amount);
+
+            // Refund on the customer account: only what is still owed can be cancelled that way.
+            if ($refundMethod === SaleReturn::REFUND_ACCOUNT) {
+                if ($amount > $sale->outstanding() + 0.005) {
+                    throw ValidationException::withMessages(['refund_method' => __('returns.account_exceeds', ['max' => $sale->outstanding()])]);
+                }
+                Sale::query()->whereKey($sale->id)->increment('credit_returned', $amount);
+            }
 
             $return = SaleReturn::query()->create([
                 'sale_id' => $sale->id,

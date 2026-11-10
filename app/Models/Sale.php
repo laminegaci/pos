@@ -38,6 +38,13 @@ class Sale extends Model
         'cancelled_by',
         'cancel_approved_by',
         'cancel_reason',
+        'deposit_amount',
+        'deposit_method',
+        'credit_amount',
+        'credit_paid',
+        'credit_returned',
+        'due_at',
+        'credit_approved_by',
     ];
 
     protected function casts(): array
@@ -48,6 +55,11 @@ class Sale extends Model
             'total' => 'decimal:2',
             'credit_note_amount' => 'decimal:2',
             'cancelled_at' => 'datetime',
+            'deposit_amount' => 'decimal:2',
+            'credit_amount' => 'decimal:2',
+            'credit_paid' => 'decimal:2',
+            'credit_returned' => 'decimal:2',
+            'due_at' => 'date',
         ];
     }
 
@@ -84,6 +96,38 @@ class Sale extends Model
     public function cancelApprover(): BelongsTo
     {
         return $this->belongsTo(User::class, 'cancel_approved_by');
+    }
+
+    public function allocations(): HasMany
+    {
+        return $this->hasMany(ClientPaymentAllocation::class);
+    }
+
+    /** What the customer still owes on this ticket (0 once cancelled). */
+    public function outstanding(): float
+    {
+        if ($this->isCancelled()) {
+            return 0.0;
+        }
+
+        return max(0.0, round((float) $this->credit_amount - (float) $this->credit_returned - (float) $this->credit_paid, 2));
+    }
+
+    /** paid | partial | unpaid | overdue — null when nothing was put on the account. */
+    public function creditStatus(): ?string
+    {
+        if ((float) $this->credit_amount <= 0 || $this->isCancelled()) {
+            return null;
+        }
+        $left = $this->outstanding();
+        if ($left <= 0) {
+            return 'paid';
+        }
+        if ($this->due_at !== null && $this->due_at->lt(today())) {
+            return 'overdue';
+        }
+
+        return $left < round((float) $this->credit_amount - (float) $this->credit_returned, 2) ? 'partial' : 'unpaid';
     }
 
     public function isCancelled(): bool

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\ClientPaymentController;
 use App\Http\Controllers\CreditNoteController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\ProductController;
@@ -43,13 +44,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ];
         });
 
-        $clients = Client::where('active', true)
+        $clients = Client::query()->withBalance()->where('active', true)
             ->orderBy('name')
-            ->get(['id', 'name', 'phone'])
+            ->get()
             ->map(fn ($c) => [
                 'id' => $c->id,
                 'name' => $c->name,
                 'phone' => $c->phone,
+                // Credit account, shown at the till when paying on credit.
+                'balance' => round((float) $c->credit_balance, 2),
+                'credit_limit' => $c->credit_limit === null ? null : (float) $c->credit_limit,
+                'overdue' => round((float) $c->overdue_amount, 2),
+                'terms' => (int) $c->payment_terms_days,
             ]);
 
         return Inertia::render('Sales/Index', [
@@ -133,6 +139,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/clients/{client}', [ClientController::class, 'update'])->name('clients.update');
     Route::delete('/clients/{client}', [ClientController::class, 'destroy'])->name('clients.destroy');
     Route::get('/clients/export', [ClientController::class, 'export'])->name('clients.export');
+    Route::get('/clients/relances', [ClientController::class, 'overdue'])->name('clients.overdue');
+    Route::get('/clients/{client}', [ClientController::class, 'show'])->name('clients.show');
+    Route::get('/clients/{client}/releve', [ClientController::class, 'statement'])->name('clients.statement');
+    Route::post('/clients/{client}/reglements', [ClientPaymentController::class, 'store'])->name('clients.payments.store');
+    Route::delete('/reglements-clients/{payment}', [ClientPaymentController::class, 'destroy'])->name('clients.payments.destroy');
 
     Route::get('/recherche', SearchController::class)->name('search');
 

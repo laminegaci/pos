@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { currencySymbol, formatCurrency } from '../../lib/formatCurrency';
 import { isSoundEnabled, onSoundChange, setSoundEnabled, sounds } from '../../lib/sounds';
 import ClientSelector from './ClientSelector';
+import CreditAccountPanel from './CreditAccountPanel';
 import ProductImage from './ProductImage';
 
 function SoundToggle() {
@@ -381,6 +382,7 @@ export default function Cart({
     const [mobileOpen, setMobileOpen] = useState(false);
     const [confirmClear, setConfirmClear] = useState(false);
     const [received, setReceived] = useState('');
+    const [deposit, setDeposit] = useState({ amount: '', method: 'cash' });
     const [flashId, setFlashId] = useState(null);
     const prevQty = useRef({});
     const count = lines.reduce((sum, l) => sum + l.quantity, 0);
@@ -392,12 +394,24 @@ export default function Cart({
     const paymentMethod = methods.includes(method) ? method : (methods[0] ?? null);
     const needsMethod = payable > 0;
     const creditWithoutClient = needsMethod && paymentMethod === 'credit' && !selectedClientId;
+    const selectedClient = clients.find((c) => c.id === selectedClientId) ?? null;
+    const depositAmount = Math.min(Math.max(parseFloat(deposit.amount) || 0, 0), payable);
+    const depositMethods = methods.filter((m) => m !== 'credit');
+    // What the till sends: cash received, the method, and the deposit when paying on credit.
+    const paymentPayload = () => ({
+        received: paymentMethod === 'cash' ? received : '',
+        paymentMethod: needsMethod ? paymentMethod : null,
+        deposit: needsMethod && paymentMethod === 'credit' && depositAmount > 0
+            ? { amount: depositAmount, method: depositMethods.includes(deposit.method) ? deposit.method : depositMethods[0] }
+            : null,
+    });
     const insufficient = needsMethod && paymentMethod === 'cash' && received !== '' && receivedAmount < payable;
 
     // Reset local state once the cart is emptied (after checkout or clear).
     useEffect(() => {
         if (empty) {
             setReceived('');
+            setDeposit({ amount: '', method: 'cash' });
             setConfirmClear(false);
             setMobileOpen(false);
         }
@@ -431,12 +445,12 @@ export default function Cart({
         const onKey = (e) => {
             if (e.key !== 'F9') return;
             e.preventDefault();
-            if (canCheckout) onCheckout({ received: paymentMethod === 'cash' ? received : '', paymentMethod: needsMethod ? paymentMethod : null });
+            if (canCheckout) onCheckout(paymentPayload());
             else if (!empty && !submitting) sounds.error();
         };
         window.addEventListener('keydown', onKey);
         return () => window.removeEventListener('keydown', onKey);
-    }, [canCheckout, onCheckout, received, empty, submitting, paymentMethod, needsMethod]);
+    }, [canCheckout, onCheckout, received, empty, submitting, paymentMethod, needsMethod, deposit, selectedClientId]);
 
     const handleClear = () => {
         if (!confirmClear) return setConfirmClear(true);
@@ -631,9 +645,13 @@ export default function Cart({
                         <CashPanel total={payable} received={received} onReceivedChange={setReceived} />
                     )}
 
+                    {!empty && needsMethod && paymentMethod === 'credit' && selectedClient && (
+                        <CreditAccountPanel client={selectedClient} payable={payable} deposit={deposit} onDepositChange={setDeposit} methods={methods} />
+                    )}
+
                     <button
                         type="button"
-                        onClick={() => onCheckout({ received: paymentMethod === 'cash' ? received : '', paymentMethod: needsMethod ? paymentMethod : null })}
+                        onClick={() => onCheckout(paymentPayload())}
                         disabled={!canCheckout}
                         className="mt-4 flex h-12 w-full items-center justify-between rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-500 px-5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 transition hover:shadow-xl hover:shadow-indigo-500/40 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
                     >

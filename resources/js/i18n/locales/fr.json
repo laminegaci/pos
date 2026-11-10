@@ -199,7 +199,65 @@
     "searchClient": "Rechercher un client…",
     "all": "Tous",
     "contact": "Contact",
-    "confirmDelete": "Supprimer le client \"{{name}}\" ?"
+    "confirmDelete": "Supprimer le client \"{{name}}\" ?",
+    "balance": "Solde dû",
+    "creditLimit": "Plafond de crédit",
+    "creditLimitHint": "Vide = illimité, 0 = validation d’un gérant à chaque crédit",
+    "terms": "Délai de paiement (jours)",
+    "overdue": "En retard",
+    "receivable": "Créances clients",
+    "reminders": "Relances",
+    "remindersTitle": "Relances clients",
+    "remindersSubtitle": "Clients dont une échéance est dépassée",
+    "daysLate": "Jours de retard",
+    "oldestDue": "Plus ancienne échéance",
+    "totalOverdue": "Total échu",
+    "noOverdue": "Aucun impayé échu.",
+    "statement": "Relevé PDF",
+    "statementFrom": "Du",
+    "statementTo": "Au",
+    "available": "Disponible",
+    "unlimited": "Illimité",
+    "collect": "Encaisser un règlement",
+    "collectTitle": "Règlement client",
+    "amount": "Montant",
+    "method": "Mode de paiement",
+    "reference": "Référence",
+    "settlesHint": "Le règlement solde d’abord les tickets les plus anciens.",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "back": "Clients",
+    "tabs": {
+      "creditSales": "Tickets à crédit",
+      "payments": "Règlements",
+      "history": "Historique d’achats"
+    },
+    "status": {
+      "paid": "Soldé",
+      "partial": "Partiel",
+      "unpaid": "Impayé",
+      "overdue": "En retard"
+    },
+    "ticket": "Ticket",
+    "date": "Date",
+    "dueDate": "Échéance",
+    "credit": "Crédit",
+    "outstanding": "Reste dû",
+    "total": "Total",
+    "noCreditSales": "Aucune vente à crédit.",
+    "noPayments": "Aucun règlement.",
+    "noHistory": "Aucun achat.",
+    "deletePayment": "Supprimer ce règlement ?",
+    "settles": "Tickets",
+    "by": "Par",
+    "cancelledSale": "Annulé",
+    "methods": {
+      "cash": "Espèces",
+      "card": "Carte",
+      "transfer": "Virement",
+      "cheque": "Chèque",
+      "credit": "Crédit"
+    }
   },
   "sales": {
     "title": "Ventes",
@@ -239,7 +297,17 @@
     "info": "Informations",
     "cashOut": "Encaisser",
     "clearCart": "Vider le panier",
-    "articlesCount": "{{count}} article(s)"
+    "articlesCount": "{{count}} article(s)",
+    "credit": {
+      "title": "Crédit client",
+      "deposit": "Acompte",
+      "onAccount": "Mis sur le compte",
+      "paid": "Réglé",
+      "returned": "Retourné",
+      "outstanding": "Reste dû",
+      "dueDate": "Échéance",
+      "viewAccount": "Voir le compte"
+    }
   },
   "reports": {
     "title": "Rapports",
@@ -515,7 +583,19 @@
     "remaining": "{{count}} restant(s)",
     "paymentMethod": "Moyen de paiement",
     "creditNeedsClient": "Sélectionnez un client pour un paiement à crédit.",
-    "noPaymentMethod": "Aucun moyen de paiement actif. Activez-en un dans les paramètres."
+    "noPaymentMethod": "Aucun moyen de paiement actif. Activez-en un dans les paramètres.",
+    "account": {
+      "title": "Compte client",
+      "balance": "Solde actuel",
+      "limit": "Plafond",
+      "noLimit": "Illimité",
+      "available": "Disponible",
+      "deposit": "Acompte versé maintenant",
+      "onAccount": "Reste sur le compte",
+      "overLimit": "Ce crédit dépasse le plafond : la validation d’un gérant sera demandée.",
+      "approvalTitle": "Plafond de crédit dépassé",
+      "approve": "Valider la vente"
+    }
   },
   "saleConfirm": {
     "title": "Vente #{{id}} confirmée",
@@ -585,7 +665,9 @@
     "managerPassword": "Mot de passe du gérant",
     "doneTitle": "Retour enregistré",
     "doneRefunded": "{{amount}} remboursé",
-    "printSlip": "Imprimer le bon de retour"
+    "printSlip": "Imprimer le bon de retour",
+    "refundAccount": "Déduire du solde client",
+    "refundAccountHint": "Réduit ce que le client doit encore sur ce ticket"
   },
   "creditNotes": {
     "title": "Avoirs",

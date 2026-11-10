@@ -97,6 +97,15 @@
             <div class="row" style="color:#dc2626"><span>Remise</span><span>-{{ $settings->money($sale->remise) }}</span></div>
         @endif
         <div class="row grand"><span>Total</span><span>{{ $settings->money($sale->total) }}</span></div>
+        @if ((float) $sale->credit_amount > 0)
+            @if ((float) $sale->deposit_amount > 0)
+                <div class="row"><span>Acompte</span><span>{{ $settings->money($sale->deposit_amount) }}</span></div>
+            @endif
+            <div class="row"><span>Reste dû (crédit)</span><span>{{ $settings->money($sale->credit_amount) }}</span></div>
+            @if ($sale->due_at)
+                <div class="row"><span>Échéance</span><span>{{ $sale->due_at->format('d/m/Y') }}</span></div>
+            @endif
+        @endif
     </div>
 
     <div class="footer">

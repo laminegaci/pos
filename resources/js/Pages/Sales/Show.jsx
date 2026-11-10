@@ -334,6 +334,28 @@ export default function SalesShow({ sale, items, returns = [], can }) {
                                         <span className="text-slate-900 dark:text-slate-100">{t('sales.total')}</span>
                                         <span className={cancelled ? 'text-slate-400 line-through' : 'text-indigo-600'}>{money(sale.total)}</span>
                                     </div>
+                                    {sale.credit_amount > 0 && (
+                                        <div className="space-y-1 rounded-xl bg-amber-50 p-3 text-sm dark:bg-amber-500/10">
+                                            <div className="font-semibold text-amber-800 dark:text-amber-300">{t('sales.credit.title')}</div>
+                                            {sale.deposit_amount > 0 && (
+                                                <div className="flex justify-between"><span>{t('sales.credit.deposit')}</span><span>{money(sale.deposit_amount)}</span></div>
+                                            )}
+                                            <div className="flex justify-between"><span>{t('sales.credit.onAccount')}</span><span>{money(sale.credit_amount)}</span></div>
+                                            {sale.credit_paid > 0 && (
+                                                <div className="flex justify-between"><span>{t('sales.credit.paid')}</span><span>−{money(sale.credit_paid)}</span></div>
+                                            )}
+                                            {sale.credit_returned > 0 && (
+                                                <div className="flex justify-between"><span>{t('sales.credit.returned')}</span><span>−{money(sale.credit_returned)}</span></div>
+                                            )}
+                                            <div className="flex justify-between font-semibold"><span>{t('sales.credit.outstanding')}</span><span>{money(sale.outstanding)}</span></div>
+                                            {sale.due_at && (
+                                                <div className="flex justify-between text-xs text-slate-500"><span>{t('sales.credit.dueDate')}</span><span>{new Date(sale.due_at).toLocaleDateString()}</span></div>
+                                            )}
+                                            {sale.client_id && (
+                                                <a href={`/clients/${sale.client_id}`} className="block pt-1 text-xs font-medium text-indigo-600 hover:underline">{t('sales.credit.viewAccount')}</a>
+                                            )}
+                                        </div>
+                                    )}
                                     {sale.credit_note_amount > 0 && (
                                         <div className="flex justify-between text-sm">
                                             <span className="text-slate-600 dark:text-slate-400">{t('creditNotes.paidBy')}</span>

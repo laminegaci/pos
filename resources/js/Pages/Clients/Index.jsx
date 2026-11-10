@@ -1,4 +1,4 @@
-import { Head, router } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
 import {
     Building2,
@@ -63,7 +63,7 @@ function formatDate(iso) {
     }
 }
 
-export default function ClientsIndex({ clients }) {
+export default function ClientsIndex({ clients, totalReceivable = 0, canManage = false }) {
     const { t } = useTranslation();
     const [showModal, setShowModal] = useState(false);
     const [editing, setEditing] = useState(null);
@@ -83,6 +83,8 @@ export default function ClientsIndex({ clients }) {
             type: 'particulier',
             notes: '',
             active: true,
+            credit_limit: '',
+            payment_terms_days: 30,
         };
     }
 
@@ -126,6 +128,8 @@ export default function ClientsIndex({ clients }) {
             type: c.type || 'particulier',
             notes: c.notes || '',
             active: !!c.active,
+            credit_limit: c.credit_limit ?? '',
+            payment_terms_days: c.payment_terms_days ?? 30,
         });
         setErrors({});
         setShowModal(true);
@@ -141,7 +145,7 @@ export default function ClientsIndex({ clients }) {
         e.preventDefault();
         setSubmitting(true);
         setErrors({});
-        const payload = { ...formData };
+        const payload = { ...formData, credit_limit: formData.credit_limit === '' ? null : formData.credit_limit };
         const opts = {
             onSuccess: () => {
                 setSubmitting(false);
@@ -182,11 +186,14 @@ export default function ClientsIndex({ clients }) {
                     </button>
                 </div>
 
-                <div className="mb-4 grid grid-cols-2 gap-3 sm:gap-4 lg:mb-6 lg:grid-cols-4">
+                <div className="mb-4 grid grid-cols-2 gap-3 sm:gap-4 lg:mb-6 lg:grid-cols-5">
                     <StatCard icon={Users} label={t('clients.totalClients')} value={stats.total} tone="indigo" />
                     <StatCard icon={Building2} label={t('clients.professionals')} value={stats.pro} tone="sky" />
                     <StatCard icon={User} label={t('clients.individuals')} value={stats.particulier} tone="emerald" />
                     <StatCard icon={Wallet} label={t('clients.revenueGenerated')} value={formatCurrency(stats.revenue)} tone="amber" />
+                    <Link href="/clients/relances" className="block">
+                        <StatCard icon={Wallet} label={t('clients.receivable')} value={formatCurrency(totalReceivable)} tone="amber" hint={t('clients.reminders')} />
+                    </Link>
                 </div>
 
                 <div className="mb-4 flex flex-wrap items-center gap-2 sm:gap-3">
@@ -320,6 +327,7 @@ export default function ClientsIndex({ clients }) {
                                 <th className="px-4 py-3">{t('clients.contact')}</th>
                                 <th className="px-4 py-3">{t('clients.city')}</th>
                                 <th className="px-4 py-3">{t('clients.type')}</th>
+                                <th className="px-4 py-3 text-right">{t('clients.balance')}</th>
                                 <th className="px-4 py-3 text-right">{t('clients.salesCount')}</th>
                                 <th className="px-4 py-3 text-right">{t('clients.totalSpent')}</th>
                                 <th className="px-4 py-3">{t('clients.lastPurchase')}</th>
@@ -348,7 +356,7 @@ export default function ClientsIndex({ clients }) {
                                                 {initials(c.name)}
                                             </div>
                                             <div>
-                                                <div className="font-semibold text-slate-900">{c.name}</div>
+                                                <Link href={`/clients/${c.id}`} className="font-semibold text-slate-900 hover:text-indigo-600">{c.name}</Link>
                                                 {c.address && (
                                                     <div className="flex items-center gap-1 text-xs text-slate-400">
                                                         <MapPin size={11} /> {c.address}
@@ -382,6 +390,10 @@ export default function ClientsIndex({ clients }) {
                                         >
                                             {c.type === 'professionnel' ? t('clients.pro') : t('clients.individual')}
                                         </span>
+                                    </td>
+                                    <td className={`px-4 py-3 text-right tabular-nums ${c.balance > 0 ? 'font-semibold text-red-600' : 'text-slate-400'}`}>
+                                        {c.balance > 0 ? formatCurrency(c.balance) : '—'}
+                                        {c.overdue > 0 && <span className="ml-1.5 rounded-full bg-red-50 px-1.5 py-0.5 text-[10px] font-semibold text-red-600 ring-1 ring-red-200">{t('clients.overdue')}</span>}
                                     </td>
                                     <td className="px-4 py-3 text-right tabular-nums text-slate-700">{c.sales_count}</td>
                                     <td className="px-4 py-3 text-right font-semibold tabular-nums text-indigo-600">
@@ -484,6 +496,30 @@ export default function ClientsIndex({ clients }) {
                                     className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
                                 />
                             </div>
+                            {canManage && (
+                                <>
+                                    <div>
+                                        <label className="mb-1 block text-xs font-semibold text-slate-600">{t('clients.creditLimit')}</label>
+                                        <input
+                                            type="number" min="0" step="0.01"
+                                            value={formData.credit_limit}
+                                            onChange={(e) => setFormData({ ...formData, credit_limit: e.target.value })}
+                                            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
+                                        />
+                                        <p className="mt-1 text-[11px] text-slate-400">{t('clients.creditLimitHint')}</p>
+                                        {errors.credit_limit && <p className="mt-1 text-xs text-red-600">{errors.credit_limit}</p>}
+                                    </div>
+                                    <div>
+                                        <label className="mb-1 block text-xs font-semibold text-slate-600">{t('clients.terms')}</label>
+                                        <input
+                                            type="number" min="0" max="365"
+                                            value={formData.payment_terms_days}
+                                            onChange={(e) => setFormData({ ...formData, payment_terms_days: e.target.value })}
+                                            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
+                                        />
+                                    </div>
+                                </>
+                            )}
                             <div className="sm:col-span-2">
                                 <label className="mb-1 block text-xs font-semibold text-slate-600">{t('clients.notes')}</label>
                                 <textarea

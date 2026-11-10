@@ -199,7 +199,65 @@
     "searchClient": "Search a client…",
     "all": "All",
     "contact": "Contact",
-    "confirmDelete": "Delete client \"{{name}}\"?"
+    "confirmDelete": "Delete client \"{{name}}\"?",
+    "balance": "Balance due",
+    "creditLimit": "Credit limit",
+    "creditLimitHint": "Empty = unlimited, 0 = manager approval for every credit",
+    "terms": "Payment terms (days)",
+    "overdue": "Overdue",
+    "receivable": "Receivables",
+    "reminders": "Reminders",
+    "remindersTitle": "Customer reminders",
+    "remindersSubtitle": "Customers with a past-due ticket",
+    "daysLate": "Days late",
+    "oldestDue": "Oldest due date",
+    "totalOverdue": "Total overdue",
+    "noOverdue": "No overdue balance.",
+    "statement": "PDF statement",
+    "statementFrom": "From",
+    "statementTo": "To",
+    "available": "Available",
+    "unlimited": "Unlimited",
+    "collect": "Record a payment",
+    "collectTitle": "Customer payment",
+    "amount": "Amount",
+    "method": "Payment method",
+    "reference": "Reference",
+    "settlesHint": "The payment settles the oldest tickets first.",
+    "save": "Save",
+    "cancel": "Cancel",
+    "back": "Customers",
+    "tabs": {
+      "creditSales": "Credit tickets",
+      "payments": "Payments",
+      "history": "Purchase history"
+    },
+    "status": {
+      "paid": "Settled",
+      "partial": "Partial",
+      "unpaid": "Unpaid",
+      "overdue": "Overdue"
+    },
+    "ticket": "Ticket",
+    "date": "Date",
+    "dueDate": "Due date",
+    "credit": "Credit",
+    "outstanding": "Outstanding",
+    "total": "Total",
+    "noCreditSales": "No credit sales.",
+    "noPayments": "No payments.",
+    "noHistory": "No purchases.",
+    "deletePayment": "Delete this payment?",
+    "settles": "Tickets",
+    "by": "By",
+    "cancelledSale": "Cancelled",
+    "methods": {
+      "cash": "Cash",
+      "card": "Card",
+      "transfer": "Bank transfer",
+      "cheque": "Cheque",
+      "credit": "Credit"
+    }
   },
   "sales": {
     "title": "Sales",
@@ -239,7 +297,17 @@
     "info": "Information",
     "cashOut": "Cash out",
     "clearCart": "Clear cart",
-    "articlesCount": "{{count}} item(s)"
+    "articlesCount": "{{count}} item(s)",
+    "credit": {
+      "title": "Customer credit",
+      "deposit": "Deposit",
+      "onAccount": "Put on account",
+      "paid": "Paid",
+      "returned": "Returned",
+      "outstanding": "Outstanding",
+      "dueDate": "Due date",
+      "viewAccount": "View account"
+    }
   },
   "reports": {
     "title": "Reports",
@@ -515,7 +583,19 @@
     "remaining": "{{count}} left",
     "paymentMethod": "Payment method",
     "creditNeedsClient": "Select a client for a credit payment.",
-    "noPaymentMethod": "No payment method enabled. Enable one in settings."
+    "noPaymentMethod": "No payment method enabled. Enable one in settings.",
+    "account": {
+      "title": "Customer account",
+      "balance": "Current balance",
+      "limit": "Credit limit",
+      "noLimit": "Unlimited",
+      "available": "Available",
+      "deposit": "Deposit paid now",
+      "onAccount": "Left on account",
+      "overLimit": "This credit exceeds the limit: a manager approval will be requested.",
+      "approvalTitle": "Credit limit exceeded",
+      "approve": "Approve sale"
+    }
   },
   "saleConfirm": {
     "title": "Sale #{{id}} confirmed",
@@ -585,7 +665,9 @@
     "managerPassword": "Manager password",
     "doneTitle": "Return saved",
     "doneRefunded": "{{amount}} refunded",
-    "printSlip": "Print return slip"
+    "printSlip": "Print return slip",
+    "refundAccount": "Deduct from customer balance",
+    "refundAccountHint": "Reduces what the customer still owes on this ticket"
   },
   "creditNotes": {
     "title": "Credit notes",

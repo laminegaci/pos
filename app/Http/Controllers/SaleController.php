@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Exports\SaleExport;
+use App\Models\Client;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\Settings;
+use App\Services\ApprovalService;
+use App\Services\ClientAccountService;
 use App\Services\CreditNoteService;
 use App\Services\ReturnService;
 use App\Services\StockService;
@@ -88,7 +91,7 @@ class SaleController extends Controller
         return $returned + 0.005 >= (float) $sale->total ? 'returned' : 'partially_returned';
     }
 
-    public function store(Request $request, StockService $stock, CreditNoteService $creditNotes): RedirectResponse
+    public function store(Request $request, StockService $stock, CreditNoteService $creditNotes, ClientAccountService $accounts, ApprovalService $approval): RedirectResponse
     {
         $data = $request->validate([
             'client_id' => ['nullable', 'integer', 'exists:clients,id'],
@@ -100,6 +103,12 @@ class SaleController extends Controller
             'credit_note_code' => ['nullable', 'string', 'max:20', 'required_with:credit_note_amount'],
             'credit_note_amount' => ['nullable', 'numeric', 'gt:0', 'required_with:credit_note_code'],
             'payment_method' => ['nullable', Rule::in(Sale::PAYMENT_METHODS)],
+            // Credit sale: part paid now (deposit); the rest goes on the customer account.
+            'deposit_amount' => ['nullable', 'numeric', 'min:0'],
+            'deposit_method' => ['nullable', Rule::in([Sale::PAYMENT_CASH, Sale::PAYMENT_CARD])],
+            // Manager credentials, only needed when the sale exceeds the customer's credit limit.
+            'approver_email' => ['nullable', 'string', 'max:255'],
+            'approver_password' => ['nullable', 'string', 'max:255'],
         ]);
 
         // Same product sent twice => one line, so the stock check sees the real total.
@@ -109,7 +118,7 @@ class SaleController extends Controller
             $quantities[$id] = ($quantities[$id] ?? 0) + (int) $item['quantity'];
         }
 
-        $sale = DB::transaction(function () use ($data, $request, $stock, $creditNotes, $quantities) {
+        $sale = DB::transaction(function () use ($data, $request, $stock, $creditNotes, $accounts, $approval, $quantities) {
             $products = Product::whereIn('id', array_keys($quantities))->get()->keyBy('id');
 
             $subtotal = 0;
@@ -140,6 +149,11 @@ class SaleController extends Controller
 
             // What is left to pay once the credit note has paid its part.
             $paymentMethod = null;
+            $depositAmount = 0.0;
+            $depositMethod = null;
+            $creditPart = 0.0;
+            $dueAt = null;
+            $creditApprovedBy = null;
             if (round($total - $creditAmount, 2) > 0) {
                 $enabled = Settings::current()->enabledPaymentMethods();
                 // No method sent (older client): the first enabled one.
@@ -149,6 +163,38 @@ class SaleController extends Controller
                 }
                 if ($paymentMethod === Sale::PAYMENT_CREDIT && empty($data['client_id'])) {
                     throw ValidationException::withMessages(['payment_method' => __('messages.payment_credit_needs_client')]);
+                }
+
+                if ($paymentMethod === Sale::PAYMENT_CREDIT) {
+                    $due = round($total - $creditAmount, 2);
+                    $depositAmount = round(min((float) ($data['deposit_amount'] ?? 0), $due), 2);
+                    $depositMethod = $depositAmount > 0 ? ($data['deposit_method'] ?? Sale::PAYMENT_CASH) : null;
+                    if ($depositMethod && ! in_array($depositMethod, $enabled, true)) {
+                        throw ValidationException::withMessages(['deposit_method' => __('messages.payment_method_invalid')]);
+                    }
+                    $creditPart = round($due - $depositAmount, 2);
+
+                    if ($creditPart <= 0) {
+                        // Fully paid at once: an ordinary sale, nothing goes on the account.
+                        $paymentMethod = $depositMethod ?? Sale::PAYMENT_CASH;
+                        $depositAmount = 0.0;
+                        $depositMethod = null;
+                        $creditPart = 0.0;
+                    } else {
+                        // Row lock: two tills cannot both slip under the limit.
+                        $client = Client::query()->lockForUpdate()->findOrFail($data['client_id']);
+                        $dueAt = today()->addDays((int) $client->payment_terms_days);
+
+                        if (! $accounts->withinLimit($client, $creditPart)) {
+                            if (blank($data['approver_email'] ?? null) && ! $request->user()->isManager()) {
+                                throw ValidationException::withMessages(['credit_limit' => __('clients.limit_exceeded', [
+                                    'limit' => Settings::current()->money((float) $client->credit_limit),
+                                    'balance' => Settings::current()->money($client->balance()),
+                                ])]);
+                            }
+                            $creditApprovedBy = $approval->approve($request->user(), $data['approver_email'] ?? null, $data['approver_password'] ?? null);
+                        }
+                    }
                 }
             }
 
@@ -160,6 +206,11 @@ class SaleController extends Controller
                 'total' => $total,
                 'credit_note_amount' => $creditAmount,
                 'payment_method' => $paymentMethod,
+                'deposit_amount' => $depositAmount,
+                'deposit_method' => $depositMethod,
+                'credit_amount' => $creditPart,
+                'due_at' => $dueAt,
+                'credit_approved_by' => $creditApprovedBy,
                 'status' => Sale::STATUS_COMPLETED,
             ]);
 
@@ -192,6 +243,9 @@ class SaleController extends Controller
                 'total' => (float) $sale->total,
                 'credit_note_amount' => (float) $sale->credit_note_amount,
                 'payment_method' => $sale->payment_method,
+                'deposit_amount' => (float) $sale->deposit_amount,
+                'credit_amount' => (float) $sale->credit_amount,
+                'due_at' => $sale->due_at?->toDateString(),
                 'items_count' => (int) array_sum($quantities),
                 'created_at' => $sale->created_at?->toIso8601String(),
             ]);
@@ -267,6 +321,14 @@ class SaleController extends Controller
                 'refunded' => $refunded,
                 'credit_note_amount' => (float) $sale->credit_note_amount,
                 'payment_method' => $sale->payment_method,
+                'deposit_amount' => (float) $sale->deposit_amount,
+                'credit_amount' => (float) $sale->credit_amount,
+                'credit_paid' => (float) $sale->credit_paid,
+                'credit_returned' => (float) $sale->credit_returned,
+                'outstanding' => $sale->outstanding(),
+                'credit_status' => $sale->creditStatus(),
+                'due_at' => $sale->due_at?->toDateString(),
+                'client_id' => $sale->client_id,
                 'cancel_reason' => $sale->cancel_reason,
                 'cancelled_at' => $sale->cancelled_at?->toIso8601String(),
                 'cancelled_by' => $sale->canceller?->name,
@@ -318,7 +380,7 @@ class SaleController extends Controller
             'format' => $format,
             'received' => $received,
             // Cash due = total minus the part paid with a credit note.
-            'change' => $received !== null ? max(0, $received - max(0, (float) $sale->total - (float) $sale->credit_note_amount)) : null,
+            'change' => $received !== null ? max(0, $received - max(0, (float) $sale->total - (float) $sale->credit_note_amount - (float) $sale->credit_amount)) : null,
         ]);
     }
 

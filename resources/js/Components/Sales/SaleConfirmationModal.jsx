@@ -133,6 +133,20 @@ export default function SaleConfirmationModal({ sale, lines = [], received = nul
                                 </div>
                             </>
                         )}
+                        {sale.credit_amount > 0 && (
+                            <>
+                                {sale.deposit_amount > 0 && (
+                                    <div className="flex justify-between text-slate-600 dark:text-slate-400">
+                                        <dt>{t('sales.credit.deposit')}</dt>
+                                        <dd className="tabular-nums">{formatCurrency(sale.deposit_amount)}</dd>
+                                    </div>
+                                )}
+                                <div className="flex justify-between font-semibold text-amber-700 dark:text-amber-300">
+                                    <dt>{t('sales.credit.onAccount')}</dt>
+                                    <dd className="tabular-nums">{formatCurrency(sale.credit_amount)}</dd>
+                                </div>
+                            </>
+                        )}
                         {receivedAmount != null && (
                             <>
                                 <div className="flex justify-between text-slate-600 dark:text-slate-400">

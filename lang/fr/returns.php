@@ -17,6 +17,8 @@ return [
     'cancelled_ok' => 'Vente #:id annulée.',
     'returned_ok' => 'Retour enregistré : :amount remboursé.',
     'stock_note_cancel' => 'Annulation de la vente #:id',
+    'cancel_has_payments' => 'Impossible d’annuler : des règlements clients sont déjà affectés à ce ticket.',
+    'account_exceeds' => 'Le retour dépasse le solde restant dû (:max). Choisissez un autre mode de remboursement.',
     'stock_note_return' => 'Retour sur la vente #:id',
     'role_self' => 'Vous ne pouvez pas modifier votre propre rôle.',
     'role_last_admin' => 'Il doit rester au moins un administrateur.',

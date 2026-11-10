@@ -15,6 +15,9 @@ class SaleReturn extends Model
 
     public const REFUND_CREDIT_NOTE = 'credit_note';
 
+    /** The refund is deducted from what the customer still owes on a credit ticket. */
+    public const REFUND_ACCOUNT = 'account';
+
     protected $fillable = ['sale_id', 'user_id', 'approved_by', 'reason', 'refund_method', 'amount'];
 
     protected function casts(): array

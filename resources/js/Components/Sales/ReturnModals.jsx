@@ -1,5 +1,5 @@
 import { useForm } from '@inertiajs/react';
-import { AlertTriangle, Banknote, Loader2, Minus, Plus, ReceiptText, ShieldCheck, Undo2, X } from 'lucide-react';
+import { AlertTriangle, Banknote, Loader2, Minus, Plus, ReceiptText, ShieldCheck, Undo2, Wallet, X } from 'lucide-react';
 import { useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
@@ -316,10 +316,14 @@ export function ReturnModal({ sale, items, needsApproval, onClose }) {
 
                     <div>
                         <div className="mb-1 text-xs font-semibold text-slate-600 dark:text-slate-300">{t('returns.refundMethod')}</div>
-                        <div className="grid grid-cols-2 gap-2" role="radiogroup">
+                        <div className={`grid gap-2 ${sale.outstanding > 0 ? 'grid-cols-3' : 'grid-cols-2'}`} role="radiogroup">
                             {[
                                 { id: 'cash', label: t('returns.refundCash'), hint: t('returns.refundCashHint'), icon: Banknote },
                                 { id: 'credit_note', label: t('returns.refundCredit'), hint: t('returns.refundCreditHint'), icon: ReceiptText },
+                                // Credit ticket still partly unpaid: the refund can reduce the customer's debt.
+                                ...(sale.outstanding > 0
+                                    ? [{ id: 'account', label: t('returns.refundAccount'), hint: t('returns.refundAccountHint'), icon: Wallet }]
+                                    : []),
                             ].map(({ id, label, hint, icon: Icon }) => {
                                 const on = form.data.refund_method === id;
                                 return (

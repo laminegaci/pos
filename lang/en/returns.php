@@ -17,6 +17,8 @@ return [
     'cancelled_ok' => 'Sale #:id cancelled.',
     'returned_ok' => 'Return saved: :amount refunded.',
     'stock_note_cancel' => 'Cancellation of sale #:id',
+    'cancel_has_payments' => 'Cannot cancel: customer payments are already allocated to this ticket.',
+    'account_exceeds' => 'The return exceeds the remaining balance (:max). Pick another refund method.',
     'stock_note_return' => 'Return on sale #:id',
     'role_self' => 'You cannot change your own role.',
     'role_last_admin' => 'At least one administrator must remain.',

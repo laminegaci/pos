@@ -139,6 +139,16 @@
             <div class="row bold"><span>Reste à payer</span><span>{{ $money(max(0, (float) $sale->total - (float) $sale->credit_note_amount)) }}</span></div>
         @endif
 
+        @if ((float) $sale->credit_amount > 0)
+            @if ((float) $sale->deposit_amount > 0)
+                <div class="row"><span>Acompte</span><span>{{ $money($sale->deposit_amount) }}</span></div>
+            @endif
+            <div class="row bold"><span>Reste dû (crédit)</span><span>{{ $money($sale->credit_amount) }}</span></div>
+            @if ($sale->due_at)
+                <div class="row"><span>Échéance</span><span>{{ $sale->due_at->format('d/m/Y') }}</span></div>
+            @endif
+        @endif
+
         @if ($received !== null)
             <hr class="sep">
             <div class="row"><span>Espèces reçues</span><span>{{ $money($received) }}</span></div>

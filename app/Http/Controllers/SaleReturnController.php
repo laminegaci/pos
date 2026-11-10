@@ -40,7 +40,7 @@ class SaleReturnController extends Controller
             'lines.*.quantity' => ['required', 'integer', 'min:0'],
             'lines.*.restock' => ['nullable', 'boolean'],
             'reason' => ['required', 'string', 'max:255'],
-            'refund_method' => ['required', 'in:'.SaleReturn::REFUND_CASH.','.SaleReturn::REFUND_CREDIT_NOTE],
+            'refund_method' => ['required', 'in:'.SaleReturn::REFUND_CASH.','.SaleReturn::REFUND_CREDIT_NOTE.','.SaleReturn::REFUND_ACCOUNT],
             'approver_email' => ['nullable', 'string', 'max:255'],
             'approver_password' => ['nullable', 'string', 'max:255'],
         ]);
