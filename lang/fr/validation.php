@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'ean13' => 'Le code-barres EAN-13 est invalide (clé de contrôle incorrecte).',
     'accepted' => 'Le champ :attribute doit être accepté.',
     'active_url' => 'Le champ :attribute n\'est pas une URL valide.',
     'after' => 'Le champ :attribute doit être une date postérieure à :date.',

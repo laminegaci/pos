@@ -218,6 +218,27 @@ export default function ReportsIndex({ kpis, daily, topProducts, byCategory, top
                     />
                 </div>
 
+                <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+                    <KpiCard
+                        icon={Wallet}
+                        label={t('reports.marginMonth')}
+                        value={formatCurrency(kpis.marginMonth ?? 0)}
+                        tone="emerald"
+                        hint={t('reports.marginHint')}
+                    />
+                    <KpiCard
+                        icon={TrendingUp}
+                        label={t('reports.marginRate')}
+                        value={kpis.marginRateMonth === null || kpis.marginRateMonth === undefined ? '—' : `${kpis.marginRateMonth} %`}
+                        tone="indigo"
+                        hint={
+                            kpis.productsWithoutCost > 0
+                                ? t('reports.marginIncomplete', { count: kpis.productsWithoutCost })
+                                : t('reports.marginComplete')
+                        }
+                    />
+                </div>
+
                 <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
                     <div className="lg:col-span-2 rounded-2xl border border-slate-200/60 bg-white p-5 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
                         <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
@@ -268,8 +289,15 @@ export default function ReportsIndex({ kpis, daily, topProducts, byCategory, top
                                             <span className="truncate font-medium text-slate-700">{p.name}</span>
                                             <span className="text-slate-400 hidden sm:inline">· {t('reports.soldUnits', { count: p.qty })}</span>
                                         </div>
-                                        <span className="font-semibold tabular-nums text-slate-900">
-                                            {formatCurrency(p.revenue)}
+                                        <span className="flex items-center gap-2">
+                                            {p.margin !== null && p.margin !== undefined && (
+                                                <span className={`tabular-nums ${p.margin < 0 ? 'text-red-600' : 'text-emerald-600'}`}>
+                                                    {t('reports.margin')} {formatCurrency(p.margin)}
+                                                </span>
+                                            )}
+                                            <span className="font-semibold tabular-nums text-slate-900">
+                                                {formatCurrency(p.revenue)}
+                                            </span>
                                         </span>
                                     </div>
                                     <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">

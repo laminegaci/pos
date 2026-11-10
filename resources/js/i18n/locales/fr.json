@@ -111,7 +111,30 @@
       "sale": "Vente",
       "adjustment": "Ajustement",
       "return": "Retour"
-    }
+    },
+    "costPrice": "Coût HT",
+    "costPriceLabel": "Prix d'achat HT ({{symbol}})",
+    "priceHtLabel": "Prix de vente HT ({{symbol}})",
+    "vatRate": "TVA",
+    "margin": "Marge",
+    "marginUnknown": "Renseignez le prix d'achat pour connaître la marge.",
+    "pricingTitle": "Prix & marge",
+    "barcode": "Code-barres EAN-13",
+    "barcodeHint": "Scannez le code du fabricant ou générez un code interne.",
+    "generateEan": "Générer",
+    "eanInvalid": "EAN-13 invalide (clé de contrôle incorrecte).",
+    "noBarcode": "Pas de code EAN-13",
+    "printLabels": "Étiquettes",
+    "selectAll": "Tout sélectionner",
+    "stockValueCost": "Au coût : {{value}}",
+    "noCostWarning": "{{count}} article(s) sans prix d'achat : leur marge n'est pas calculée.",
+    "labelsCount": "{{count}} étiquette(s) à imprimer",
+    "labelsA4": "Planche A4 (3×8)",
+    "labelsThermal": "Thermique 50×30 mm",
+    "labelsNoEan": "{{count}} article(s) sans EAN-13 : l'étiquette n'aura pas de code-barres.",
+    "labelsQty": "Quantité",
+    "labelsPreview": "Aperçu",
+    "labelsPrint": "Imprimer"
   },
   "clients": {
     "title": "Clients",
@@ -220,7 +243,13 @@
     "salesNumber": "{{count}} ventes",
     "recentSales": "Ventes récentes",
     "stockAlerts": "Alertes stock",
-    "noLowStock": "Aucun produit en stock bas."
+    "noLowStock": "Aucun produit en stock bas.",
+    "margin": "Marge",
+    "marginMonth": "Marge brute (mois)",
+    "marginRate": "Taux de marge",
+    "marginHint": "HT, remises et retours déduits",
+    "marginIncomplete": "{{count}} article(s) sans prix d'achat",
+    "marginComplete": "Tous les articles ont un prix d'achat"
   },
   "settings": {
     "title": "Paramètres",

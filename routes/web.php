@@ -28,6 +28,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 'description' => $p->description,
                 'price' => (float) $p->price,
                 'category_id' => $p->category_id,
+                'barcode' => $p->barcode,
+                'sku' => $p->sku,
                 'image' => $p->image ?: "https://picsum.photos/seed/{$p->sku}/400/300",
                 'stock' => $p->stock,
                 'unlimited_stock' => (bool) $p->unlimited_stock,
@@ -62,6 +64,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 'price' => (float) $p->price,
                 'category_id' => $p->category_id,
                 'sku' => $p->sku,
+                'barcode' => $p->barcode,
                 'stock' => $p->stock,
                 'unlimited_stock' => (bool) $p->unlimited_stock,
             ];
@@ -78,6 +81,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/produits/{product}', [ProductController::class, 'update'])->name('products.update');
     Route::delete('/produits/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
     Route::get('/produits/{product}/mouvements', [ProductController::class, 'movements'])->name('products.movements');
+    Route::post('/produits/generer-ean', [ProductController::class, 'generateEan'])->name('products.generateEan');
+    Route::get('/produits/etiquettes', [ProductController::class, 'labels'])->name('products.labels');
     Route::get('/produits/export', [ProductController::class, 'export'])->name('products.export');
 
     Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');

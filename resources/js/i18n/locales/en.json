@@ -111,7 +111,30 @@
       "sale": "Sale",
       "adjustment": "Adjustment",
       "return": "Return"
-    }
+    },
+    "costPrice": "Cost (excl. VAT)",
+    "costPriceLabel": "Purchase price excl. VAT ({{symbol}})",
+    "priceHtLabel": "Selling price excl. VAT ({{symbol}})",
+    "vatRate": "VAT",
+    "margin": "Margin",
+    "marginUnknown": "Enter the purchase price to see the margin.",
+    "pricingTitle": "Price & margin",
+    "barcode": "EAN-13 barcode",
+    "barcodeHint": "Scan the manufacturer's code or generate an internal one.",
+    "generateEan": "Generate",
+    "eanInvalid": "Invalid EAN-13 (wrong check digit).",
+    "noBarcode": "No EAN-13 code",
+    "printLabels": "Labels",
+    "selectAll": "Select all",
+    "stockValueCost": "At cost: {{value}}",
+    "noCostWarning": "{{count}} product(s) without a purchase price: their margin is not computed.",
+    "labelsCount": "{{count}} label(s) to print",
+    "labelsA4": "A4 sheet (3×8)",
+    "labelsThermal": "Thermal 50×30 mm",
+    "labelsNoEan": "{{count}} product(s) without EAN-13: the label will have no barcode.",
+    "labelsQty": "Quantity",
+    "labelsPreview": "Preview",
+    "labelsPrint": "Print"
   },
   "clients": {
     "title": "Clients",
@@ -220,7 +243,13 @@
     "salesNumber": "{{count}} sales",
     "recentSales": "Recent sales",
     "stockAlerts": "Stock alerts",
-    "noLowStock": "No products with low stock."
+    "noLowStock": "No products with low stock.",
+    "margin": "Margin",
+    "marginMonth": "Gross margin (month)",
+    "marginRate": "Margin rate",
+    "marginHint": "Excl. VAT, after discounts and returns",
+    "marginIncomplete": "{{count}} product(s) without purchase price",
+    "marginComplete": "Every product has a purchase price"
   },
   "settings": {
     "title": "Settings",

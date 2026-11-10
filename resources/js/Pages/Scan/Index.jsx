@@ -42,7 +42,7 @@ export default function ScanIndex({ products = [] }) {
     const handleScan = (code) => {
         setError(null);
         const product = products.find(
-            (p) => p.sku?.toLowerCase() === code.toLowerCase() || p.id.toString() === code
+            (p) => p.barcode === code || p.sku?.toLowerCase() === code.toLowerCase() || p.id.toString() === code
         );
 
         if (!product) {

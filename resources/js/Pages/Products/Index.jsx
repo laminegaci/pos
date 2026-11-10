@@ -10,7 +10,10 @@ import {
     Layers,
     LayoutGrid,
     List,
+    Barcode,
     Pencil,
+    Printer,
+    Sparkles,
     Tags,
     Plus,
     Search,
@@ -24,8 +27,39 @@ import PosLayout from '../../Layouts/PosLayout';
 import CategoryManager from '../../Components/Sales/CategoryManager';
 import ProductImage from '../../Components/Sales/ProductImage';
 import { currencySymbol, formatCurrency } from '../../lib/formatCurrency';
+import usePrintDocument from '../../lib/printDocument';
 
 const LOW_STOCK = 10;
+
+const round2 = (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
+
+/** EAN-13 check digit (same rule as App\Support\Ean13). */
+function eanValid(code) {
+    if (!/^\d{13}$/.test(code)) return false;
+    const sum = [...code.slice(0, 12)].reduce((s, d, i) => s + Number(d) * (i % 2 === 0 ? 1 : 3), 0);
+    return (10 - (sum % 10)) % 10 === Number(code[12]);
+}
+
+/** Margin figures from a TTC price, a VAT rate and an optional HT purchase cost. */
+function pricing(price, vat, cost) {
+    const ttc = Number(price) || 0;
+    const ht = round2(ttc / (1 + (Number(vat) || 0) / 100));
+    if (cost === '' || cost === null || cost === undefined || Number.isNaN(Number(cost))) return { ht, margin: null };
+    const margin = round2(ht - Number(cost));
+    return {
+        ht,
+        margin,
+        rate: ht > 0 ? round2((margin / ht) * 100) : null,
+        coef: Number(cost) > 0 ? round2(ttc / Number(cost)) : null,
+    };
+}
+
+function marginTone(rate) {
+    if (rate === null || rate === undefined) return 'slate';
+    if (rate < 0) return 'red';
+    if (rate < 15) return 'amber';
+    return 'emerald';
+}
 
 function stockStatus(stock, t, unlimited = false) {
     if (unlimited) return { label: t('products.unlimited'), tone: 'indigo' };
@@ -63,9 +97,13 @@ function StatCard({ icon: Icon, label, value, tone = 'indigo', hint }) {
     );
 }
 
-export default function ProductsIndex({ products, categories }) {
+export default function ProductsIndex({ products, categories, defaultVatRate = 19, vatRates = [0, 9, 19], shopName = '' }) {
     const { t } = useTranslation();
     const [showModal, setShowModal] = useState(false);
+    const [selected, setSelected] = useState(() => new Set());
+    const [showLabels, setShowLabels] = useState(false);
+    const [htDraft, setHtDraft] = useState(null);
+    const [generatingEan, setGeneratingEan] = useState(false);
     const [showCategories, setShowCategories] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
     const [searchQuery, setSearchQuery] = useState(() => new URLSearchParams(window.location.search).get('q') ?? '');
@@ -81,11 +119,14 @@ export default function ProductsIndex({ products, categories }) {
             name: '',
             description: '',
             price: '',
+            cost_price: '',
+            vat_rate: defaultVatRate,
             category_id: categories[0]?.id ?? '',
             stock: '',
             unlimited_stock: false,
             stock_note: '',
             sku: '',
+            barcode: '',
             image: '',
             active: true,
         };
@@ -104,7 +145,8 @@ export default function ProductsIndex({ products, categories }) {
                 !q ||
                 p.name.toLowerCase().includes(q) ||
                 (p.description ?? '').toLowerCase().includes(q) ||
-                (p.sku ?? '').toLowerCase().includes(q);
+                (p.sku ?? '').toLowerCase().includes(q) ||
+                (p.barcode ?? '').includes(q);
             const matchesCategory = filterCategory === 'all' || p.category_id === filterCategory;
             return matchesSearch && matchesCategory;
         });
@@ -117,11 +159,39 @@ export default function ProductsIndex({ products, categories }) {
         const outOfStock = tracked.filter((p) => p.stock === 0).length;
         const lowStock = tracked.filter((p) => p.stock > 0 && p.stock < LOW_STOCK).length;
         const inventoryValue = tracked.reduce((sum, p) => sum + Number(p.price) * p.stock, 0);
-        return { total, outOfStock, lowStock, inventoryValue };
+        // Stock valued at purchase cost (HT); products without a cost are counted separately.
+        const costValue = tracked.reduce((sum, p) => sum + Number(p.cost_price ?? 0) * p.stock, 0);
+        const noCost = products.filter((p) => p.cost_price === null || p.cost_price === undefined).length;
+        return { total, outOfStock, lowStock, inventoryValue, costValue, noCost };
     }, [products]);
+
+    const toggleSelected = (id) =>
+        setSelected((prev) => {
+            const next = new Set(prev);
+            next.has(id) ? next.delete(id) : next.add(id);
+            return next;
+        });
+    const allVisibleSelected = filteredProducts.length > 0 && filteredProducts.every((p) => selected.has(p.id));
+    const toggleAllVisible = () =>
+        setSelected(allVisibleSelected ? new Set() : new Set(filteredProducts.map((p) => p.id)));
+
+    const generateEan = async () => {
+        setGeneratingEan(true);
+        try {
+            const res = await fetch('/produits/generer-ean', {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content, Accept: 'application/json' },
+            });
+            const data = await res.json();
+            if (data.barcode) setFormData((f) => ({ ...f, barcode: data.barcode }));
+        } finally {
+            setGeneratingEan(false);
+        }
+    };
 
     const openCreateModal = () => {
         setEditingProduct(null);
+        setHtDraft(null);
         setFormData(emptyForm());
         setErrors({});
         setShowModal(true);
@@ -137,15 +207,19 @@ export default function ProductsIndex({ products, categories }) {
 
     const openEditModal = (product) => {
         setEditingProduct(product);
+        setHtDraft(null);
         setFormData({
             name: product.name,
             description: product.description ?? '',
             price: product.price,
+            cost_price: product.cost_price ?? '',
+            vat_rate: Number(product.vat_rate ?? defaultVatRate),
             category_id: product.category_id,
             stock: product.stock,
             unlimited_stock: !!product.unlimited_stock,
             stock_note: '',
             sku: product.sku ?? '',
+            barcode: product.barcode ?? '',
             image: product.image ?? '',
             active: product.active,
         });
@@ -214,6 +288,16 @@ export default function ProductsIndex({ products, categories }) {
                             <h1 className="text-2xl font-bold tracking-tight text-slate-900">{t('products.title')}</h1>
                             <p className="text-sm text-slate-500">{t('products.subtitle')}</p>
                         </div>
+                        <div className="flex shrink-0 items-center gap-2">
+                        <button
+                            onClick={() => setShowLabels(true)}
+                            disabled={selected.size === 0}
+                            className="inline-flex h-10 items-center gap-2 rounded-xl bg-white px-4 text-sm font-semibold text-slate-700 ring-1 ring-slate-200 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            <Printer size={16} />
+                            <span className="hidden sm:inline">{t('products.printLabels')}</span>
+                            {selected.size > 0 && <span className="rounded-full bg-indigo-100 px-2 text-xs text-indigo-700">{selected.size}</span>}
+                        </button>
                         <button
                             onClick={openCreateModal}
                             className="inline-flex h-10 shrink-0 items-center gap-2 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 px-4 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 transition hover:shadow-xl hover:shadow-indigo-500/40 active:scale-[0.98]"
@@ -222,6 +306,7 @@ export default function ProductsIndex({ products, categories }) {
                             <span className="hidden sm:inline">{t('products.newProduct')}</span>
                             <span className="sm:hidden">{t('products.add')}</span>
                         </button>
+                        </div>
                     </div>
 
                     {/* Stats */}
@@ -240,8 +325,14 @@ export default function ProductsIndex({ products, categories }) {
                             label={t('products.stockValue')}
                             value={formatCurrency(stats.inventoryValue)}
                             tone="emerald"
+                            hint={t('products.stockValueCost', { value: formatCurrency(stats.costValue) })}
                         />
                     </div>
+                    {stats.noCost > 0 && (
+                        <div className="mb-4 flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs text-amber-800">
+                            <AlertTriangle size={14} /> {t('products.noCostWarning', { count: stats.noCost })}
+                        </div>
+                    )}
 
                     {/* Toolbar */}
                     <div className="mb-4 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
@@ -337,13 +428,24 @@ export default function ProductsIndex({ products, categories }) {
                             </div>
                         ) : viewMode === 'table' ? (
                             <div className="h-full overflow-auto">
-                                <table className="w-full min-w-[700px] text-sm">
+                                <table className="w-full min-w-[900px] text-sm">
                                     <thead className="sticky top-0 z-10 bg-slate-50/80 backdrop-blur">
                                         <tr className="text-left text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                                            <th className="w-10 px-4 py-3">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={allVisibleSelected}
+                                                    onChange={toggleAllVisible}
+                                                    aria-label={t('products.selectAll')}
+                                                    className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                                />
+                                            </th>
                                             <th className="px-5 py-3">{t('products.title')}</th>
                                             <th className="px-5 py-3">{t('products.category')}</th>
                                             <th className="px-5 py-3 hidden md:table-cell">{t('products.sku')}</th>
                                             <th className="px-5 py-3 text-right">{t('products.price')}</th>
+                                            <th className="px-5 py-3 text-right hidden lg:table-cell">{t('products.costPrice')}</th>
+                                            <th className="px-5 py-3 text-right hidden lg:table-cell">{t('products.margin')}</th>
                                             <th className="px-5 py-3 hidden sm:table-cell">{t('products.stock')}</th>
                                             <th className="px-5 py-3 hidden lg:table-cell">{t('products.status')}</th>
                                             <th className="px-5 py-3 text-right">{t('common.actions')}</th>
@@ -354,6 +456,15 @@ export default function ProductsIndex({ products, categories }) {
                                             const st = stockStatus(product.stock, t, product.unlimited_stock);
                                             return (
                                                 <tr key={product.id} className="group transition hover:bg-slate-50/60">
+                                                    <td className="px-4 py-3">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={selected.has(product.id)}
+                                                            onChange={() => toggleSelected(product.id)}
+                                                            aria-label={product.name}
+                                                            className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                                        />
+                                                    </td>
                                                     <td className="px-5 py-3">
                                                         <div className="flex items-center gap-3">
                                                             <ProductImage product={product} size="md" className="hidden sm:block" />
@@ -368,9 +479,31 @@ export default function ProductsIndex({ products, categories }) {
                                                             {categoryLabel(product.category_id)}
                                                         </span>
                                                     </td>
-                                                    <td className="px-5 py-3 hidden md:table-cell font-mono text-xs text-slate-500">{product.sku || '—'}</td>
+                                                    <td className="px-5 py-3 hidden md:table-cell font-mono text-xs text-slate-500">
+                                                        <div>{product.sku || '—'}</div>
+                                                        {product.barcode && (
+                                                            <div className="mt-0.5 flex items-center gap-1 text-[11px] text-slate-400">
+                                                                <Barcode size={11} /> {product.barcode}
+                                                            </div>
+                                                        )}
+                                                    </td>
                                                     <td className="px-5 py-3 text-right font-semibold text-indigo-600">
                                                         {formatCurrency(product.price)}
+                                                    </td>
+                                                    <td className="px-5 py-3 text-right hidden lg:table-cell text-slate-600">
+                                                        {product.cost_price === null || product.cost_price === undefined ? '—' : formatCurrency(product.cost_price)}
+                                                    </td>
+                                                    <td className="px-5 py-3 text-right hidden lg:table-cell">
+                                                        {product.margin_rate === null || product.margin_rate === undefined ? (
+                                                            <span className="text-slate-400">—</span>
+                                                        ) : (
+                                                            <span
+                                                                title={formatCurrency(product.margin)}
+                                                                className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ring-1 ${toneClasses[marginTone(product.margin_rate)]}`}
+                                                            >
+                                                                {product.margin_rate}%
+                                                            </span>
+                                                        )}
                                                     </td>
                                                     <td className="px-5 py-3 hidden sm:table-cell">
                                                         {product.unlimited_stock ? (
@@ -491,6 +624,14 @@ export default function ProductsIndex({ products, categories }) {
 
             <CategoryManager open={showCategories} categories={categories} onClose={() => setShowCategories(false)} />
 
+            {showLabels && (
+                <LabelsModal
+                    products={products.filter((p) => selected.has(p.id))}
+                    shopName={shopName}
+                    onClose={() => setShowLabels(false)}
+                />
+            )}
+
             {/* Modal */}
             {showModal && (
                 <div
@@ -566,7 +707,10 @@ export default function ProductsIndex({ products, categories }) {
                                             min="0"
                                             step="0.01"
                                             value={formData.price}
-                                            onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                                            onChange={(e) => {
+                                                setHtDraft(null);
+                                                setFormData({ ...formData, price: e.target.value });
+                                            }}
                                             className={inputCls(errors.price)}
                                         />
                                     </Field>
@@ -583,6 +727,75 @@ export default function ProductsIndex({ products, categories }) {
                                         />
                                     </Field>
                                 </div>
+                                {(() => {
+                                    const p = pricing(formData.price, formData.vat_rate, formData.cost_price);
+                                    const tone = marginTone(p.rate);
+                                    return (
+                                        <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3">
+                                            <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">{t('products.pricingTitle')}</div>
+                                            <div className="grid grid-cols-3 gap-3">
+                                                <Field label={t('products.costPriceLabel', { symbol: currencySymbol() })} error={errors.cost_price}>
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        step="0.01"
+                                                        value={formData.cost_price}
+                                                        onChange={(e) => setFormData({ ...formData, cost_price: e.target.value })}
+                                                        className={inputCls(errors.cost_price)}
+                                                    />
+                                                </Field>
+                                                <Field label={t('products.vatRate')} error={errors.vat_rate}>
+                                                    <select
+                                                        value={formData.vat_rate}
+                                                        onChange={(e) => {
+                                                            setHtDraft(null);
+                                                            setFormData({ ...formData, vat_rate: Number(e.target.value) });
+                                                        }}
+                                                        className={inputCls(errors.vat_rate)}
+                                                    >
+                                                        {vatRates.map((r) => (
+                                                            <option key={r} value={r}>
+                                                                {r} %
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                </Field>
+                                                <Field label={t('products.priceHtLabel', { symbol: currencySymbol() })}>
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        step="0.01"
+                                                        value={htDraft ?? (formData.price === '' ? '' : p.ht)}
+                                                        onChange={(e) => {
+                                                            const v = e.target.value;
+                                                            setHtDraft(v);
+                                                            setFormData({
+                                                                ...formData,
+                                                                price: v === '' ? '' : round2(Number(v) * (1 + Number(formData.vat_rate) / 100)),
+                                                            });
+                                                        }}
+                                                        className={inputCls(false)}
+                                                    />
+                                                </Field>
+                                            </div>
+                                            <div className={`mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm ring-1 ${toneClasses[tone]}`}>
+                                                {p.margin === null || p.margin === undefined ? (
+                                                    <span>{t('products.marginUnknown')}</span>
+                                                ) : (
+                                                    <>
+                                                        <span className="font-semibold">
+                                                            {t('products.margin')} : {formatCurrency(p.margin)}
+                                                        </span>
+                                                        <span>
+                                                            {p.rate === null ? '—' : `${p.rate} %`}
+                                                            {p.coef !== null && p.coef !== undefined ? ` · ×${p.coef}` : ''}
+                                                        </span>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
                                 <label className="flex items-start gap-2 rounded-xl bg-indigo-50/60 px-3 py-2">
                                     <input
                                         type="checkbox"
@@ -632,6 +845,31 @@ export default function ProductsIndex({ products, categories }) {
                                         />
                                     </Field>
                                 </div>
+                                <Field
+                                    label={t('products.barcode')}
+                                    error={errors.barcode || (formData.barcode && formData.barcode.length === 13 && !eanValid(formData.barcode) ? t('products.eanInvalid') : null)}
+                                >
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            inputMode="numeric"
+                                            maxLength={13}
+                                            placeholder="0000000000000"
+                                            value={formData.barcode}
+                                            onChange={(e) => setFormData({ ...formData, barcode: e.target.value.replace(/\D/g, '') })}
+                                            className={`${inputCls(errors.barcode)} font-mono tracking-wider`}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={generateEan}
+                                            disabled={generatingEan}
+                                            className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-slate-900 px-3 text-xs font-semibold text-white hover:bg-slate-800 disabled:opacity-60"
+                                        >
+                                            <Sparkles size={14} /> {t('products.generateEan')}
+                                        </button>
+                                    </div>
+                                    <div className="mt-1 text-xs text-slate-400">{t('products.barcodeHint')}</div>
+                                </Field>
                                 <label className="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2">
                                     <input
                                         type="checkbox"
@@ -664,6 +902,110 @@ export default function ProductsIndex({ products, categories }) {
                 </div>
             )}
         </>
+    );
+}
+
+/** Choose the label sheet and how many labels per product, then print them. */
+function LabelsModal({ products, onClose }) {
+    const { t } = useTranslation();
+    const { print, printing } = usePrintDocument();
+    const [format, setFormat] = useState('a4');
+    const [qty, setQty] = useState(() =>
+        Object.fromEntries(products.map((p) => [p.id, p.unlimited_stock ? 1 : Math.min(500, Math.max(1, p.stock))]))
+    );
+
+    useEffect(() => {
+        const onKey = (e) => e.key === 'Escape' && onClose();
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, [onClose]);
+
+    const withoutEan = products.filter((p) => !p.barcode);
+    const url = (extra = '') => {
+        const q = new URLSearchParams({ format });
+        products.forEach((p) => {
+            q.append('ids[]', p.id);
+            q.append(`qty[${p.id}]`, Math.min(500, Math.max(1, Number(qty[p.id]) || 1)));
+        });
+        return `/produits/etiquettes?${q.toString()}${extra}`;
+    };
+    const total = products.reduce((s, p) => s + (Math.min(500, Math.max(1, Number(qty[p.id]) || 1))), 0);
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 p-0 backdrop-blur-sm sm:items-center sm:p-4" onClick={onClose}>
+            <div className="max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-start justify-between border-b border-slate-100 px-5 py-4">
+                    <div>
+                        <h2 className="text-lg font-bold text-slate-900">{t('products.printLabels')}</h2>
+                        <p className="text-xs text-slate-500">{t('products.labelsCount', { count: total })}</p>
+                    </div>
+                    <button onClick={onClose} className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700">
+                        <X size={18} />
+                    </button>
+                </div>
+                <div className="space-y-4 p-5">
+                    <div className="grid grid-cols-2 gap-2">
+                        {[
+                            ['a4', t('products.labelsA4')],
+                            ['thermal', t('products.labelsThermal')],
+                        ].map(([id, label]) => (
+                            <button
+                                key={id}
+                                type="button"
+                                onClick={() => setFormat(id)}
+                                className={`rounded-xl px-3 py-2.5 text-sm font-medium ring-1 transition ${
+                                    format === id ? 'bg-indigo-50 text-indigo-700 ring-indigo-300' : 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-50'
+                                }`}
+                            >
+                                {label}
+                            </button>
+                        ))}
+                    </div>
+                    {withoutEan.length > 0 && (
+                        <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                            <AlertTriangle size={14} className="mt-0.5 shrink-0" />
+                            {t('products.labelsNoEan', { count: withoutEan.length })}
+                        </div>
+                    )}
+                    <ul className="max-h-64 divide-y divide-slate-100 overflow-y-auto rounded-xl border border-slate-200">
+                        {products.map((p) => (
+                            <li key={p.id} className="flex items-center gap-3 px-3 py-2">
+                                <div className="min-w-0 flex-1">
+                                    <div className="truncate text-sm font-medium text-slate-800">{p.name}</div>
+                                    <div className={`font-mono text-xs ${p.barcode ? 'text-slate-400' : 'text-red-500'}`}>{p.barcode || t('products.noBarcode')}</div>
+                                </div>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    max="500"
+                                    value={qty[p.id]}
+                                    onChange={(e) => setQty({ ...qty, [p.id]: e.target.value })}
+                                    aria-label={t('products.labelsQty')}
+                                    className="w-20 rounded-lg border border-slate-200 px-2 py-1.5 text-right text-sm outline-none focus:border-indigo-400"
+                                />
+                            </li>
+                        ))}
+                    </ul>
+                    <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                        <button
+                            type="button"
+                            onClick={() => window.open(url('&print=1'), '_blank', 'noopener')}
+                            className="rounded-xl px-4 py-2.5 text-sm font-medium text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50"
+                        >
+                            {t('products.labelsPreview')}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => print(url())}
+                            disabled={printing}
+                            className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 disabled:opacity-60"
+                        >
+                            <Printer size={16} /> {t('products.labelsPrint')}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     );
 }
 

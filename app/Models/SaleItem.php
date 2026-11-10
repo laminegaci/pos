@@ -19,6 +19,8 @@ class SaleItem extends Model
         'product_name',
         'quantity',
         'unit_price',
+        'unit_cost',
+        'vat_rate',
         'line_total',
     ];
 
@@ -27,6 +29,8 @@ class SaleItem extends Model
         return [
             'quantity' => 'integer',
             'unit_price' => 'decimal:2',
+            'unit_cost' => 'decimal:2',
+            'vat_rate' => 'decimal:2',
             'line_total' => 'decimal:2',
         ];
     }

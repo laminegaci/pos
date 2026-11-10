@@ -27,6 +27,69 @@ class ReportController extends Controller
             ->sum('amount');
     }
 
+    /**
+     * Real gross margin since $from, per product: net-of-VAT revenue (after the sale-level discount)
+     * minus the cost frozen at sale time, minus what returns gave back. Lines sold without a known
+     * cost are left out of both sides and counted in `uncosted`, so the rate is never inflated.
+     *
+     * @return array{margin: float, revenue_ht: float, cost: float, uncosted: int, byProduct: array<int, float>}
+     */
+    private function margin(Carbon $from): array
+    {
+        // Share of the line actually paid once the whole-basket discount is spread over it.
+        $factor = 'CASE WHEN sales.subtotal > 0 THEN sales.total * 1.0 / sales.subtotal ELSE 1 END';
+        $net = "sale_items.line_total * {$factor} / (1 + sale_items.vat_rate / 100.0)";
+
+        $sold = SaleItem::query()
+            ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
+            ->where('sales.status', 'completed')
+            ->where('sales.created_at', '>=', $from)
+            ->whereNotNull('sale_items.unit_cost')
+            ->groupBy('sale_items.product_id')
+            ->select('sale_items.product_id', DB::raw("SUM({$net}) as revenue"), DB::raw('SUM(sale_items.unit_cost * sale_items.quantity) as cost'))
+            ->get()
+            ->keyBy('product_id');
+
+        $retNet = "sale_return_items.line_total * {$factor} / (1 + sale_items.vat_rate / 100.0)";
+        $returned = SaleReturnItem::query()
+            ->join('sale_returns', 'sale_returns.id', '=', 'sale_return_items.sale_return_id')
+            ->join('sale_items', 'sale_items.id', '=', 'sale_return_items.sale_item_id')
+            ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
+            ->where('sale_returns.created_at', '>=', $from)
+            ->where('sales.status', 'completed')
+            ->whereNotNull('sale_items.unit_cost')
+            ->groupBy('sale_items.product_id')
+            ->select('sale_items.product_id', DB::raw("SUM({$retNet}) as revenue"), DB::raw('SUM(sale_items.unit_cost * sale_return_items.quantity * sale_return_items.restock) as cost'))
+            ->get()
+            ->keyBy('product_id');
+
+        $revenue = 0.0;
+        $cost = 0.0;
+        $byProduct = [];
+        foreach ($sold as $pid => $row) {
+            $r = (float) $row->revenue - (float) ($returned[$pid]->revenue ?? 0);
+            $c = (float) $row->cost - (float) ($returned[$pid]->cost ?? 0);
+            $revenue += $r;
+            $cost += $c;
+            $byProduct[(int) $pid] = round($r - $c, 2);
+        }
+
+        $uncosted = (int) SaleItem::query()
+            ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
+            ->where('sales.status', 'completed')
+            ->where('sales.created_at', '>=', $from)
+            ->whereNull('sale_items.unit_cost')
+            ->distinct()->count('sale_items.product_id');
+
+        return [
+            'margin' => round($revenue - $cost, 2),
+            'revenue_ht' => round($revenue, 2),
+            'cost' => round($cost, 2),
+            'uncosted' => $uncosted,
+            'byProduct' => $byProduct,
+        ];
+    }
+
     public function index(): Response
     {
         $now = Carbon::now();
@@ -117,6 +180,9 @@ class ReportController extends Controller
             ->select('sales.client_id', DB::raw('SUM(sale_returns.amount) as amount'))
             ->pluck('amount', 'client_id');
 
+        $marginMonth = $this->margin($startOfMonth);
+        $margin30 = $this->margin($now->copy()->subDays(29)->startOfDay());
+
         // Top produits (30j)
         $topProducts = SaleItem::query()
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
@@ -136,6 +202,7 @@ class ReportController extends Controller
                 'id' => $r->id,
                 'name' => $r->name,
                 'category_id' => $r->category_id,
+                'margin' => $margin30['byProduct'][$r->id] ?? null,
                 'qty' => (int) $r->qty - (int) ($returnedByProduct[$r->id]->qty ?? 0),
                 'revenue' => (float) $r->revenue - (float) ($returnedByProduct[$r->id]->revenue ?? 0),
             ])
@@ -218,6 +285,10 @@ class ReportController extends Controller
                 'revenueGrowth' => $revenueGrowth,
                 'clientsCount' => Client::count(),
                 'productsCount' => Product::where('active', true)->count(),
+                'marginMonth' => $marginMonth['margin'],
+                'marginRateMonth' => $marginMonth['revenue_ht'] > 0 ? round($marginMonth['margin'] / $marginMonth['revenue_ht'] * 100, 1) : null,
+                'uncostedProducts' => $marginMonth['uncosted'],
+                'productsWithoutCost' => Product::where('active', true)->whereNull('cost_price')->count(),
             ],
             'daily' => $days,
             'topProducts' => $topProducts,

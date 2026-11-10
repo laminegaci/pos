@@ -7,7 +7,9 @@ namespace App\Http\Controllers;
 use App\Exports\ProductExport;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Settings;
 use App\Services\StockService;
+use App\Support\Ean13;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,6 +19,7 @@ use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\Response as HttpResponse;
 
 class ProductController extends Controller
 {
@@ -32,6 +35,45 @@ class ProductController extends Controller
         return Inertia::render('Products/Index', [
             'products' => $products,
             'categories' => $categories,
+            'defaultVatRate' => (int) Settings::current()->vat_rate,
+            'vatRates' => Product::VAT_RATES,
+            'shopName' => Settings::current()->shop_name,
+        ]);
+    }
+
+    /** A free store-internal EAN-13, for products that have no manufacturer barcode. */
+    public function generateEan(): JsonResponse
+    {
+        return response()->json(['barcode' => Ean13::generateInternal()]);
+    }
+
+    /** Printable barcode labels: ?ids[]=1&qty[1]=10&format=a4|thermal. */
+    public function labels(Request $request): HttpResponse
+    {
+        $data = $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'integer|exists:products,id',
+            'qty' => 'nullable|array',
+            'qty.*' => 'integer|min:1|max:500',
+            'format' => 'nullable|in:a4,thermal',
+        ]);
+
+        $products = Product::whereIn('id', $data['ids'])->orderBy('name')->get();
+        $labels = [];
+        foreach ($products as $p) {
+            $svg = $p->barcode ? Ean13::toSvg($p->barcode) : '';
+            $count = (int) ($data['qty'][$p->id] ?? 1);
+            for ($i = 0; $i < $count; $i++) {
+                $labels[] = ['name' => $p->name, 'price' => (float) $p->price, 'barcode' => $p->barcode, 'svg' => $svg];
+            }
+        }
+
+        $settings = Settings::current();
+
+        return response()->view('labels.barcodes', [
+            'labels' => $labels,
+            'format' => $data['format'] ?? 'a4',
+            'settings' => $settings,
         ]);
     }
 
@@ -50,6 +92,13 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
+            'cost_price' => 'nullable|numeric|min:0',
+            'vat_rate' => ['sometimes', 'required', 'numeric', Rule::in(Product::VAT_RATES)],
+            'barcode' => [
+                'nullable', 'string', 'size:13',
+                Rule::unique('products', 'barcode')->ignore($request->route('product')),
+                fn (string $attr, mixed $value, \Closure $fail) => Ean13::isValid($value) ? null : $fail(__('validation.ean13')),
+            ],
             'category_id' => ['required', 'string', Rule::exists('categories', 'slug')],
             'stock' => 'required|integer|min:0',
             'unlimited_stock' => 'boolean',
@@ -64,6 +113,8 @@ class ProductController extends Controller
     {
         $validated = $this->validated($request);
         unset($validated['stock_note']);
+        // No rate sent: the shop-wide one from Settings.
+        $validated['vat_rate'] ??= Settings::current()->vat_rate;
 
         $product = DB::transaction(function () use ($validated, $stock, $request) {
             $product = Product::create($validated);

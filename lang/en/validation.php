@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'ean13' => 'The EAN-13 barcode is invalid (wrong check digit).',
     'accepted' => 'The :attribute field must be accepted.',
     'active_url' => 'The :attribute field is not a valid URL.',
     'after' => 'The :attribute field must be a date after :date.',

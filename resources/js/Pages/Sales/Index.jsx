@@ -8,6 +8,7 @@ import Cart from '../../Components/Sales/Cart';
 import Toast from '../../Components/Toast';
 import SaleConfirmationModal from '../../Components/Sales/SaleConfirmationModal';
 import { sounds } from '../../lib/sounds';
+import useBarcodeScanner from '../../hooks/useBarcodeScanner';
 
 const CART_STORAGE_KEY = 'pos.cart';
 const NO_DISCOUNT = { type: 'amount', value: 0 };
@@ -161,6 +162,29 @@ export default function SalesIndex({ caisse, categories, products, clients = [],
         sounds.add();
         setQuantity(productId, current + 1);
     };
+
+    // Barcode reader: EAN-13 (or SKU) → straight into the cart.
+    const productsByCode = useMemo(() => {
+        const map = {};
+        for (const p of products) {
+            if (p.sku) map[String(p.sku).toLowerCase()] = p.id;
+            if (p.barcode) map[p.barcode] = p.id;
+        }
+        return map;
+    }, [products]);
+
+    useBarcodeScanner(
+        (code) => {
+            const id = productsByCode[code] ?? productsByCode[code.toLowerCase()];
+            if (!id) {
+                sounds.error();
+                setToast({ message: t('scan.notFound', { code }), type: 'error' });
+                return;
+            }
+            addToCart(id);
+        },
+        { enabled: !confirmation && !submitting },
+    );
 
     const decrementItem = (productId) => {
         const current = cartItems.find((i) => i.productId === productId)?.quantity ?? 0;

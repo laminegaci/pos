@@ -123,6 +123,9 @@ class SaleController extends Controller
                     'product_id' => $product->id,
                     'quantity' => $quantity,
                     'unit_price' => $unitPrice,
+                    // Cost and VAT frozen at sale time, so the margin stays true if they change later.
+                    'unit_cost' => $product->cost_price === null ? null : (float) $product->cost_price,
+                    'vat_rate' => (float) $product->vat_rate,
                     'line_total' => $lineTotal,
                 ];
             }

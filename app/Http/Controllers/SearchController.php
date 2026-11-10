@@ -27,6 +27,7 @@ class SearchController extends Controller
         $products = Product::query()
             ->where(fn ($w) => $w->where('name', 'like', $like)
                 ->orWhere('sku', 'like', $like)
+                ->orWhere('barcode', 'like', $like)
                 ->orWhere('description', 'like', $like))
             ->orderByDesc('active')
             ->orderBy('name')
