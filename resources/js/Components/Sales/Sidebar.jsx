@@ -100,7 +100,7 @@ export default function Sidebar({ mobileOpen = false, onClose }) {
 
             <aside
                 aria-label={t('sidebar.label')}
-                className={`fixed inset-y-0 left-0 z-50 flex h-[100dvh] w-28 flex-col items-center justify-between gap-6 border-r border-slate-200/70 bg-gradient-to-b from-gray-100 via-violet-200 to-gray-100 py-8 shadow-[4px_0_24px_-12px_rgba(30,27,75,0.12)] transition-transform duration-200 [@media(min-height:860px)]:py-30 lg:static lg:translate-x-0 dark:border-slate-800 dark:from-slate-900 dark:via-violet-950/60 dark:to-slate-900 ${
+                className={`fixed inset-y-0 left-0 z-50 flex h-[100dvh] w-28 flex-col items-center justify-between gap-4 border-r border-slate-200/70 bg-gradient-to-b from-gray-100 via-violet-200 to-gray-100 py-4 shadow-[4px_0_24px_-12px_rgba(30,27,75,0.12)] transition-transform duration-200 [@media(min-height:860px)]:py-10 lg:static lg:translate-x-0 dark:border-slate-800 dark:from-slate-900 dark:via-violet-950/60 dark:to-slate-900 ${
                     mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
                 }`}
             >
