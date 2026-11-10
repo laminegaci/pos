@@ -854,5 +854,26 @@
     "currentStock": "Stock actuel",
     "by": "Par",
     "order_ref": "Commande"
+  },
+  "hold": {
+    "title": "Mettre en attente",
+    "hint": "Le panier est mis de côté : servez le client suivant puis reprenez-le plus tard, depuis n’importe quelle caisse.",
+    "labelPlaceholder": "Repère (facultatif) : ex. monsieur au pull bleu",
+    "confirm": "Mettre en attente",
+    "listTitle": "Tickets en attente",
+    "empty": "Aucun ticket en attente aujourd’hui.",
+    "noLabel": "Ticket n°{{id}}",
+    "resume": "Reprendre",
+    "delete": "Supprimer",
+    "confirmDelete": "Supprimer ce ticket en attente ?",
+    "replaceConfirm": "Le panier en cours va être mis en attente avant de reprendre ce ticket. Continuer ?",
+    "held": "Ticket mis en attente.",
+    "resumed": "Ticket repris.",
+    "resumedWithChanges": "Ticket repris, avec des changements :",
+    "lineDropped": "{{name}} retiré (indisponible)",
+    "lineReduced": "{{name}} ramené à {{qty}} (stock)",
+    "holdError": "Impossible de mettre le ticket en attente.",
+    "resumeError": "Impossible de reprendre ce ticket.",
+    "loadError": "Impossible de charger les tickets en attente."
   }
 }

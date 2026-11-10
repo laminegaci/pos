@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { AlertTriangle, Banknote, Clock, CreditCard, Loader2, Minus, Percent, Plus, ReceiptText, ShoppingBag, Trash2, Volume2, VolumeX, X } from 'lucide-react';
+import { AlertTriangle, Banknote, Clock, CreditCard, ListOrdered, Loader2, Minus, PauseCircle, Percent, Plus, ReceiptText, ShoppingBag, Trash2, Volume2, VolumeX, X } from 'lucide-react';
 import { usePage } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import { currencySymbol, formatCurrency } from '../../lib/formatCurrency';
@@ -374,6 +374,9 @@ export default function Cart({
     onRemove,
     onClear,
     onCheckout,
+    onHold,
+    onOpenHeld,
+    heldCount = 0,
     submitting = false,
 }) {
     const { t } = useTranslation();
@@ -496,6 +499,34 @@ export default function Cart({
                         </span>
                     </div>
                     <div className="flex items-center gap-2">
+                        {onOpenHeld && (
+                            <button
+                                type="button"
+                                onClick={onOpenHeld}
+                                className="relative flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                                title={`${t('hold.listTitle')} (Shift+F8)`}
+                                aria-label={t('hold.listTitle')}
+                            >
+                                <ListOrdered size={15} />
+                                {heldCount > 0 && (
+                                    <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold text-white ring-2 ring-white dark:ring-slate-900">
+                                        {heldCount}
+                                    </span>
+                                )}
+                            </button>
+                        )}
+                        {onHold && (
+                            <button
+                                type="button"
+                                onClick={onHold}
+                                disabled={empty || submitting}
+                                className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-50 text-indigo-600 transition hover:bg-indigo-100 disabled:opacity-40 dark:bg-indigo-500/10 dark:text-indigo-300 dark:hover:bg-indigo-500/20"
+                                title={`${t('hold.title')} (F8)`}
+                                aria-label={t('hold.title')}
+                            >
+                                <PauseCircle size={15} />
+                            </button>
+                        )}
                         <SoundToggle />
                         <button
                             type="button"

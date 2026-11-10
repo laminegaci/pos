@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\HeldCart;
 use App\Models\Product;
 use App\Models\Settings;
 use Illuminate\Http\Request;
@@ -72,6 +73,8 @@ class HandleInertiaRequests extends Middleware
                         ])->all(),
                 ];
             },
+            // Tickets put aside at the till today (badge on the cart).
+            'heldCount' => fn () => $request->user() ? HeldCart::query()->today()->count() : 0,
             'locale' => $request->session()->get('locale', app()->getLocale()),
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),

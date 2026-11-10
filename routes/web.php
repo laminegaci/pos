@@ -4,6 +4,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ClientPaymentController;
 use App\Http\Controllers\CreditNoteController;
+use App\Http\Controllers\HeldCartController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
@@ -151,6 +152,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/ventes/export', [SaleController::class, 'export'])->name('sales.export');
     Route::get('/ventes', [SaleController::class, 'index'])->name('sales.index');
     Route::post('/ventes', [SaleController::class, 'store'])->name('sales.store');
+    // Held tickets: declared before /ventes/{sale} so 'attente' is not read as a sale id.
+    Route::get('/ventes/attente', [HeldCartController::class, 'index'])->name('held-carts.index');
+    Route::post('/ventes/attente', [HeldCartController::class, 'store'])->name('held-carts.store');
+    Route::post('/ventes/attente/{heldCart}/reprendre', [HeldCartController::class, 'resume'])->whereNumber('heldCart')->name('held-carts.resume');
+    Route::delete('/ventes/attente/{heldCart}', [HeldCartController::class, 'destroy'])->whereNumber('heldCart')->name('held-carts.destroy');
     Route::get('/ventes/{sale}', [SaleController::class, 'show'])->name('sales.show');
     Route::get('/ventes/{sale}/facture', [SaleController::class, 'invoice'])->name('sales.invoice');
     Route::get('/ventes/{sale}/ticket', [SaleController::class, 'ticket'])->name('sales.ticket');

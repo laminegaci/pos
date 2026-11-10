@@ -854,5 +854,26 @@
     "currentStock": "Current stock",
     "by": "By",
     "order_ref": "Order"
+  },
+  "hold": {
+    "title": "Hold ticket",
+    "hint": "The cart is put aside: serve the next customer, then resume it later from any till.",
+    "labelPlaceholder": "Note (optional): e.g. man in the blue sweater",
+    "confirm": "Hold",
+    "listTitle": "Held tickets",
+    "empty": "No held tickets today.",
+    "noLabel": "Ticket #{{id}}",
+    "resume": "Resume",
+    "delete": "Delete",
+    "confirmDelete": "Delete this held ticket?",
+    "replaceConfirm": "The current cart will be put on hold before resuming this ticket. Continue?",
+    "held": "Ticket put on hold.",
+    "resumed": "Ticket resumed.",
+    "resumedWithChanges": "Ticket resumed, with changes:",
+    "lineDropped": "{{name}} removed (unavailable)",
+    "lineReduced": "{{name}} reduced to {{qty}} (stock)",
+    "holdError": "Could not put the ticket on hold.",
+    "resumeError": "Could not resume this ticket.",
+    "loadError": "Could not load held tickets."
   }
 }

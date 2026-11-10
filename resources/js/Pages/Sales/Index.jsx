@@ -8,10 +8,13 @@ import Cart from '../../Components/Sales/Cart';
 import Toast from '../../Components/Toast';
 import SaleConfirmationModal from '../../Components/Sales/SaleConfirmationModal';
 import CreditLimitModal from '../../Components/Sales/CreditLimitModal';
+import HoldDialog from '../../Components/Sales/HoldDialog';
+import HeldCartsDrawer from '../../Components/Sales/HeldCartsDrawer';
 import { sounds } from '../../lib/sounds';
 import useBarcodeScanner from '../../hooks/useBarcodeScanner';
 
 const CART_STORAGE_KEY = 'pos.cart';
+const csrfToken = () => document.querySelector('meta[name="csrf-token"]')?.content;
 const NO_DISCOUNT = { type: 'amount', value: 0 };
 
 function loadStoredCart() {
@@ -27,7 +30,7 @@ function loadStoredCart() {
 
 export default function SalesIndex({ caisse, categories, products, clients = [], printAuto = false, paperSize = '80mm' }) {
     const { t } = useTranslation();
-    const { flash } = usePage().props;
+    const { flash, heldCount = 0 } = usePage().props;
     const [selectedCategory, setSelectedCategory] = useState('all');
     // Products per category (active catalogue), shown on the chips.
     const categoryCounts = useMemo(() => {
@@ -41,6 +44,10 @@ export default function SalesIndex({ caisse, categories, products, clients = [],
     const [toast, setToast] = useState(null);
     // Credit limit exceeded: { payment, message, error } while a manager is asked to approve.
     const [limitPrompt, setLimitPrompt] = useState(null);
+    // Held tickets: label prompt and list of today's tickets.
+    const [holdOpen, setHoldOpen] = useState(false);
+    const [heldOpen, setHeldOpen] = useState(false);
+    const [holding, setHolding] = useState(false);
 
     const productsById = useMemo(() => Object.fromEntries(products.map((p) => [p.id, p])), [products]);
 
@@ -250,10 +257,111 @@ export default function SalesIndex({ caisse, categories, products, clients = [],
         );
     }, [cartLines, submitting, selectedClientId, remise, creditNote, creditApplied, t]);
 
+    // Puts the current cart aside on the server (no stock reserved) and empties the till.
+    const holdCart = useCallback(async (label = '') => {
+        if (cartItems.length === 0) return false;
+        setHolding(true);
+        try {
+            const res = await fetch('/ventes/attente', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': csrfToken() },
+                body: JSON.stringify({
+                    items: cartItems.map((i) => ({ product_id: i.productId, quantity: i.quantity })),
+                    client_id: selectedClientId,
+                    discount: { type: discount.type, value: parseFloat(discount.value) || 0 },
+                    label: label || null,
+                }),
+            });
+            if (!res.ok) throw new Error(String(res.status));
+            clearCart();
+            setHoldOpen(false);
+            setToast({ message: t('hold.held'), type: 'success' });
+            router.reload({ only: ['heldCount'] });
+            return true;
+        } catch {
+            sounds.error();
+            setToast({ message: t('hold.holdError'), type: 'error' });
+            return false;
+        } finally {
+            setHolding(false);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [cartItems, selectedClientId, discount, t]);
+
+    // Brings a held ticket back. The current cart, if any, is put aside first so nothing is lost.
+    const resumeHeld = useCallback(async (id) => {
+        if (cartItems.length > 0) {
+            if (!window.confirm(t('hold.replaceConfirm'))) return;
+            if (!(await holdCart(''))) return;
+        }
+        try {
+            const res = await fetch(`/ventes/attente/${id}/reprendre`, {
+                method: 'POST',
+                headers: { Accept: 'application/json', 'X-CSRF-TOKEN': csrfToken() },
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(data.message || t('hold.resumeError'));
+
+            // Stock is not reserved: drop what can no longer be sold and cap to what is left.
+            const changed = [];
+            const items = [];
+            for (const line of data.lines) {
+                const product = productsById[line.product_id];
+                if (!product || !line.active) {
+                    changed.push(t('hold.lineDropped', { name: line.name ?? `#${line.product_id}` }));
+                    continue;
+                }
+                const qty = line.available === null ? line.quantity : Math.min(line.quantity, line.available);
+                if (qty <= 0) {
+                    changed.push(t('hold.lineDropped', { name: product.name }));
+                    continue;
+                }
+                if (qty < line.quantity) changed.push(t('hold.lineReduced', { name: product.name, qty }));
+                items.push({ productId: line.product_id, quantity: qty });
+            }
+
+            setCartItems(items);
+            setSelectedClientId(clients.some((c) => c.id === data.client_id) ? data.client_id : null);
+            setDiscount(data.discount ?? NO_DISCOUNT);
+            setCreditNote(null);
+            setHeldOpen(false);
+            setToast(
+                changed.length
+                    ? { message: `${t('hold.resumedWithChanges')} ${changed.join(' \u00b7 ')}`, type: 'error' }
+                    : { message: t('hold.resumed'), type: 'success' },
+            );
+            router.reload({ only: ['heldCount'] });
+        } catch (e) {
+            sounds.error();
+            setToast({ message: e.message || t('hold.resumeError'), type: 'error' });
+        }
+    }, [cartItems.length, holdCart, productsById, clients, t]);
+
+    // F8 = put the ticket aside, Shift+F8 = list of held tickets.
+    useEffect(() => {
+        const onKey = (e) => {
+            if (e.key !== 'F8') return;
+            e.preventDefault();
+            if (e.shiftKey) setHeldOpen(true);
+            else if (cartItems.length > 0 && !submitting) setHoldOpen(true);
+            else sounds.error();
+        };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, [cartItems.length, submitting]);
+
     return (
         <>
             <Head title={t('sales.sale')} />
             <Toast message={toast?.message} type={toast?.type} onClose={() => setToast(null)} />
+            {holdOpen && <HoldDialog busy={holding} onConfirm={holdCart} onCancel={() => setHoldOpen(false)} />}
+            {heldOpen && (
+                <HeldCartsDrawer
+                    onResume={resumeHeld}
+                    onClose={() => setHeldOpen(false)}
+                    onChanged={() => router.reload({ only: ['heldCount'] })}
+                />
+            )}
             {limitPrompt && (
                 <CreditLimitModal
                     message={limitPrompt.message}
@@ -323,6 +431,9 @@ export default function SalesIndex({ caisse, categories, products, clients = [],
                         clearCart();
                     }}
                     onCheckout={handleCheckout}
+                    onHold={() => setHoldOpen(true)}
+                    onOpenHeld={() => setHeldOpen(true)}
+                    heldCount={heldCount}
                     submitting={submitting}
                 />
             </PosLayout>
