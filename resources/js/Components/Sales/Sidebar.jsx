@@ -1,5 +1,5 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import { Box, Loader2, LogOut, Receipt, ScanLine, BarChart3, Settings, ShoppingBag, Users } from 'lucide-react';
+import { Box, ClipboardList, Loader2, LogOut, Receipt, ScanLine, BarChart3, Settings, ShoppingBag, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -48,11 +48,12 @@ export default function Sidebar({ mobileOpen = false, onClose }) {
         { icon: ScanLine, label: t('navigation.scan'), href: '/scan' },
         { icon: BarChart3, label: t('navigation.reports'), href: '/rapports' },
         { icon: Users, label: t('navigation.clients'), href: '/clients' },
-        { icon: Receipt, label: t('navigation.history'), href: '/ventes', separatorAfter: true },
+        { icon: Receipt, label: t('navigation.history'), href: '/ventes' },
+        { icon: ClipboardList, label: t('navigation.inventory'), href: '/inventaires', separatorAfter: true },
         { icon: Settings, label: t('navigation.settings'), href: '/parametres' },
     ];
 
-    // Alt+1…7 jumps to a page — handy at the till.
+    // Alt+1…8 jumps to a page — handy at the till.
     useEffect(() => {
         const onKey = (e) => {
             if (!e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;

@@ -138,6 +138,7 @@ const DEFAULT_SETTINGS = {
     theme: "light",
     accentColor: "indigo",
     notifLowStock: true,
+    lowStockThreshold: 10,
     notifDailyReport: true,
     notifNewSale: false,
     twoFactor: false,
@@ -152,7 +153,7 @@ const FIELD_TAB = {
     company: "company", rc: "company", nif: "company", address: "company", phone: "company", email: "company",
     vatRate: "billing", receiptFooter: "billing", showLogo: "billing", printAuto: "billing", printerName: "billing", paperSize: "billing",
     cashEnabled: "payments", cardEnabled: "payments", creditEnabled: "payments",
-    notifLowStock: "notifications", notifDailyReport: "notifications", notifNewSale: "notifications",
+    notifLowStock: "notifications", lowStockThreshold: "notifications", notifDailyReport: "notifications", notifNewSale: "notifications",
     theme: "appearance", accentColor: "appearance",
     twoFactor: "security", sessionTimeout: "security",
     autoBackup: "backup", backupFrequency: "backup",
@@ -664,8 +665,15 @@ export default function SettingsIndex({ users = [], settings: initialSettings, l
                                             name="notifLowStock" checked={!!settings.notifLowStock}
                                             onChange={(v) => update({ notifLowStock: v })}
                                             label={t('settings.notifications.lowStock')}
-                                            hint={t('settings.notifications.lowStockHint')}
+                                            hint={t('settings.notifications.lowStockHint', { count: settings.lowStockThreshold })}
                                         />
+                                        <Field label={t('settings.notifications.lowStockThreshold')} hint={t('settings.notifications.lowStockThresholdHint')}>
+                                            <Input
+                                                type="number" min="0"
+                                                name="lowStockThreshold" value={settings.lowStockThreshold ?? ''}
+                                                onChange={(e) => update({ lowStockThreshold: e.target.value === '' ? '' : Number(e.target.value) })}
+                                            />
+                                        </Field>
                                         <Toggle
                                             name="notifDailyReport" checked={!!settings.notifDailyReport}
                                             onChange={(v) => update({ notifDailyReport: v })}

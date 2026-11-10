@@ -50,7 +50,8 @@
     "profile": "Profile",
     "scan": "Scan",
     "history": "History",
-    "myProfile": "My Profile"
+    "myProfile": "My Profile",
+    "inventory": "Inventory"
   },
   "messages": {
     "success": "Operation completed successfully",
@@ -85,7 +86,7 @@
     "adjustFilters": "Adjust your filters or create a new product.",
     "totalProducts": "Total products",
     "lowStock": "Low stock",
-    "lowStockHint": "< {{count}} units",
+    "lowStockHint": "<= minimum (default {{count}})",
     "outOfStock": "Out of stock",
     "stockValue": "Stock value",
     "statusInStock": "In stock",
@@ -110,7 +111,9 @@
       "initial": "Initial stock",
       "sale": "Sale",
       "adjustment": "Adjustment",
-      "return": "Return"
+      "return": "Return",
+      "cancel": "Sale cancellation",
+      "inventory": "Inventory"
     },
     "costPrice": "Cost (excl. VAT)",
     "costPriceLabel": "Purchase price excl. VAT ({{symbol}})",
@@ -134,7 +137,30 @@
     "labelsNoEan": "{{count}} product(s) without EAN-13: the label will have no barcode.",
     "labelsQty": "Quantity",
     "labelsPreview": "Preview",
-    "labelsPrint": "Print"
+    "labelsPrint": "Print",
+    "stockFilter": "Filter by stock level",
+    "filterLow": "Low stock",
+    "filterOut": "Out of stock",
+    "minStock": "Minimum stock",
+    "minStockPlaceholder": "Default: {{count}}",
+    "adjust": {
+      "title": "Adjust stock",
+      "out": "Remove",
+      "in": "Add",
+      "quantity": "Quantity",
+      "reason": "Reason",
+      "note": "Details",
+      "confirm": "Save"
+    },
+    "reasons": {
+      "casse": "Breakage",
+      "perte": "Loss",
+      "vol": "Theft",
+      "peremption": "Expiry",
+      "reception": "Goods received",
+      "correction": "Correction",
+      "autre": "Other"
+    }
   },
   "clients": {
     "title": "Clients",
@@ -249,7 +275,8 @@
     "marginRate": "Margin rate",
     "marginHint": "Excl. VAT, after discounts and returns",
     "marginIncomplete": "{{count}} product(s) without purchase price",
-    "marginComplete": "Every product has a purchase price"
+    "marginComplete": "Every product has a purchase price",
+    "seeAll": "See all"
   },
   "settings": {
     "title": "Settings",
@@ -328,11 +355,13 @@
       "title": "Notifications",
       "desc": "Choose the events that trigger an alert.",
       "lowStock": "Low stock alerts",
-      "lowStockHint": "Notify when a product drops below 10 units.",
+      "lowStockHint": "Notify when a product reaches its minimum (default: {{count}} units).",
       "dailyReport": "Daily report",
       "dailyReportHint": "Receive the sales summary every evening at 8pm.",
       "newSale": "New sale",
-      "newSaleHint": "Real-time notification on every checkout."
+      "newSaleHint": "Real-time notification on every checkout.",
+      "lowStockThreshold": "Default minimum stock",
+      "lowStockThresholdHint": "Used for products without their own minimum."
     },
     "appearance": {
       "title": "Appearance",
@@ -598,5 +627,48 @@
     "cash": "Cash",
     "card": "Card",
     "credit": "Credit"
+  },
+  "stockAlerts": {
+    "title": "Stock alerts",
+    "none": "No product under its minimum.",
+    "seeAll": "See all {{count}} products"
+  },
+  "inventory": {
+    "title": "Inventory",
+    "subtitle": "Count your stock, spot the gaps and correct them in one go.",
+    "new": "New inventory",
+    "allCatalogue": "Whole catalogue",
+    "scope": "Scope",
+    "empty": "No inventory yet.",
+    "reference": "Reference",
+    "progress": "Counted",
+    "gap": "Gap",
+    "gapQty": "Gap (units)",
+    "gapValue": "Gap value",
+    "toCount": "Left to count",
+    "status": "Status",
+    "statuses": {
+      "draft": "In progress",
+      "validated": "Validated",
+      "cancelled": "Cancelled"
+    },
+    "export": "Export",
+    "expected": "Expected",
+    "counted": "Counted",
+    "filterTodo": "To count",
+    "filterGap": "With a gap",
+    "noLines": "No product.",
+    "scanHint": "Tip: scan a barcode to add 1 to that product's count.",
+    "saveError": "Could not save this count.",
+    "unknownBarcode": "Barcode {{code}} is not in this inventory.",
+    "validate": "Validate inventory",
+    "validateTitle": "Validate the inventory?",
+    "validateSummary": "{{counted}} of {{total}} products counted, total gap: {{gap}}. Stock will be corrected.",
+    "uncountedLegend": "{{count}} product(s) not counted:",
+    "uncounted": {
+      "keep": "Keep their current stock",
+      "zero": "Set them to 0"
+    },
+    "confirmCancel": "Cancel this inventory? Stock will not change."
   }
 }

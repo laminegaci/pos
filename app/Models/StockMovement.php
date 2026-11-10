@@ -19,8 +19,15 @@ class StockMovement extends Model
 
     public const TYPE_CANCEL = 'cancel';
 
+    public const TYPE_INVENTORY = 'inventory';
+
+    /** Reasons for a manual adjustment, split by direction. */
+    public const REASONS_OUT = ['casse', 'perte', 'vol', 'peremption', 'correction', 'autre'];
+
+    public const REASONS_IN = ['reception', 'correction', 'autre'];
+
     protected $fillable = [
-        'product_id', 'user_id', 'sale_id', 'type', 'quantity', 'stock_before', 'stock_after', 'note',
+        'product_id', 'user_id', 'sale_id', 'type', 'reason', 'quantity', 'stock_before', 'stock_after', 'note',
     ];
 
     protected function casts(): array

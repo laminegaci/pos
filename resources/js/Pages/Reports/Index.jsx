@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { useMemo } from 'react';
 import {
     AlertTriangle,
@@ -374,6 +374,9 @@ export default function ReportsIndex({ kpis, daily, topProducts, byCategory, top
                     <div className="rounded-2xl border border-slate-200/60 bg-white p-5 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
                         <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-900">
                             <AlertTriangle size={16} className="text-amber-500" /> {t('reports.stockAlerts')}
+                            <Link href="/produits?stock=faible" className="ml-auto text-xs font-medium text-indigo-600 hover:underline">
+                                {t('reports.seeAll')}
+                            </Link>
                         </h2>
                         <div className="space-y-2">
                             {lowStock.length === 0 && (

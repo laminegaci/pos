@@ -50,7 +50,8 @@
     "profile": "Profil",
     "scan": "Scan",
     "history": "Historique",
-    "myProfile": "Mon profil"
+    "myProfile": "Mon profil",
+    "inventory": "Inventaire"
   },
   "messages": {
     "success": "Opération réussie",
@@ -85,7 +86,7 @@
     "adjustFilters": "Ajustez vos filtres ou créez un nouveau produit.",
     "totalProducts": "Total produits",
     "lowStock": "Stock faible",
-    "lowStockHint": "< {{count}} unités",
+    "lowStockHint": "≤ seuil mini (défaut {{count}})",
     "outOfStock": "Ruptures",
     "stockValue": "Valeur stock",
     "statusInStock": "En stock",
@@ -110,7 +111,9 @@
       "initial": "Stock initial",
       "sale": "Vente",
       "adjustment": "Ajustement",
-      "return": "Retour"
+      "return": "Retour",
+      "cancel": "Annulation de vente",
+      "inventory": "Inventaire"
     },
     "costPrice": "Coût HT",
     "costPriceLabel": "Prix d'achat HT ({{symbol}})",
@@ -134,7 +137,30 @@
     "labelsNoEan": "{{count}} article(s) sans EAN-13 : l'étiquette n'aura pas de code-barres.",
     "labelsQty": "Quantité",
     "labelsPreview": "Aperçu",
-    "labelsPrint": "Imprimer"
+    "labelsPrint": "Imprimer",
+    "stockFilter": "Filtrer par niveau de stock",
+    "filterLow": "Stock bas",
+    "filterOut": "Ruptures",
+    "minStock": "Seuil mini",
+    "minStockPlaceholder": "Défaut : {{count}}",
+    "adjust": {
+      "title": "Ajuster le stock",
+      "out": "Sortie",
+      "in": "Entrée",
+      "quantity": "Quantité",
+      "reason": "Motif",
+      "note": "Précision",
+      "confirm": "Enregistrer"
+    },
+    "reasons": {
+      "casse": "Casse",
+      "perte": "Perte",
+      "vol": "Vol",
+      "peremption": "Péremption",
+      "reception": "Réception",
+      "correction": "Correction",
+      "autre": "Autre"
+    }
   },
   "clients": {
     "title": "Clients",
@@ -249,7 +275,8 @@
     "marginRate": "Taux de marge",
     "marginHint": "HT, remises et retours déduits",
     "marginIncomplete": "{{count}} article(s) sans prix d'achat",
-    "marginComplete": "Tous les articles ont un prix d'achat"
+    "marginComplete": "Tous les articles ont un prix d'achat",
+    "seeAll": "Voir tout"
   },
   "settings": {
     "title": "Paramètres",
@@ -328,11 +355,13 @@
       "title": "Notifications",
       "desc": "Choisissez les événements qui déclenchent une alerte.",
       "lowStock": "Alertes stock bas",
-      "lowStockHint": "Notifier quand un produit passe sous 10 unités.",
+      "lowStockHint": "Notifier quand un produit atteint son seuil mini (par défaut : {{count}} unités).",
       "dailyReport": "Rapport quotidien",
       "dailyReportHint": "Recevoir le résumé des ventes chaque soir à 20h.",
       "newSale": "Nouvelle vente",
-      "newSaleHint": "Notification en temps réel à chaque encaissement."
+      "newSaleHint": "Notification en temps réel à chaque encaissement.",
+      "lowStockThreshold": "Seuil mini par défaut",
+      "lowStockThresholdHint": "Utilisé pour les produits sans seuil propre."
     },
     "appearance": {
       "title": "Apparence",
@@ -598,5 +627,48 @@
     "cash": "Espèces",
     "card": "Carte",
     "credit": "Crédit"
+  },
+  "stockAlerts": {
+    "title": "Alertes stock",
+    "none": "Aucun produit sous son seuil.",
+    "seeAll": "Voir les {{count}} produits"
+  },
+  "inventory": {
+    "title": "Inventaire",
+    "subtitle": "Comptez votre stock, repérez les écarts et corrigez-les en une fois.",
+    "new": "Nouvel inventaire",
+    "allCatalogue": "Tout le catalogue",
+    "scope": "Périmètre",
+    "empty": "Aucun inventaire pour le moment.",
+    "reference": "Référence",
+    "progress": "Comptage",
+    "gap": "Écart",
+    "gapQty": "Écart (unités)",
+    "gapValue": "Valeur de l’écart",
+    "toCount": "Restant à compter",
+    "status": "Statut",
+    "statuses": {
+      "draft": "En cours",
+      "validated": "Validé",
+      "cancelled": "Annulé"
+    },
+    "export": "Exporter",
+    "expected": "Théorique",
+    "counted": "Compté",
+    "filterTodo": "À compter",
+    "filterGap": "Avec écart",
+    "noLines": "Aucun produit.",
+    "scanHint": "Astuce : scannez un code-barres pour ajouter 1 au comptage du produit.",
+    "saveError": "Impossible d’enregistrer ce comptage.",
+    "unknownBarcode": "Code-barres {{code}} absent de cet inventaire.",
+    "validate": "Valider l’inventaire",
+    "validateTitle": "Valider l’inventaire ?",
+    "validateSummary": "{{counted}} produit(s) comptés sur {{total}}, écart total : {{gap}}. Le stock sera corrigé.",
+    "uncountedLegend": "{{count}} produit(s) non comptés :",
+    "uncounted": {
+      "keep": "Conserver leur stock actuel",
+      "zero": "Les mettre à 0"
+    },
+    "confirmCancel": "Annuler cet inventaire ? Le stock ne sera pas modifié."
   }
 }

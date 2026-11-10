@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Product;
 use App\Models\Settings;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -50,6 +51,25 @@ class HandleInertiaRequests extends Middleware
                     'theme' => $settings->theme,
                     'sessionTimeout' => (int) $settings->session_timeout,
                     'paymentMethods' => $settings->enabledPaymentMethods(),
+                ];
+            },
+            'stockAlerts' => function () use ($request) {
+                if (! $request->user() || ! Settings::current()->notif_low_stock) {
+                    return null;
+                }
+
+                $query = Product::query()->lowStock();
+
+                return [
+                    'count' => (clone $query)->count(),
+                    'items' => $query->orderBy('stock')->limit(5)
+                        ->get(['id', 'name', 'stock', 'min_stock'])
+                        ->map(fn (Product $p) => [
+                            'id' => $p->id,
+                            'name' => $p->name,
+                            'stock' => $p->stock,
+                            'min' => $p->effective_min_stock,
+                        ])->all(),
                 ];
             },
             'locale' => $request->session()->get('locale', app()->getLocale()),

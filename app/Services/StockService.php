@@ -87,13 +87,13 @@ class StockService
      *
      * @throws ValidationException if the result would be negative
      */
-    public function adjust(Product $product, int $delta, ?int $userId, ?string $note = null, string $type = StockMovement::TYPE_ADJUSTMENT, ?int $saleId = null): ?StockMovement
+    public function adjust(Product $product, int $delta, ?int $userId, ?string $note = null, string $type = StockMovement::TYPE_ADJUSTMENT, ?int $saleId = null, ?string $reason = null): ?StockMovement
     {
         if ($delta === 0 || $product->unlimited_stock) {
             return null;
         }
 
-        return DB::transaction(function () use ($product, $delta, $userId, $note, $type, $saleId) {
+        return DB::transaction(function () use ($product, $delta, $userId, $note, $type, $saleId, $reason) {
             $before = (int) Product::query()->whereKey($product->id)->lockForUpdate()->value('stock');
             $after = $before + $delta;
 
@@ -111,6 +111,7 @@ class StockService
                 'user_id' => $userId,
                 'sale_id' => $saleId,
                 'type' => $type,
+                'reason' => $reason,
                 'quantity' => $delta,
                 'stock_before' => $before,
                 'stock_after' => $after,

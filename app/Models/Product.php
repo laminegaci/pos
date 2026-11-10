@@ -15,7 +15,9 @@ class Product extends Model
     /** VAT rates accepted for a product (Algeria). */
     public const VAT_RATES = [0, 9, 19];
 
-    protected $appends = ['price_ht', 'margin', 'margin_rate'];
+    private static ?int $defaultMinStock = null;
+
+    protected $appends = ['price_ht', 'margin', 'margin_rate', 'effective_min_stock', 'stock_status'];
 
     protected $fillable = [
         'name',
@@ -27,6 +29,7 @@ class Product extends Model
         'image',
         'stock',
         'unlimited_stock',
+        'min_stock',
         'sku',
         'barcode',
         'active',
@@ -50,6 +53,45 @@ class Product extends Model
         return $this->margin === null || $this->price_ht <= 0 ? null : round($this->margin / $this->price_ht * 100, 1);
     }
 
+    /** Alert threshold: the product's own minimum, else the shop-wide default. */
+    public function getEffectiveMinStockAttribute(): int
+    {
+        return (int) ($this->min_stock ?? self::defaultMinStock());
+    }
+
+    /** out | low | ok | unlimited — the single definition of a stock level. */
+    public function getStockStatusAttribute(): string
+    {
+        if ($this->unlimited_stock) {
+            return 'unlimited';
+        }
+        if ($this->stock <= 0) {
+            return 'out';
+        }
+
+        return $this->stock <= $this->effective_min_stock ? 'low' : 'ok';
+    }
+
+    /** Shop-wide default threshold, memoised per request. */
+    public static function defaultMinStock(): int
+    {
+        return self::$defaultMinStock ??= (int) Settings::current()->low_stock_threshold;
+    }
+
+    /** Forget the memoised default (called when settings change). */
+    public static function flushDefaultMinStock(): void
+    {
+        self::$defaultMinStock = null;
+    }
+
+    /** Active, limited-stock products at or under their threshold (out of stock included). */
+    public function scopeLowStock($query)
+    {
+        return $query->where('active', true)
+            ->where('unlimited_stock', false)
+            ->whereRaw('stock <= COALESCE(min_stock, ?)', [self::defaultMinStock()]);
+    }
+
     protected function casts(): array
     {
         return [
@@ -57,6 +99,7 @@ class Product extends Model
             'cost_price' => 'decimal:2',
             'vat_rate' => 'decimal:2',
             'stock' => 'integer',
+            'min_stock' => 'integer',
             'unlimited_stock' => 'boolean',
             'active' => 'boolean',
         ];

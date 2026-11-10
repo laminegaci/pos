@@ -34,6 +34,7 @@ class Settings extends Model
         'theme' => 'theme',
         'accentColor' => 'accent_color',
         'notifLowStock' => 'notif_low_stock',
+        'lowStockThreshold' => 'low_stock_threshold',
         'notifDailyReport' => 'notif_daily_report',
         'notifNewSale' => 'notif_new_sale',
         'twoFactor' => 'two_factor',
@@ -50,7 +51,7 @@ class Settings extends Model
         'vat_rate', 'receipt_footer', 'show_logo', 'logo_path', 'print_auto',
         'cash_enabled', 'card_enabled', 'credit_enabled',
         'printer_name', 'paper_size', 'theme', 'accent_color',
-        'notif_low_stock', 'notif_daily_report', 'notif_new_sale',
+        'notif_low_stock', 'low_stock_threshold', 'notif_daily_report', 'notif_new_sale',
         'two_factor', 'session_timeout', 'auto_backup', 'backup_frequency',
     ];
 
@@ -66,8 +67,14 @@ class Settings extends Model
         'notif_new_sale' => 'boolean',
         'two_factor' => 'boolean',
         'session_timeout' => 'integer',
+        'low_stock_threshold' => 'integer',
         'auto_backup' => 'boolean',
     ];
+
+    protected static function booted(): void
+    {
+        static::saved(fn () => Product::flushDefaultMinStock());
+    }
 
     /**
      * The single settings row, created with the database defaults if missing.

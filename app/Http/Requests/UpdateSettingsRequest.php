@@ -82,6 +82,7 @@ class UpdateSettingsRequest extends FormRequest
 
             // Notifications
             'notifLowStock' => ['sometimes', 'required', 'boolean'],
+            'lowStockThreshold' => ['sometimes', 'required', 'integer', 'between:0,100000'],
             'notifDailyReport' => ['sometimes', 'required', 'boolean'],
             'notifNewSale' => ['sometimes', 'required', 'boolean'],
 

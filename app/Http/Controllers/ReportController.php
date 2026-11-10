@@ -260,16 +260,15 @@ class ReportController extends Controller
             ]);
 
         // Alertes stock
-        $lowStock = Product::where('active', true)
-            ->where('unlimited_stock', false)
-            ->where('stock', '<', 10)
+        $lowStock = Product::lowStock()
             ->orderBy('stock')
             ->limit(6)
-            ->get(['id', 'name', 'stock', 'category_id'])
+            ->get(['id', 'name', 'stock', 'min_stock', 'category_id'])
             ->map(fn ($p) => [
                 'id' => $p->id,
                 'name' => $p->name,
                 'stock' => (int) $p->stock,
+                'min' => $p->effective_min_stock,
                 'category_id' => $p->category_id,
             ]);
 

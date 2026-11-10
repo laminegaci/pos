@@ -185,22 +185,18 @@ class StockTest extends TestCase
         $this->assertSame(0, StockMovement::where('product_id', $p->id)->count());
     }
 
-    public function test_editing_the_stock_is_journaled_with_its_reason(): void
+    public function test_editing_a_product_ignores_the_stock_field(): void
     {
         $p = $this->product(['stock' => 5]);
 
         $this->actingAs($this->user())->put("/produits/{$p->id}", [
-            'name' => $p->name, 'description' => 'desc', 'price' => 1000, 'category_id' => 'bureaux',
-            'stock' => 12, 'stock_note' => 'Inventaire', 'sku' => $p->sku, 'active' => true,
+            'name' => 'Renamed', 'description' => 'desc', 'price' => 1000, 'category_id' => 'bureaux',
+            'stock' => 99, 'sku' => $p->sku, 'active' => true,
         ])->assertSessionHasNoErrors();
 
-        $this->assertSame(12, $p->fresh()->stock);
-        $m = StockMovement::where('product_id', $p->id)->sole();
-        $this->assertSame('adjustment', $m->type);
-        $this->assertSame(7, $m->quantity);
-        $this->assertSame(5, $m->stock_before);
-        $this->assertSame(12, $m->stock_after);
-        $this->assertSame('Inventaire', $m->note);
+        // The quantity only moves through a reasoned adjustment or an inventory.
+        $this->assertSame(5, $p->fresh()->stock);
+        $this->assertSame(0, StockMovement::where('product_id', $p->id)->count());
     }
 
     public function test_editing_without_changing_the_stock_writes_no_movement(): void
@@ -216,7 +212,7 @@ class StockTest extends TestCase
         $this->assertSame(0, StockMovement::where('product_id', $p->id)->count());
     }
 
-    public function test_switching_to_unlimited_keeps_the_quantity_and_switching_back_journals_it(): void
+    public function test_switching_to_unlimited_keeps_the_quantity(): void
     {
         $p = $this->product(['stock' => 5]);
         $base = ['name' => $p->name, 'description' => 'desc', 'price' => 1000, 'category_id' => 'bureaux', 'sku' => $p->sku, 'active' => true];
@@ -226,11 +222,10 @@ class StockTest extends TestCase
         $this->assertTrue($p->fresh()->unlimited_stock);
         $this->assertSame(5, $p->fresh()->stock);
 
-        $this->actingAs($this->user())->put("/produits/{$p->id}", $base + ['stock' => 20, 'unlimited_stock' => false])
+        $this->actingAs($this->user())->put("/produits/{$p->id}", $base + ['stock' => 5, 'unlimited_stock' => false])
             ->assertSessionHasNoErrors();
         $this->assertFalse($p->fresh()->unlimited_stock);
-        $this->assertSame(20, $p->fresh()->stock);
-        $this->assertSame(15, StockMovement::where('product_id', $p->id)->sole()->quantity);
+        $this->assertSame(5, $p->fresh()->stock);
     }
 
     public function test_movements_endpoint_lists_the_journal_newest_first(): void

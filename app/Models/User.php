@@ -50,6 +50,12 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->role === self::ROLE_ADMIN;
     }
 
+    /** Admins and managers may adjust stock and run inventories. */
+    public function canManageStock(): bool
+    {
+        return in_array($this->role, [self::ROLE_ADMIN, self::ROLE_MANAGER], true);
+    }
+
     /** Admins and managers can approve cancellations, returns and similar actions. */
     public function isManager(): bool
     {

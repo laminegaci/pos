@@ -35,6 +35,8 @@ class ProductController extends Controller
         return Inertia::render('Products/Index', [
             'products' => $products,
             'categories' => $categories,
+            'defaultMinStock' => Product::defaultMinStock(),
+            'canManageStock' => (bool) request()->user()?->canManageStock(),
             'defaultVatRate' => (int) Settings::current()->vat_rate,
             'vatRates' => Product::VAT_RATES,
             'shopName' => Settings::current()->shop_name,
@@ -102,7 +104,7 @@ class ProductController extends Controller
             'category_id' => ['required', 'string', Rule::exists('categories', 'slug')],
             'stock' => 'required|integer|min:0',
             'unlimited_stock' => 'boolean',
-            'stock_note' => 'nullable|string|max:255',
+            'min_stock' => 'nullable|integer|min:0|max:1000000',
             'sku' => 'nullable|string|max:255',
             'image' => 'nullable|string',
             'active' => 'boolean',
@@ -112,7 +114,6 @@ class ProductController extends Controller
     public function store(Request $request, StockService $stock): RedirectResponse
     {
         $validated = $this->validated($request);
-        unset($validated['stock_note']);
         // No rate sent: the shop-wide one from Settings.
         $validated['vat_rate'] ??= Settings::current()->vat_rate;
 
@@ -126,24 +127,15 @@ class ProductController extends Controller
         return redirect()->route('products.index')->with('success', 'Produit créé avec succès');
     }
 
-    public function update(Request $request, Product $product, StockService $stock): RedirectResponse
+    public function update(Request $request, Product $product): RedirectResponse
     {
+        // The quantity is never edited here: every change goes through a reasoned adjustment
+        // (StockAdjustmentController) or an inventory, so the journal always says why.
+        $request->merge(['stock' => $product->stock]);
         $validated = $this->validated($request);
-        $note = $validated['stock_note'] ?? null;
-        unset($validated['stock_note']);
+        unset($validated['stock']);
 
-        DB::transaction(function () use ($validated, $product, $stock, $request, $note) {
-            $unlimited = (bool) ($validated['unlimited_stock'] ?? false);
-            $delta = (int) $validated['stock'] - (int) $product->stock;
-
-            // The quantity is changed through the service (journaled), never by a plain update.
-            unset($validated['stock']);
-            $product->update($validated);
-
-            if (! $unlimited) {
-                $stock->adjust($product, $delta, $request->user()?->id, $note);
-            }
-        });
+        $product->update($validated);
 
         return redirect()->route('products.index')->with('success', 'Produit mis à jour avec succès');
     }
@@ -159,6 +151,7 @@ class ProductController extends Controller
             ->map(fn ($m) => [
                 'id' => $m->id,
                 'type' => $m->type,
+                'reason' => $m->reason,
                 'quantity' => $m->quantity,
                 'stock_before' => $m->stock_before,
                 'stock_after' => $m->stock_after,

@@ -1,8 +1,9 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Bell, Menu } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from '../LanguageSwitcher';
 import GlobalSearch from './GlobalSearch';
+import StockAlertsBell from './StockAlertsBell';
 import { FullscreenToggle, NewProductButton, OnlineStatus, SyncButton, ThemeToggle } from './TopbarActions';
 
 export default function Topbar({ searchQuery, onSearchChange, onMenuClick }) {
@@ -37,15 +38,7 @@ export default function Topbar({ searchQuery, onSearchChange, onMenuClick }) {
                 <FullscreenToggle />
                 <div className="hidden h-8 w-px bg-slate-200 sm:block dark:bg-slate-700" />
                 <LanguageSwitcher />
-                <button
-                    className="relative flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
-                    aria-label="Notifications"
-                >
-                    <Bell size={19} />
-                    <span className="absolute right-1.5 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold text-white shadow-sm">
-                        3
-                    </span>
-                </button>
+                <StockAlertsBell />
                 <div className="hidden h-8 w-px bg-slate-200 sm:block dark:bg-slate-700" />
                 <Link href="/profile" className="flex items-center gap-3 hover:opacity-80">
                     <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 text-sm font-semibold text-white shadow-sm sm:h-10 sm:w-10">

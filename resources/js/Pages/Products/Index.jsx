@@ -13,6 +13,7 @@ import {
     Barcode,
     Pencil,
     Printer,
+    SlidersHorizontal,
     Sparkles,
     Tags,
     Plus,
@@ -26,10 +27,9 @@ import { useTranslation } from 'react-i18next';
 import PosLayout from '../../Layouts/PosLayout';
 import CategoryManager from '../../Components/Sales/CategoryManager';
 import ProductImage from '../../Components/Sales/ProductImage';
+import AdjustStockModal from '../../Components/Stock/AdjustStockModal';
 import { currencySymbol, formatCurrency } from '../../lib/formatCurrency';
 import usePrintDocument from '../../lib/printDocument';
-
-const LOW_STOCK = 10;
 
 const round2 = (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
 
@@ -61,11 +61,18 @@ function marginTone(rate) {
     return 'emerald';
 }
 
-function stockStatus(stock, t, unlimited = false) {
-    if (unlimited) return { label: t('products.unlimited'), tone: 'indigo' };
-    if (stock === 0) return { label: t('products.statusOut'), tone: 'red' };
-    if (stock < LOW_STOCK) return { label: t('products.statusLow'), tone: 'amber' };
-    return { label: t('products.statusInStock'), tone: 'emerald' };
+/** The server decides the level (own minimum, else the shop default): stock_status = out | low | ok | unlimited. */
+function stockStatus(product, t) {
+    switch (product.stock_status) {
+        case 'unlimited':
+            return { label: t('products.unlimited'), tone: 'indigo' };
+        case 'out':
+            return { label: t('products.statusOut'), tone: 'red' };
+        case 'low':
+            return { label: t('products.statusLow'), tone: 'amber' };
+        default:
+            return { label: t('products.statusInStock'), tone: 'emerald' };
+    }
 }
 
 const toneClasses = {
@@ -97,7 +104,15 @@ function StatCard({ icon: Icon, label, value, tone = 'indigo', hint }) {
     );
 }
 
-export default function ProductsIndex({ products, categories, defaultVatRate = 19, vatRates = [0, 9, 19], shopName = '' }) {
+export default function ProductsIndex({
+    products,
+    categories,
+    defaultVatRate = 19,
+    defaultMinStock = 10,
+    canManageStock = false,
+    vatRates = [0, 9, 19],
+    shopName = '',
+}) {
     const { t } = useTranslation();
     const [showModal, setShowModal] = useState(false);
     const [selected, setSelected] = useState(() => new Set());
@@ -108,6 +123,11 @@ export default function ProductsIndex({ products, categories, defaultVatRate = 1
     const [editingProduct, setEditingProduct] = useState(null);
     const [searchQuery, setSearchQuery] = useState(() => new URLSearchParams(window.location.search).get('q') ?? '');
     const [filterCategory, setFilterCategory] = useState('all');
+    const [filterStock, setFilterStock] = useState(() => {
+        const v = new URLSearchParams(window.location.search).get('stock');
+        return v === 'faible' || v === 'low' ? 'low' : v === 'rupture' || v === 'out' ? 'out' : 'all';
+    });
+    const [adjusting, setAdjusting] = useState(null);
     const [viewMode, setViewMode] = useState('table');
     const [errors, setErrors] = useState({});
     const [submitting, setSubmitting] = useState(false);
@@ -124,7 +144,7 @@ export default function ProductsIndex({ products, categories, defaultVatRate = 1
             category_id: categories[0]?.id ?? '',
             stock: '',
             unlimited_stock: false,
-            stock_note: '',
+            min_stock: '',
             sku: '',
             barcode: '',
             image: '',
@@ -148,22 +168,36 @@ export default function ProductsIndex({ products, categories, defaultVatRate = 1
                 (p.sku ?? '').toLowerCase().includes(q) ||
                 (p.barcode ?? '').includes(q);
             const matchesCategory = filterCategory === 'all' || p.category_id === filterCategory;
-            return matchesSearch && matchesCategory;
+            const matchesStock =
+                filterStock === 'all' ||
+                (filterStock === 'out' && p.stock_status === 'out') ||
+                (filterStock === 'low' && (p.stock_status === 'low' || p.stock_status === 'out'));
+            return matchesSearch && matchesCategory && matchesStock;
         });
-    }, [products, searchQuery, filterCategory]);
+    }, [products, searchQuery, filterCategory, filterStock]);
 
     const stats = useMemo(() => {
         const total = products.length;
         // Unlimited products have no quantity to run out of, nor to value.
         const tracked = products.filter((p) => !p.unlimited_stock);
-        const outOfStock = tracked.filter((p) => p.stock === 0).length;
-        const lowStock = tracked.filter((p) => p.stock > 0 && p.stock < LOW_STOCK).length;
+        const outOfStock = tracked.filter((p) => p.stock_status === 'out').length;
+        const lowStock = tracked.filter((p) => p.stock_status === 'low').length;
         const inventoryValue = tracked.reduce((sum, p) => sum + Number(p.price) * p.stock, 0);
         // Stock valued at purchase cost (HT); products without a cost are counted separately.
         const costValue = tracked.reduce((sum, p) => sum + Number(p.cost_price ?? 0) * p.stock, 0);
         const noCost = products.filter((p) => p.cost_price === null || p.cost_price === undefined).length;
         return { total, outOfStock, lowStock, inventoryValue, costValue, noCost };
     }, [products]);
+
+    // After an adjustment the list reloads: keep the open edit form's quantity in sync.
+    useEffect(() => {
+        if (!editingProduct) return;
+        const fresh = products.find((p) => p.id === editingProduct.id);
+        if (fresh && fresh.stock !== editingProduct.stock) {
+            setEditingProduct(fresh);
+            setFormData((f) => ({ ...f, stock: fresh.stock }));
+        }
+    }, [products]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const toggleSelected = (id) =>
         setSelected((prev) => {
@@ -217,7 +251,7 @@ export default function ProductsIndex({ products, categories, defaultVatRate = 1
             category_id: product.category_id,
             stock: product.stock,
             unlimited_stock: !!product.unlimited_stock,
-            stock_note: '',
+            min_stock: product.min_stock ?? '',
             sku: product.sku ?? '',
             barcode: product.barcode ?? '',
             image: product.image ?? '',
@@ -317,7 +351,7 @@ export default function ProductsIndex({ products, categories, defaultVatRate = 1
                             label={t('products.lowStock')}
                             value={stats.lowStock}
                             tone="amber"
-                            hint={t('products.lowStockHint', { count: LOW_STOCK })}
+                            hint={t('products.lowStockHint', { count: defaultMinStock })}
                         />
                         <StatCard icon={XCircle} label={t('products.outOfStock')} value={stats.outOfStock} tone="red" />
                         <StatCard
@@ -345,6 +379,27 @@ export default function ProductsIndex({ products, categories, defaultVatRate = 1
                                 placeholder={`${t('common.search')}...`}
                                 className="h-10 w-full rounded-full border border-slate-200 bg-white pl-10 pr-4 text-sm outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
                             />
+                        </div>
+                        <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label={t('products.stockFilter')}>
+                            {[
+                                ['all', t('common.all')],
+                                ['low', t('products.filterLow')],
+                                ['out', t('products.filterOut')],
+                            ].map(([id, label]) => (
+                                <button
+                                    key={id}
+                                    type="button"
+                                    onClick={() => setFilterStock(id)}
+                                    aria-pressed={filterStock === id}
+                                    className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition ${
+                                        filterStock === id
+                                            ? 'bg-amber-500 text-white shadow-md shadow-amber-500/25'
+                                            : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50 hover:text-slate-900'
+                                    }`}
+                                >
+                                    {label}
+                                </button>
+                            ))}
                         </div>
                         <div className="flex items-center gap-2 overflow-x-auto pb-1 [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden">
                             <div className="flex flex-nowrap items-center gap-1.5">
@@ -453,7 +508,7 @@ export default function ProductsIndex({ products, categories, defaultVatRate = 1
                                     </thead>
                                     <tbody className="divide-y divide-slate-100">
                                         {filteredProducts.map((product) => {
-                                            const st = stockStatus(product.stock, t, product.unlimited_stock);
+                                            const st = stockStatus(product, t);
                                             return (
                                                 <tr key={product.id} className="group transition hover:bg-slate-50/60">
                                                     <td className="px-4 py-3">
@@ -549,6 +604,15 @@ export default function ProductsIndex({ products, categories, defaultVatRate = 1
                                                     </td>
                                                     <td className="px-5 py-3 text-right">
                                                         <div className="flex items-center justify-end gap-1 opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100">
+                                                            {canManageStock && !product.unlimited_stock && (
+                                                                <button
+                                                                    onClick={() => setAdjusting(product)}
+                                                                    className="rounded-lg p-2 text-slate-500 hover:bg-amber-50 hover:text-amber-600"
+                                                                    title={t('products.adjust.title')}
+                                                                >
+                                                                    <SlidersHorizontal size={15} />
+                                                                </button>
+                                                            )}
                                                             <button
                                                                 onClick={() => openEditModal(product)}
                                                                 className="rounded-lg p-2 text-slate-500 hover:bg-indigo-50 hover:text-indigo-600"
@@ -575,7 +639,7 @@ export default function ProductsIndex({ products, categories, defaultVatRate = 1
                             <div className="h-full overflow-y-auto p-2 sm:p-4">
                                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                                     {filteredProducts.map((product) => {
-                                        const st = stockStatus(product.stock, t, product.unlimited_stock);
+                                        const st = stockStatus(product, t);
                                         return (
                                             <div
                                                 key={product.id}
@@ -621,6 +685,13 @@ export default function ProductsIndex({ products, categories, defaultVatRate = 1
                     </div>
                 </div>
             </PosLayout>
+
+            {adjusting && (
+                <AdjustStockModal
+                    product={products.find((p) => p.id === adjusting.id) ?? adjusting}
+                    onClose={() => setAdjusting(null)}
+                />
+            )}
 
             <CategoryManager open={showCategories} categories={categories} onClose={() => setShowCategories(false)} />
 
@@ -719,12 +790,22 @@ export default function ProductsIndex({ products, categories, defaultVatRate = 1
                                             type="number"
                                             required={!formData.unlimited_stock}
                                             min="0"
+                                            readOnly={!!editingProduct}
                                             disabled={formData.unlimited_stock}
                                             placeholder={formData.unlimited_stock ? '∞' : undefined}
                                             value={formData.unlimited_stock ? '' : formData.stock}
                                             onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
-                                            className={`${inputCls(errors.stock)} disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400`}
+                                            className={`${inputCls(errors.stock)} disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 read-only:bg-slate-50 read-only:text-slate-600`}
                                         />
+                                        {editingProduct && canManageStock && !formData.unlimited_stock && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setAdjusting(editingProduct)}
+                                                className="mt-1.5 inline-flex items-center gap-1 text-xs font-medium text-indigo-600 hover:underline"
+                                            >
+                                                <SlidersHorizontal size={12} /> {t('products.adjust.title')}
+                                            </button>
+                                        )}
                                     </Field>
                                 </div>
                                 {(() => {
@@ -810,15 +891,15 @@ export default function ProductsIndex({ products, categories, defaultVatRate = 1
                                         <span className="block text-xs text-slate-500">{t('products.unlimitedHint')}</span>
                                     </span>
                                 </label>
-                                {editingProduct && !formData.unlimited_stock && Number(formData.stock) !== Number(editingProduct.stock) && (
-                                    <Field label={t('products.stockNote')} error={errors.stock_note}>
+                                {!formData.unlimited_stock && (
+                                    <Field label={t('products.minStock')} error={errors.min_stock}>
                                         <input
-                                            type="text"
-                                            maxLength={255}
-                                            value={formData.stock_note}
-                                            onChange={(e) => setFormData({ ...formData, stock_note: e.target.value })}
-                                            placeholder={t('products.stockNotePlaceholder')}
-                                            className={inputCls(errors.stock_note)}
+                                            type="number"
+                                            min="0"
+                                            value={formData.min_stock}
+                                            onChange={(e) => setFormData({ ...formData, min_stock: e.target.value })}
+                                            placeholder={t('products.minStockPlaceholder', { count: defaultMinStock })}
+                                            className={inputCls(errors.min_stock)}
                                         />
                                     </Field>
                                 )}
@@ -1053,6 +1134,7 @@ function StockHistory({ productId }) {
                                     <div className="min-w-0">
                                         <div className="font-medium text-slate-700">
                                             {t(`products.movementTypes.${m.type}`, { defaultValue: m.type })}
+                                            {m.reason ? ` - ${t(`products.reasons.${m.reason}`, { defaultValue: m.reason })}` : ''}
                                             {m.sale_id ? ` #${m.sale_id}` : ''}
                                         </div>
                                         <div className="truncate text-slate-400">

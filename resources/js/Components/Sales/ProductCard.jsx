@@ -3,12 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { formatCurrency } from '../../lib/formatCurrency';
 import ProductImage from './ProductImage';
 
-const LOW_STOCK_BADGE = 5;
-
 export default function ProductCard({ product, viewMode, onAdd }) {
     const { t } = useTranslation();
     const out = !product.unlimited_stock && product.stock <= 0;
-    const low = !product.unlimited_stock && product.stock > 0 && product.stock <= LOW_STOCK_BADGE;
+    const low = !product.unlimited_stock && product.stock > 0 && product.stock <= (product.effective_min_stock ?? 0);
 
     // Out of stock stays clickable: the page explains why it cannot be added (toast + sound).
     const dim = out ? 'opacity-60' : '';

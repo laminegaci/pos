@@ -3,12 +3,14 @@
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\CreditNoteController;
+use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\SaleReturnController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\StockAdjustmentController;
 use App\Http\Controllers\UserController;
 use App\Models\Category;
 use App\Models\Client;
@@ -33,6 +35,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 'image' => $p->image ?: "https://picsum.photos/seed/{$p->sku}/400/300",
                 'stock' => $p->stock,
                 'unlimited_stock' => (bool) $p->unlimited_stock,
+                'effective_min_stock' => $p->effective_min_stock,
             ];
         });
 
@@ -81,6 +84,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/produits/{product}', [ProductController::class, 'update'])->name('products.update');
     Route::delete('/produits/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
     Route::get('/produits/{product}/mouvements', [ProductController::class, 'movements'])->name('products.movements');
+    Route::post('/produits/{product}/ajustement', [StockAdjustmentController::class, 'store'])->name('products.adjust');
+
+    Route::get('/inventaires', [InventoryController::class, 'index'])->name('inventories.index');
+    Route::post('/inventaires', [InventoryController::class, 'store'])->name('inventories.store');
+    Route::get('/inventaires/{inventory}', [InventoryController::class, 'show'])->name('inventories.show');
+    Route::put('/inventaires/{inventory}/lignes/{line}', [InventoryController::class, 'count'])->name('inventories.count');
+    Route::post('/inventaires/{inventory}/valider', [InventoryController::class, 'validateInventory'])->name('inventories.validate');
+    Route::post('/inventaires/{inventory}/annuler', [InventoryController::class, 'cancel'])->name('inventories.cancel');
+    Route::get('/inventaires/{inventory}/export', [InventoryController::class, 'export'])->name('inventories.export');
+
     Route::post('/produits/generer-ean', [ProductController::class, 'generateEan'])->name('products.generateEan');
     Route::get('/produits/etiquettes', [ProductController::class, 'labels'])->name('products.labels');
     Route::get('/produits/export', [ProductController::class, 'export'])->name('products.export');
