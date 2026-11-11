@@ -556,6 +556,10 @@
     }
   },
   "cart": {
+    "collapse": "Collapse cart",
+    "expand": "Expand cart",
+    "resize": "Resize cart",
+    "resizeHint": "Drag to resize, double-click to reset",
     "open": "Open cart",
     "itemsCount_one": "{{count}} item",
     "itemsCount_other": "{{count}} items",

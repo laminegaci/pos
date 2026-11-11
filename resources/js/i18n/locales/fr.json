@@ -556,6 +556,10 @@
     }
   },
   "cart": {
+    "collapse": "Réduire le panier",
+    "expand": "Déplier le panier",
+    "resize": "Redimensionner le panier",
+    "resizeHint": "Glisser pour redimensionner, double-clic pour réinitialiser",
     "open": "Ouvrir le panier",
     "itemsCount_one": "{{count}} article",
     "itemsCount_other": "{{count}} articles",

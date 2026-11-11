@@ -1,6 +1,7 @@
 import '../css/app.css';
 import { createInertiaApp, router } from '@inertiajs/react';
 import { createRoot, hydrateRoot } from 'react-dom/client';
+import CartProvider from './Components/Sales/CartProvider';
 import { initI18n } from './i18n';
 import { setCurrency } from './lib/formatCurrency';
 
@@ -23,11 +24,11 @@ createInertiaApp({
         if (import.meta.env.SSR) {
             const initialLocale = props.initialPage.props?.locale || 'fr';
             initI18n(initialLocale);
-            hydrateRoot(el, <App {...props} />);
+            hydrateRoot(el, <CartProvider><App {...props} /></CartProvider>);
         } else {
             const storedLocale = localStorage.getItem('locale') || 'fr';
             initI18n(storedLocale);
-            createRoot(el).render(<App {...props} />);
+            createRoot(el).render(<CartProvider><App {...props} /></CartProvider>);
         }
     },
 

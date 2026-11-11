@@ -1,5 +1,6 @@
 import { usePage } from '@inertiajs/react';
 import { useState } from 'react';
+import CartDock from '../Components/Sales/CartDock';
 import Sidebar from '../Components/Sales/Sidebar';
 import Topbar from '../Components/Sales/Topbar';
 import useIdleLogout from '../hooks/useIdleLogout';
@@ -20,6 +21,7 @@ export default function PosLayout({ searchQuery, onSearchChange, children }) {
                 />
                 <main className="flex flex-1 flex-col overflow-hidden lg:flex-row">
                     {typeof children === 'function' ? children({ user: auth?.user }) : children}
+                    <CartDock />
                 </main>
             </div>
         </div>

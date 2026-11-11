@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { AlertTriangle, Banknote, Clock, CreditCard, ListOrdered, Loader2, Minus, PauseCircle, Percent, Plus, ReceiptText, ShoppingBag, Trash2, Volume2, VolumeX, X } from 'lucide-react';
+import { AlertTriangle, Banknote, ChevronsLeft, ChevronsRight, Clock, CreditCard, ListOrdered, Loader2, Minus, PauseCircle, Percent, Plus, ReceiptText, ShoppingBag, Trash2, Volume2, VolumeX, X } from 'lucide-react';
 import { usePage } from '@inertiajs/react';
 import { useTranslation } from 'react-i18next';
 import { currencySymbol, formatCurrency } from '../../lib/formatCurrency';
@@ -7,6 +7,10 @@ import { isSoundEnabled, onSoundChange, setSoundEnabled, sounds } from '../../li
 import ClientSelector from './ClientSelector';
 import CreditAccountPanel from './CreditAccountPanel';
 import ProductImage from './ProductImage';
+import useResizablePanel from '../../hooks/useResizablePanel';
+
+const DEFAULT_WIDTH = 368;
+const COLLAPSED_WIDTH = 64;
 
 function SoundToggle() {
     const { t } = useTranslation();
@@ -380,6 +384,7 @@ export default function Cart({
     submitting = false,
 }) {
     const { t } = useTranslation();
+    const panel = useResizablePanel({ defaultWidth: DEFAULT_WIDTH, min: 320, max: 640 });
     const methods = usePage().props.shop?.paymentMethods ?? ['cash'];
     const [method, setMethod] = useState(null);
     const [mobileOpen, setMobileOpen] = useState(false);
@@ -485,11 +490,63 @@ export default function Cart({
             />
 
             <aside
-                className={`fixed inset-y-0 right-0 z-50 flex h-[100dvh] w-full max-w-md flex-col border-l border-slate-200/70 bg-white/95 backdrop-blur-xl transition-transform duration-200 lg:static lg:z-auto lg:h-full lg:w-[23rem] lg:max-w-none lg:translate-x-0 lg:bg-white/85 dark:border-slate-800 dark:bg-slate-900/95 lg:dark:bg-slate-900/85 ${
-                    mobileOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'
-                }`}
+                style={{ '--cart-w': `${panel.collapsed ? COLLAPSED_WIDTH : panel.width}px` }}
+                className={`fixed inset-y-0 right-0 z-50 flex h-[100dvh] w-full max-w-md flex-col border-l border-slate-200/70 bg-white/95 backdrop-blur-xl transition-transform duration-200 lg:relative lg:z-auto lg:h-full lg:w-[var(--cart-w)] lg:max-w-none lg:shrink-0 lg:translate-x-0 lg:bg-white/85 dark:border-slate-800 dark:bg-slate-900/95 lg:dark:bg-slate-900/85 ${
+                    panel.dragging ? '' : 'lg:transition-[width]'
+                } ${mobileOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}`}
                 aria-label={t('sales.cart')}
             >
+                {/* Resize handle (desktop, expanded only): drag the left edge, arrows work too */}
+                {!panel.collapsed && (
+                    <div
+                        role="separator"
+                        aria-orientation="vertical"
+                        aria-label={t('cart.resize')}
+                        aria-valuenow={panel.width}
+                        aria-valuemin={panel.min}
+                        aria-valuemax={panel.max}
+                        tabIndex={0}
+                        title={t('cart.resizeHint')}
+                        onPointerDown={panel.startResize}
+                        onKeyDown={panel.onHandleKeyDown}
+                        onDoubleClick={() => panel.setWidth(DEFAULT_WIDTH)}
+                        className="group absolute inset-y-0 -left-1.5 z-10 hidden w-3 cursor-col-resize touch-none items-center justify-center outline-none lg:flex"
+                    >
+                        <span
+                            className={`h-full w-0.5 rounded-full transition-colors group-hover:bg-indigo-400 group-focus-visible:bg-indigo-400 ${
+                                panel.dragging ? 'bg-indigo-500' : 'bg-transparent'
+                            }`}
+                        />
+                    </div>
+                )}
+
+                {/* Collapsed rail (desktop): icon, item count, total */}
+                {panel.collapsed && (
+                    <button
+                        type="button"
+                        onClick={panel.toggleCollapsed}
+                        className="hidden h-full w-full flex-col items-center gap-3 py-4 text-slate-600 transition hover:bg-slate-50 lg:flex dark:text-slate-300 dark:hover:bg-slate-800/60"
+                        aria-label={t('cart.expand')}
+                        title={t('cart.expand')}
+                    >
+                        <ChevronsLeft size={18} className="text-slate-400" />
+                        <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 text-white shadow-md shadow-indigo-500/30">
+                            <ShoppingBag size={18} />
+                            {count > 0 && (
+                                <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1 text-[11px] font-bold text-white ring-2 ring-white dark:ring-slate-900">
+                                    {count}
+                                </span>
+                            )}
+                        </span>
+                        {count > 0 && (
+                            <span className="mt-1 text-[11px] font-bold tabular-nums text-indigo-600 [writing-mode:vertical-rl] dark:text-indigo-300">
+                                {formatCurrency(total)}
+                            </span>
+                        )}
+                    </button>
+                )}
+
+                <div className={`flex min-h-0 flex-1 flex-col ${panel.collapsed ? 'lg:hidden' : ''}`}>
                 {/* Header */}
                 <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 sm:px-5 sm:py-4 dark:border-slate-800">
                     <div className="flex items-center gap-2">
@@ -550,6 +607,15 @@ export default function Cart({
                             aria-label={t('common.close')}
                         >
                             <X size={16} />
+                        </button>
+                        <button
+                            type="button"
+                            onClick={panel.toggleCollapsed}
+                            className="hidden h-8 w-8 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 lg:flex dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+                            aria-label={t('cart.collapse')}
+                            title={t('cart.collapse')}
+                        >
+                            <ChevronsRight size={16} />
                         </button>
                     </div>
                 </div>
@@ -698,6 +764,7 @@ export default function Cart({
                     {insufficient && (
                         <p className="mt-2 text-center text-xs font-medium text-red-600 dark:text-red-400">{t('cart.insufficient')}</p>
                     )}
+                </div>
                 </div>
             </aside>
         </>

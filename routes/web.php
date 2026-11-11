@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CartCatalogController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ClientPaymentController;
@@ -29,35 +30,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/', function () {
         $categories = [['id' => 'all', 'label' => 'Tout'], ...Category::options()];
 
-        $products = Product::where('active', true)->get()->map(function ($p) {
-            return [
-                'id' => $p->id,
-                'name' => $p->name,
-                'description' => $p->description,
-                'price' => (float) $p->price,
-                'category_id' => $p->category_id,
-                'barcode' => $p->barcode,
-                'sku' => $p->sku,
-                'image' => $p->image ?: "https://picsum.photos/seed/{$p->sku}/400/300",
-                'stock' => $p->stock,
-                'unlimited_stock' => (bool) $p->unlimited_stock,
-                'effective_min_stock' => $p->effective_min_stock,
-            ];
-        });
-
-        $clients = Client::query()->withBalance()->where('active', true)
-            ->orderBy('name')
-            ->get()
-            ->map(fn ($c) => [
-                'id' => $c->id,
-                'name' => $c->name,
-                'phone' => $c->phone,
-                // Credit account, shown at the till when paying on credit.
-                'balance' => round((float) $c->credit_balance, 2),
-                'credit_limit' => $c->credit_limit === null ? null : (float) $c->credit_limit,
-                'overdue' => round((float) $c->overdue_amount, 2),
-                'terms' => (int) $c->payment_terms_days,
-            ]);
+        $products = CartCatalogController::products();
+        $clients = CartCatalogController::clients();
 
         return Inertia::render('Sales/Index', [
             'caisse' => ['number' => '01', 'status' => 'open'],
@@ -68,6 +42,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'paperSize' => Settings::current()->paper_size,
         ]);
     });
+
+    Route::get('/panier/catalogue', CartCatalogController::class)->name('cart.catalog');
 
     Route::get('/scan', function () {
         $products = Product::where('active', true)->get()->map(function ($p) {

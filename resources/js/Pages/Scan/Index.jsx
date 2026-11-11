@@ -1,17 +1,22 @@
 import { Head } from '@inertiajs/react';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { ScanLine, Package, Plus, Minus, Trash2, ShoppingBag } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { ScanLine, Package, Plus, Minus, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import PosLayout from '../../Layouts/PosLayout';
+import { useCart } from '../../Components/Sales/CartProvider';
 import { formatCurrency } from '../../lib/formatCurrency';
+import { sounds } from '../../lib/sounds';
 
-export default function ScanIndex({ products = [] }) {
+export default function ScanIndex({ products: pageProducts = [] }) {
     const { t } = useTranslation();
+    const { catalog, cartLines, addToCart, decrementItem: cartDecrement, removeItem: cartRemove } = useCart();
     const [scanInput, setScanInput] = useState('');
-    const [cartItems, setCartItems] = useState([]);
     const [lastScanned, setLastScanned] = useState(null);
     const [error, setError] = useState(null);
     const inputRef = useRef(null);
+
+    // Page data is used until the shared catalogue is available.
+    const catalogProducts = catalog.loaded ? catalog.products : pageProducts;
 
     useEffect(() => {
         inputRef.current?.focus();
@@ -39,70 +44,28 @@ export default function ScanIndex({ products = [] }) {
         return () => clearTimeout(timer);
     }, [scanInput]);
 
+    // The scanned items go straight into the shared cart (shown beside every page).
     const handleScan = (code) => {
         setError(null);
-        const product = products.find(
+        const product = catalogProducts.find(
             (p) => p.barcode === code || p.sku?.toLowerCase() === code.toLowerCase() || p.id.toString() === code
         );
 
         if (!product) {
+            sounds.error();
             setError(t('scan.notFound', { code }));
             setLastScanned(null);
             return;
         }
 
         setLastScanned(product);
-        setCartItems((prev) => {
-            const existing = prev.find((i) => i.productId === product.id);
-            if (existing) {
-                return prev.map((i) =>
-                    i.productId === product.id ? { ...i, quantity: i.quantity + 1 } : i
-                );
-            }
-            return [...prev, { productId: product.id, quantity: 1 }];
-        });
+        addToCart(product.id);
     };
 
-    const incrementItem = (productId) => {
-        setCartItems((prev) =>
-            prev.map((i) => (i.productId === productId ? { ...i, quantity: i.quantity + 1 } : i))
-        );
-    };
-
-    const decrementItem = (productId) => {
-        setCartItems((prev) =>
-            prev
-                .map((i) => (i.productId === productId ? { ...i, quantity: i.quantity - 1 } : i))
-                .filter((i) => i.quantity > 0)
-        );
-    };
-
-    const removeItem = (productId) => setCartItems((prev) => prev.filter((i) => i.productId !== productId));
-
-    const clearCart = () => setCartItems([]);
-
-    const cartProducts = useMemo(
-        () =>
-            cartItems.map((item) => {
-                const product = products.find((p) => p.id === item.productId);
-                return {
-                    id: product?.id,
-                    productId: item.productId,
-                    name: product?.name,
-                    description: product?.description,
-                    category_id: product?.category_id,
-                    image: product?.image,
-                    unitPrice: product?.price || 0,
-                    quantity: item.quantity,
-                    subtotal: (product?.price || 0) * item.quantity,
-                };
-            }),
-        [cartItems, products]
-    );
-
-    const subtotal = cartProducts.reduce((sum, l) => sum + l.subtotal, 0);
-    const remise = cartProducts.length > 0 ? 0 : 0;
-    const total = Math.max(0, subtotal - remise);
+    const cartProducts = cartLines;
+    const incrementItem = addToCart;
+    const decrementItem = cartDecrement;
+    const removeItem = cartRemove;
 
     return (
         <>
@@ -222,48 +185,6 @@ export default function ScanIndex({ products = [] }) {
                     )}
                 </div>
 
-                <div className="flex w-80 flex-col justify-between border-l border-slate-200/70 bg-white p-6">
-                    <div>
-                        <div className="mb-4 flex items-center gap-2 text-lg font-semibold text-slate-900">
-                            <ShoppingBag size={20} />
-                            {t('sales.cart')}
-                            <span className="ml-auto text-sm font-normal text-slate-500">
-                                {t('sales.articlesCount', { count: cartProducts.length })}
-                            </span>
-                        </div>
-
-                        <div className="space-y-3">
-                            <div className="flex justify-between text-sm">
-                                <span className="text-slate-500">{t('sales.subtotal')}</span>
-                                <span className="font-medium">{formatCurrency(subtotal)}</span>
-                            </div>
-                            <div className="flex justify-between text-sm">
-                                <span className="text-slate-500">{t('sales.discount')}</span>
-                                <span className="text-red-500">-{formatCurrency(remise)}</span>
-                            </div>
-                            <div className="flex justify-between border-t border-slate-200 pt-3 text-lg">
-                                <span className="font-bold">{t('sales.total')}</span>
-                                <span className="font-bold text-indigo-600">{formatCurrency(total)}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="space-y-3">
-                        <button
-                            onClick={clearCart}
-                            className="w-full rounded-xl border border-slate-200 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
-                        >
-                            {t('sales.clearCart')}
-                        </button>
-                        <button
-                            onClick={() => alert(t('scan.encashment', { amount: formatCurrency(total) }))}
-                            disabled={cartProducts.length === 0}
-                            className="w-full rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                            {t('scan.cashOut')}
-                        </button>
-                    </div>
-                </div>
             </PosLayout>
         </>
     );
