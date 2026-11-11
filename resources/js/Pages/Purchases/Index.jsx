@@ -1,5 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { PackagePlus, Plus, Truck } from 'lucide-react';
+import { Building2, PackagePlus, Plus, Truck } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import PosLayout from '../../Layouts/PosLayout';
 import { formatCurrency } from '../../lib/formatCurrency';
@@ -26,6 +26,9 @@ export default function PurchasesIndex({ orders, suppliers, filters }) {
                             <p className="text-sm text-slate-500">{t('purchases.subtitle')}</p>
                         </div>
                         <div className="flex flex-wrap gap-2">
+                            <Link href="/fournisseurs" className={ghostBtn}>
+                                <Building2 size={16} /> {t('purchases.suppliers')}
+                            </Link>
                             <Link href="/receptions/nouvelle" className={ghostBtn}>
                                 <PackagePlus size={16} /> {t('purchases.newReception')}
                             </Link>

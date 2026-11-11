@@ -1,5 +1,5 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import { Box, Building2, ClipboardList, Truck, Loader2, LogOut, Receipt, ScanLine, BarChart3, Settings, ShoppingBag, Users } from 'lucide-react';
+import { Box, ClipboardList, Truck, Loader2, LogOut, Receipt, ScanLine, BarChart3, Settings, ShoppingBag, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -41,7 +41,8 @@ export default function Sidebar({ mobileOpen = false, onClose }) {
     const [loggingOut, setLoggingOut] = useState(false);
     const cartCount = useCartCount();
 
-    // Same order as before; a thin separator splits "sell" / "manage" / "system".
+    // Sell / manage / system: the separator sits before Settings. Supplier management is reached
+    // from the purchases list ("Fournisseurs" button), so it no longer has its own entry here.
     const navItems = [
         { icon: ShoppingBag, label: t('navigation.sales'), href: '/', badge: cartCount },
         { icon: Box, label: t('navigation.products'), href: '/produits' },
@@ -50,8 +51,7 @@ export default function Sidebar({ mobileOpen = false, onClose }) {
         { icon: Users, label: t('navigation.clients'), href: '/clients' },
         { icon: Receipt, label: t('navigation.history'), href: '/ventes' },
         { icon: ClipboardList, label: t('navigation.inventory'), href: '/inventaires' },
-        { icon: Truck, label: t('navigation.purchases'), href: '/achats' },
-        { icon: Building2, label: t('navigation.suppliers'), href: '/fournisseurs', separatorAfter: true },
+        { icon: Truck, label: t('navigation.purchases'), href: '/achats', separatorAfter: true },
         { icon: Settings, label: t('navigation.settings'), href: '/parametres' },
     ];
 

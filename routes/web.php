@@ -73,14 +73,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/produits/{product}/mouvements', [ProductController::class, 'movements'])->name('products.movements');
     Route::post('/produits/{product}/ajustement', [StockAdjustmentController::class, 'store'])->name('products.adjust');
 
-    Route::get('/fournisseurs', [SupplierController::class, 'index'])->name('suppliers.index');
-    Route::post('/fournisseurs', [SupplierController::class, 'store'])->name('suppliers.store');
-    Route::get('/fournisseurs/{supplier}', [SupplierController::class, 'show'])->name('suppliers.show');
-    Route::put('/fournisseurs/{supplier}', [SupplierController::class, 'update'])->name('suppliers.update');
-    Route::delete('/fournisseurs/{supplier}', [SupplierController::class, 'destroy'])->name('suppliers.destroy');
-    Route::post('/fournisseurs/{supplier}/paiements', [SupplierPaymentController::class, 'store'])->name('suppliers.payments.store');
-    Route::delete('/paiements-fournisseurs/{payment}', [SupplierPaymentController::class, 'destroy'])->name('suppliers.payments.destroy');
-
     Route::get('/achats', [PurchaseOrderController::class, 'index'])->name('purchases.index');
     Route::get('/achats/nouveau', [PurchaseOrderController::class, 'create'])->name('purchases.create');
     Route::get('/achats/suggestions', [PurchaseOrderController::class, 'suggestions'])->name('purchases.suggestions');
@@ -94,6 +86,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/receptions/nouvelle', [ReceptionController::class, 'create'])->name('receptions.create');
     Route::post('/receptions', [ReceptionController::class, 'store'])->name('receptions.store');
     Route::get('/receptions/{reception}', [ReceptionController::class, 'show'])->name('receptions.show');
+
+    // Supplier directory: reached from the purchases list ("Fournisseurs" button), not the sidebar.
+    Route::get('/fournisseurs', [SupplierController::class, 'index'])->name('suppliers.index');
+    Route::post('/fournisseurs', [SupplierController::class, 'store'])->name('suppliers.store');
+    Route::get('/fournisseurs/{supplier}', [SupplierController::class, 'show'])->name('suppliers.show');
+    Route::put('/fournisseurs/{supplier}', [SupplierController::class, 'update'])->name('suppliers.update');
+    Route::delete('/fournisseurs/{supplier}', [SupplierController::class, 'destroy'])->name('suppliers.destroy');
+    Route::post('/fournisseurs/{supplier}/paiements', [SupplierPaymentController::class, 'store'])->name('suppliers.payments.store');
+    Route::delete('/paiements-fournisseurs/{payment}', [SupplierPaymentController::class, 'destroy'])->name('suppliers.payments.destroy');
 
     Route::get('/inventaires', [InventoryController::class, 'index'])->name('inventories.index');
     Route::post('/inventaires', [InventoryController::class, 'store'])->name('inventories.store');

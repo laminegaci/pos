@@ -52,8 +52,7 @@
     "history": "History",
     "myProfile": "My Profile",
     "inventory": "Inventory",
-    "purchases": "Purchases",
-    "suppliers": "Suppliers"
+    "purchases": "Purchases"
   },
   "messages": {
     "success": "Operation completed successfully",
@@ -805,6 +804,7 @@
   "purchases": {
     "title": "Purchases",
     "subtitle": "Purchase orders and receptions",
+    "suppliers": "Suppliers",
     "new": "New purchase order",
     "edit": "Edit purchase order",
     "reference": "Reference",

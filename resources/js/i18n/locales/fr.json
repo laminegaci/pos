@@ -52,8 +52,7 @@
     "history": "Historique",
     "myProfile": "Mon profil",
     "inventory": "Inventaire",
-    "purchases": "Achats",
-    "suppliers": "Fournisseurs"
+    "purchases": "Achats"
   },
   "messages": {
     "success": "Opération réussie",
@@ -805,6 +804,7 @@
   "purchases": {
     "title": "Achats",
     "subtitle": "Bons de commande et réceptions",
+    "suppliers": "Fournisseurs",
     "new": "Nouveau bon de commande",
     "edit": "Modifier le bon de commande",
     "reference": "Référence",
