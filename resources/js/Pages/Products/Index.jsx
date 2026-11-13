@@ -327,7 +327,7 @@ export default function ProductsIndex({
         <>
             <Head title={t('products.title')} />
             <PosLayout>
-                <div className="flex flex-1 flex-col overflow-hidden p-4 md:px-8 md:py-6">
+                <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-4 pb-24 md:px-8 md:py-6 lg:overflow-hidden">
                     {/* Header */}
                     <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                         <div>
@@ -381,53 +381,113 @@ export default function ProductsIndex({
                     )}
 
                     {/* Toolbar */}
-                    <div className="mb-4 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-                        <div className="relative w-full max-w-sm">
-                            <Search size={17} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                            <input
-                                type="search"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                placeholder={`${t('common.search')}...`}
-                                className="h-10 w-full rounded-full border border-slate-200 bg-white pl-10 pr-4 text-sm outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
-                            />
-                        </div>
-                        <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label={t('products.stockFilter')}>
-                            {[
-                                ['all', t('common.all')],
-                                ['low', t('products.filterLow')],
-                                ['out', t('products.filterOut')],
-                            ].map(([id, label]) => (
+                    <div className="mb-4 flex flex-col gap-3">
+                        <div className="flex flex-wrap items-center gap-2">
+                            <div className="relative w-full lg:max-w-[280px]">
+                                <Search size={17} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                                <input
+                                    type="search"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    placeholder={`${t('common.search')}...`}
+                                    className="h-10 w-full rounded-full border border-slate-200 bg-white pl-10 pr-4 text-sm outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
+                                />
+                            </div>
+                            <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label={t('products.stockFilter')}>
+                                <span className="mr-0.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                                    {t('products.stock')}
+                                </span>
+                                {[
+                                    ['all', t('common.all')],
+                                    ['low', t('products.filterLow')],
+                                    ['out', t('products.filterOut')],
+                                ].map(([id, label]) => (
+                                    <button
+                                        key={id}
+                                        type="button"
+                                        onClick={() => setFilterStock(id)}
+                                        aria-pressed={filterStock === id}
+                                        className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition ${
+                                            filterStock === id
+                                                ? 'bg-amber-500 text-white shadow-md shadow-amber-500/25'
+                                                : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50 hover:text-slate-900'
+                                        }`}
+                                    >
+                                        {label}
+                                    </button>
+                                ))}
+                            </div>
+                            <div className="ml-auto flex shrink-0 items-center gap-1 rounded-full bg-white p-1 ring-1 ring-slate-200">
                                 <button
-                                    key={id}
                                     type="button"
-                                    onClick={() => setFilterStock(id)}
-                                    aria-pressed={filterStock === id}
-                                    className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition ${
-                                        filterStock === id
-                                            ? 'bg-amber-500 text-white shadow-md shadow-amber-500/25'
-                                            : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50 hover:text-slate-900'
+                                    onClick={() => setViewMode('table')}
+                                    className={`flex h-8 w-8 items-center justify-center rounded-full transition ${
+                                        viewMode === 'table' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:text-slate-900'
                                     }`}
+                                    title={t('products.table')}
+                                    aria-pressed={viewMode === 'table'}
                                 >
-                                    {label}
+                                    <List size={15} />
                                 </button>
-                            ))}
+                                <button
+                                    type="button"
+                                    onClick={() => setViewMode('grid')}
+                                    className={`flex h-8 w-8 items-center justify-center rounded-full transition ${
+                                        viewMode === 'grid' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:text-slate-900'
+                                    }`}
+                                    title={t('products.grid')}
+                                    aria-pressed={viewMode === 'grid'}
+                                >
+                                    <LayoutGrid size={15} />
+                                </button>
+                                <div className="h-4 w-px bg-slate-200" />
+                                <button
+                                    type="button"
+                                    onClick={() => window.location.href = '/produits/export'}
+                                    className="flex h-8 items-center gap-1.5 rounded-full px-2.5 text-slate-500 transition hover:bg-slate-50 hover:text-slate-900"
+                                    title={t('common.export')}
+                                >
+                                    <Download size={15} />
+                                    <span className="hidden text-xs font-semibold xl:inline">{t('common.export')}</span>
+                                </button>
+                                <label
+                                    className="flex h-8 cursor-pointer items-center gap-1.5 rounded-full px-2.5 text-slate-500 transition hover:bg-slate-50 hover:text-slate-900"
+                                    title={t('common.import')}
+                                >
+                                    <Upload size={15} />
+                                    <span className="hidden text-xs font-semibold xl:inline">{t('common.import')}</span>
+                                    <input type="file" accept=".csv,.xlsx,.xls" className="hidden" />
+                                </label>
+                            </div>
                         </div>
-                        <div className="flex items-center gap-2 overflow-x-auto pb-1 [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden">
-                            <div className="flex flex-nowrap items-center gap-1.5">
+
+                        <div className="flex min-w-0 items-center gap-2">
+                            <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto pb-1 [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden">
                                 {allCategories.map((cat) => {
                                     const active = cat.id === filterCategory;
+                                    const count = cat.id === 'all' ? products.length : cat.products_count;
                                     return (
                                         <button
                                             key={cat.id}
+                                            type="button"
                                             onClick={() => setFilterCategory(cat.id)}
-                                            className={`whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs font-medium transition ${
+                                            aria-pressed={active}
+                                            className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs font-medium transition ${
                                                 active
                                                     ? 'bg-gradient-to-br from-indigo-500 to-violet-500 text-white shadow-md shadow-indigo-500/25'
                                                     : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50 hover:text-slate-900'
                                             }`}
                                         >
                                             {cat.label}
+                                            {count !== undefined && (
+                                                <span
+                                                    className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold leading-none ${
+                                                        active ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
+                                                    }`}
+                                                >
+                                                    {count}
+                                                </span>
+                                            )}
                                         </button>
                                     );
                                 })}
@@ -437,48 +497,13 @@ export default function ProductsIndex({
                                 onClick={() => setShowCategories(true)}
                                 className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-white px-3.5 py-1.5 text-xs font-medium text-slate-600 ring-1 ring-slate-200 transition hover:bg-slate-50 hover:text-slate-900"
                             >
-                                <Tags size={14} /> {t('categories.manage')}
+                                <Tags size={14} /> <span className="hidden sm:inline">{t('categories.manage')}</span>
                             </button>
-                            <div className="ml-1 flex shrink-0 items-center gap-1 rounded-full bg-white p-1 ring-1 ring-slate-200">
-                                <button
-                                    onClick={() => setViewMode('table')}
-                                    className={`flex h-8 w-8 items-center justify-center rounded-full transition ${
-                                        viewMode === 'table' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:text-slate-900'
-                                    }`}
-                                    title={t('products.table')}
-                                >
-                                    <List size={15} />
-                                </button>
-                                <button
-                                    onClick={() => setViewMode('grid')}
-                                    className={`flex h-8 w-8 items-center justify-center rounded-full transition ${
-                                        viewMode === 'grid' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:text-slate-900'
-                                    }`}
-                                    title={t('products.grid')}
-                                >
-                                    <LayoutGrid size={15} />
-                                </button>
-                                <div className="h-4 w-px bg-slate-200" />
-                                <button
-                                    onClick={() => window.location.href = '/produits/export'}
-                                    className="flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition hover:text-slate-900"
-                                    title={t('common.export')}
-                                >
-                                    <Download size={15} />
-                                </button>
-                                <label
-                                    className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-slate-500 transition hover:text-slate-900"
-                                    title={t('common.import')}
-                                >
-                                    <Upload size={15} />
-                                    <input type="file" accept=".csv,.xlsx,.xls" className="hidden" />
-                                </label>
-                            </div>
                         </div>
                     </div>
 
                     {/* List */}
-                    <div className="flex-1 overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
+                    <div className="min-h-[420px] flex-1 overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-[0_1px_3px_rgba(15,23,42,0.04)] lg:min-h-0">
                         {filteredProducts.length === 0 ? (
                             <div className="flex h-full flex-col items-center justify-center gap-3 py-16 text-center">
                                 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-400">
@@ -495,7 +520,7 @@ export default function ProductsIndex({
                             </div>
                         ) : viewMode === 'table' ? (
                             <div className="h-full overflow-auto">
-                                <table className="w-full min-w-[900px] text-sm">
+                                <table className="w-full min-w-[760px] table-fixed text-sm">
                                     <thead className="sticky top-0 z-10 bg-slate-50/80 backdrop-blur">
                                         <tr className="text-left text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                                             <th className="w-10 px-4 py-3">
@@ -507,22 +532,22 @@ export default function ProductsIndex({
                                                     className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                                                 />
                                             </th>
-                                            <th className="px-5 py-3">{t('products.title')}</th>
-                                            <th className="px-5 py-3">{t('products.category')}</th>
-                                            <th className="px-5 py-3 hidden md:table-cell">{t('products.sku')}</th>
-                                            <th className="px-5 py-3 text-right">{t('products.price')}</th>
-                                            <th className="px-5 py-3 text-right hidden lg:table-cell">{t('products.costPrice')}</th>
-                                            <th className="px-5 py-3 text-right hidden lg:table-cell">{t('products.margin')}</th>
-                                            <th className="px-5 py-3 hidden sm:table-cell">{t('products.stock')}</th>
-                                            <th className="px-5 py-3 hidden lg:table-cell">{t('products.status')}</th>
-                                            <th className="px-5 py-3 text-right">{t('common.actions')}</th>
+                                            <th className="w-[260px] px-3 py-3">{t('products.title')}</th>
+                                            <th className="w-[160px] px-3 py-3">{t('products.category')}</th>
+                                            <th className="hidden w-[90px] px-3 py-3 md:table-cell">{t('products.sku')}</th>
+                                            <th className="w-[150px] px-3 py-3 text-right">{t('products.price')}</th>
+                                            <th className="hidden w-[150px] px-3 py-3 text-right 2xl:table-cell">{t('products.costPrice')}</th>
+                                            <th className="hidden w-[80px] px-3 py-3 text-right 2xl:table-cell">{t('products.margin')}</th>
+                                            <th className="hidden w-[100px] px-3 py-3 sm:table-cell">{t('products.stock')}</th>
+                                            <th className="hidden w-[110px] px-3 py-3 2xl:table-cell">{t('products.status')}</th>
+                                            <th className="w-[90px] px-3 py-3 text-right">{t('common.actions')}</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-100">
                                         {filteredProducts.map((product) => {
                                             const st = stockStatus(product, t);
                                             return (
-                                                <tr key={product.id} className="group transition hover:bg-slate-50/60">
+                                                <tr key={product.id} className="group align-middle transition hover:bg-slate-50/60">
                                                     <td className="px-4 py-3">
                                                         <input
                                                             type="checkbox"
@@ -532,35 +557,38 @@ export default function ProductsIndex({
                                                             className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                                                         />
                                                     </td>
-                                                    <td className="px-5 py-3">
+                                                    <td className="px-3 py-3">
                                                         <div className="flex items-center gap-3">
-                                                            <ProductImage product={product} size="md" className="hidden sm:block" />
-                                                            <div className="min-w-0">
-                                                                <div className="truncate font-semibold text-slate-900">{product.name}</div>
-                                                                <div className="truncate text-xs text-slate-500">{product.description}</div>
+                                                            <ProductImage product={product} size="md" className="hidden shrink-0 sm:block" />
+                                                            <div className="min-w-0 flex-1">
+                                                                <div className="truncate font-semibold text-slate-900" title={product.name}>{product.name}</div>
+                                                                <div className="truncate text-xs text-slate-500" title={product.description ?? ''}>{product.description}</div>
                                                             </div>
                                                         </div>
                                                     </td>
-                                                    <td className="px-5 py-3">
-                                                        <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">
+                                                    <td className="px-3 py-3">
+                                                        <span
+                                                            title={categoryLabel(product.category_id)}
+                                                            className="inline-flex max-w-full truncate rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700"
+                                                        >
                                                             {categoryLabel(product.category_id)}
                                                         </span>
                                                     </td>
-                                                    <td className="px-5 py-3 hidden md:table-cell font-mono text-xs text-slate-500">
-                                                        <div>{product.sku || '—'}</div>
+                                                    <td className="hidden px-3 py-3 font-mono text-xs text-slate-500 md:table-cell">
+                                                        <div className="truncate">{product.sku || '—'}</div>
                                                         {product.barcode && (
-                                                            <div className="mt-0.5 flex items-center gap-1 text-[11px] text-slate-400">
+                                                            <div className="mt-0.5 flex items-center gap-1 truncate text-[11px] text-slate-400">
                                                                 <Barcode size={11} /> {product.barcode}
                                                             </div>
                                                         )}
                                                     </td>
-                                                    <td className="px-5 py-3 text-right font-semibold text-indigo-600">
+                                                    <td className="px-3 py-3 text-right font-semibold text-indigo-600">
                                                         {formatCurrency(product.price)}
                                                     </td>
-                                                    <td className="px-5 py-3 text-right hidden lg:table-cell text-slate-600">
+                                                    <td className="hidden px-3 py-3 text-right text-slate-600 2xl:table-cell">
                                                         {product.cost_price === null || product.cost_price === undefined ? '—' : formatCurrency(product.cost_price)}
                                                     </td>
-                                                    <td className="px-5 py-3 text-right hidden lg:table-cell">
+                                                    <td className="hidden px-3 py-3 text-right 2xl:table-cell">
                                                         {product.margin_rate === null || product.margin_rate === undefined ? (
                                                             <span className="text-slate-400">—</span>
                                                         ) : (
@@ -572,7 +600,7 @@ export default function ProductsIndex({
                                                             </span>
                                                         )}
                                                     </td>
-                                                    <td className="px-5 py-3 hidden sm:table-cell">
+                                                    <td className="hidden px-3 py-3 sm:table-cell">
                                                         {product.unlimited_stock ? (
                                                             <span className="inline-flex items-center gap-1.5 font-semibold text-indigo-600">
                                                                 <InfinityIcon size={16} /> {t('products.unlimited')}
@@ -595,7 +623,7 @@ export default function ProductsIndex({
                                                         </div>
                                                         )}
                                                     </td>
-                                                    <td className="px-5 py-3 hidden lg:table-cell">
+                                                    <td className="hidden px-3 py-3 2xl:table-cell">
                                                         <span
                                                             className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${
                                                                 product.active ? toneClasses[st.tone] : toneClasses.slate
@@ -614,8 +642,8 @@ export default function ProductsIndex({
                                                             )}
                                                         </span>
                                                     </td>
-                                                    <td className="px-5 py-3 text-right">
-                                                        <div className="flex items-center justify-end gap-1 opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100">
+                                                    <td className="px-3 py-3 text-right">
+                                                        <div className="flex items-center justify-end gap-1 opacity-100 transition group-hover:opacity-100 group-focus-within:opacity-100 lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100">
                                                             {canManageStock && !product.unlimited_stock && (
                                                                 <button
                                                                     onClick={() => setAdjusting(product)}
@@ -670,7 +698,7 @@ export default function ProductsIndex({
                                                         </span>
                                                     </div>
                                                 </div>
-                                                <div className="absolute right-2 top-2 flex gap-1 opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100">
+                                                <div className="absolute right-2 top-2 flex gap-1 opacity-100 transition group-hover:opacity-100 group-focus-within:opacity-100 lg:opacity-0 lg:group-hover:opacity-100 lg:group-focus-within:opacity-100">
                                                     <button
                                                         onClick={() => openEditModal(product)}
                                                         className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-slate-700 shadow-md backdrop-blur hover:bg-white"
