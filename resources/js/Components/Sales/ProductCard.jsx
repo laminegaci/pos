@@ -29,7 +29,6 @@ export default function ProductCard({ product, viewMode, onAdd }) {
                 <ProductImage product={product} size="md" />
                 <div className="min-w-0 flex-1">
                     <div className="truncate text-sm font-semibold text-slate-900">{product.name}</div>
-                    <div className="truncate text-xs text-slate-500">{product.description}</div>
                 </div>
                 {badge}
                 <div className="text-sm font-bold text-indigo-600">{formatCurrency(product.price)}</div>
@@ -52,7 +51,6 @@ export default function ProductCard({ product, viewMode, onAdd }) {
             {badge && <div className="absolute left-2 top-2">{badge}</div>}
             <div className="flex flex-1 flex-col p-3.5">
                 <div className="text-sm font-semibold leading-tight text-slate-900">{product.name}</div>
-                <div className="mt-1 text-xs text-slate-500">{product.description}</div>
                 <div className="mt-3 flex items-center justify-between">
                     <div className="text-[15px] font-bold text-indigo-600">{formatCurrency(product.price)}</div>
                     <button

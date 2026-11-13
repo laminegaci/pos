@@ -17,10 +17,10 @@ use Illuminate\Support\Str;
  * Source mapping:
  *  - `shop_products`         -> products (price, qty = stock, is_visible = active)
  *  - `shop_category_product` -> first category linked to the shop product
- *  - `product-images/<id>/`  -> copied to the POS public disk (`/storage/...` URL)
+ *  - `product-images/<id>/`  -> attached to the Spatie `product_images` collection
  *
  * Idempotent: shop products are keyed on the generated SKU "SADL-<shop_id>",
- * categories on their slug; images are only copied once.
+ * categories on their slug; images are only attached once.
  *
  * Usage: php artisan db:seed --class=SAdaluxeProductSeeder
  */
@@ -84,22 +84,18 @@ class SAdaluxeProductSeeder extends Seeder
                 'unlimited_stock' => ((int) $surCommande === 1),
                 'active' => ((int) $isVisible === 1),
                 'category_id' => $firstCategoryByProductId[$sourceId] ?? null,
-                'image' => null,
             ];
 
             if ($attributes['name'] === '') {
                 continue;
             }
 
-            $image = $this->copyImage($sourceId);
-            if ($image !== null) {
-                $attributes['image'] = $image;
-            } else {
-                $noImage++;
-            }
-
             /** @var Product $product */
             $product = Product::query()->updateOrCreate(['sku' => $attributes['sku']], $attributes);
+
+            if (! $this->attachImage($product, $sourceId)) {
+                $noImage++;
+            }
 
             $product->wasRecentlyCreated ? $created++ : $updated++;
 
@@ -149,12 +145,34 @@ class SAdaluxeProductSeeder extends Seeder
     }
 
     /**
-     * Copies the first product image from the Sada Luxe folder to the POS public disk.
-     * Returns the public URL to store in `products.image`, or null when there is none.
+     * Attaches the first source image to the product media collection.
+     * Returns true when the product has an image after the operation.
      */
-    private function copyImage(int $sourceId): ?string
+    private function attachImage(Product $product, int $sourceId): bool
+    {
+        $path = $this->findImagePath($sourceId);
+        $hasMedia = $product->getMedia(Product::MEDIA_COLLECTION)->isNotEmpty();
+
+        if (! $hasMedia && $path !== null) {
+            $product->addMedia($path)
+                ->preservingOriginal()
+                ->toMediaCollection(Product::MEDIA_COLLECTION);
+
+            $hasMedia = true;
+        }
+
+        if ($hasMedia) {
+            $this->deleteLegacyImage($product);
+        }
+
+        return $hasMedia;
+    }
+
+    /** Returns the path of the first usable image of a Sada Luxe product. */
+    private function findImagePath(int $sourceId): ?string
     {
         $dir = $this->imagesDir.'/'.$sourceId;
+
         if (! is_dir($dir)) {
             return null;
         }
@@ -165,18 +183,27 @@ class SAdaluxeProductSeeder extends Seeder
             }
 
             $extension = strtolower(pathinfo($file, PATHINFO_EXTENSION));
-            if (! in_array($extension, ['jpg', 'jpeg', 'png', 'webp', 'gif'], true)) {
+            if (! in_array($extension, ['jpg', 'jpeg', 'png', 'webp'], true)) {
                 continue;
             }
 
-            $target = sprintf('products/sadaluxe/%d-%s', $sourceId, $file);
-
-            Storage::disk('public')->put($target, (string) file_get_contents($dir.'/'.$file));
-
-            return '/storage/'.$target;
+            return $dir.'/'.$file;
         }
 
         return null;
+    }
+
+    /** Removes the legacy `products.image` copy created by the previous seeder. */
+    private function deleteLegacyImage(Product $product): void
+    {
+        $legacy = $product->getRawOriginal('image');
+
+        if (! is_string($legacy) || ! str_starts_with($legacy, '/storage/products/sadaluxe/')) {
+            return;
+        }
+
+        Storage::disk('public')->delete(Str::after($legacy, '/storage/'));
+        $product->forceFill(['image' => null])->save();
     }
 
     /** Opening balance of the stock journal, mirroring the backfill migration. */
