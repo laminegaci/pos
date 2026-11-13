@@ -109,12 +109,12 @@ export default function Login() {
                     )}
                 </button>
 
-                <p className="text-center text-sm text-slate-600">
+                {/* <p className="text-center text-sm text-slate-600">
                     Pas encore de compte ?{' '}
                     <a href="/register" className="text-indigo-600 hover:text-indigo-800 font-medium">
                         Créer un compte
                     </a>
-                </p>
+                </p> */}
             </form>
         </AuthLayout>
     );

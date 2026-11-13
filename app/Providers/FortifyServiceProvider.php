@@ -29,7 +29,7 @@ class FortifyServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Fortify::createUsersUsing(CreateNewUser::class);
+        // Fortify::createUsersUsing(CreateNewUser::class);
         Fortify::updateUserProfileInformationUsing(UpdateUserProfileInformation::class);
         Fortify::updateUserPasswordsUsing(UpdateUserPassword::class);
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
@@ -37,7 +37,7 @@ class FortifyServiceProvider extends ServiceProvider
 
         Fortify::loginView(fn () => inertia('Auth/Login'));
 
-        Fortify::registerView(fn () => inertia('Auth/Register'));
+        // Fortify::registerView(fn () => inertia('Auth/Register'));
 
         Fortify::requestPasswordResetLinkView(fn () => inertia('Auth/ForgotPassword'));
 
@@ -53,7 +53,7 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::twoFactorChallengeView(fn () => inertia('Auth/TwoFactorChallenge'));
 
         Fortify::redirects('login', '/');
-        Fortify::redirects('register', '/');
+        // Fortify::redirects('register', '/');
         Fortify::redirects('logout', '/');
         Fortify::redirects('password-reset', '/');
 
