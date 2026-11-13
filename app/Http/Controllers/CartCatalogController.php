@@ -26,7 +26,7 @@ class CartCatalogController extends Controller
 
     public static function products(): Collection
     {
-        return Product::where('active', true)->get()->map(fn ($p) => [
+        return Product::with('media')->where('active', true)->get()->map(fn ($p) => [
             'id' => $p->id,
             'name' => $p->name,
             'description' => $p->description,
@@ -34,7 +34,7 @@ class CartCatalogController extends Controller
             'category_id' => $p->category_id,
             'barcode' => $p->barcode,
             'sku' => $p->sku,
-            'image' => $p->image ?: "https://picsum.photos/seed/{$p->sku}/400/300",
+            'image' => $p->image_url,
             'stock' => $p->stock,
             'unlimited_stock' => (bool) $p->unlimited_stock,
             'effective_min_stock' => $p->effective_min_stock,

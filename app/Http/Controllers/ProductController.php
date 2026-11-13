@@ -5,17 +5,17 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Exports\ProductExport;
+use App\Http\Requests\ProductRequest;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Settings;
+use App\Services\ProductMediaService;
 use App\Services\StockService;
 use App\Support\Ean13;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use Maatwebsite\Excel\Facades\Excel;
@@ -25,7 +25,11 @@ class ProductController extends Controller
 {
     public function index(): Response
     {
-        $products = Product::orderBy('created_at', 'desc')->get();
+        $products = Product::query()
+            ->with('media')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(fn (Product $product) => $product->append(['image_url', 'images', 'cover_media_id']));
         $counts = Product::query()->selectRaw('category_id, COUNT(*) as n')->groupBy('category_id')->pluck('n', 'category_id');
         $categories = array_map(
             fn (array $c) => [...$c, 'products_count' => (int) ($counts[$c['id']] ?? 0)],
@@ -80,62 +84,63 @@ class ProductController extends Controller
     }
 
     /**
-     * With unlimited stock the quantity is irrelevant, so it may be left empty.
+     * Product columns only: media fields are handled by ProductMediaService.
      *
+     * @param  array<string, mixed>  $validated
      * @return array<string, mixed>
      */
-    private function validated(Request $request): array
+    private function productAttributes(array $validated): array
     {
-        if ($request->boolean('unlimited_stock') && ! is_numeric($request->input('stock'))) {
-            $request->merge(['stock' => 0]);
-        }
-
-        return $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'price' => 'required|numeric|min:0',
-            'cost_price' => 'nullable|numeric|min:0',
-            'vat_rate' => ['sometimes', 'required', 'numeric', Rule::in(Product::VAT_RATES)],
-            'barcode' => [
-                'nullable', 'string', 'size:13',
-                Rule::unique('products', 'barcode')->ignore($request->route('product')),
-                fn (string $attr, mixed $value, \Closure $fail) => Ean13::isValid($value) ? null : $fail(__('validation.ean13')),
-            ],
-            'category_id' => ['required', 'string', Rule::exists('categories', 'slug')],
-            'stock' => 'required|integer|min:0',
-            'unlimited_stock' => 'boolean',
-            'min_stock' => 'nullable|integer|min:0|max:1000000',
-            'sku' => 'nullable|string|max:255',
-            'image' => 'nullable|string',
-            'active' => 'boolean',
-        ]);
+        return array_diff_key($validated, array_flip([
+            'images',
+            'remove_media',
+            'cover_media_id',
+            'remove_legacy_image',
+        ]));
     }
 
-    public function store(Request $request, StockService $stock): RedirectResponse
+    public function store(ProductRequest $request, StockService $stock, ProductMediaService $media): RedirectResponse
     {
-        $validated = $this->validated($request);
+        $validated = $request->validated();
         // No rate sent: the shop-wide one from Settings.
         $validated['vat_rate'] ??= Settings::current()->vat_rate;
+        $attributes = $this->productAttributes($validated);
 
-        $product = DB::transaction(function () use ($validated, $stock, $request) {
-            $product = Product::create($validated);
+        $product = DB::transaction(function () use ($attributes, $stock, $request) {
+            $product = Product::create($attributes);
             $stock->initial($product, $request->user()?->id);
 
             return $product;
         });
 
+        $media->sync(
+            $product,
+            (array) $request->file('images', []),
+            (array) ($validated['remove_media'] ?? []),
+            isset($validated['cover_media_id']) ? (int) $validated['cover_media_id'] : null,
+            (bool) ($validated['remove_legacy_image'] ?? false),
+        );
+
         return redirect()->route('products.index')->with('success', 'Produit créé avec succès');
     }
 
-    public function update(Request $request, Product $product): RedirectResponse
+    public function update(ProductRequest $request, Product $product, ProductMediaService $media): RedirectResponse
     {
         // The quantity is never edited here: every change goes through a reasoned adjustment
         // (StockAdjustmentController) or an inventory, so the journal always says why.
         $request->merge(['stock' => $product->stock]);
-        $validated = $this->validated($request);
+        $validated = $request->validated();
         unset($validated['stock']);
 
-        $product->update($validated);
+        $product->update($this->productAttributes($validated));
+
+        $media->sync(
+            $product,
+            (array) $request->file('images', []),
+            (array) ($validated['remove_media'] ?? []),
+            isset($validated['cover_media_id']) ? (int) $validated['cover_media_id'] : null,
+            (bool) ($validated['remove_legacy_image'] ?? false),
+        );
 
         return redirect()->route('products.index')->with('success', 'Produit mis à jour avec succès');
     }
@@ -164,27 +169,12 @@ class ProductController extends Controller
         return response()->json(['movements' => $movements]);
     }
 
-    public function destroy(Product $product): RedirectResponse
+    public function destroy(Product $product, ProductMediaService $media): RedirectResponse
     {
-        if ($product->image && str_starts_with($product->image, '/storage/')) {
-            Storage::disk('public')->delete(str_replace('/storage/', '', $product->image));
-        }
+        $media->deleteLegacyImage($product);
         $product->delete();
 
         return redirect()->route('products.index')->with('success', 'Produit supprimé avec succès');
-    }
-
-    public function uploadImage(Request $request): array
-    {
-        $request->validate([
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-        ]);
-
-        $path = $request->file('image')->store('products', 'public');
-
-        return [
-            'url' => '/storage/'.$path,
-        ];
     }
 
     public function export()

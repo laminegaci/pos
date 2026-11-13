@@ -27,6 +27,7 @@ import { useTranslation } from 'react-i18next';
 import PosLayout from '../../Layouts/PosLayout';
 import CategoryManager from '../../Components/Sales/CategoryManager';
 import ProductImage from '../../Components/Sales/ProductImage';
+import ProductImageManager from '../../Components/Products/ProductImageManager';
 import AdjustStockModal from '../../Components/Stock/AdjustStockModal';
 import { currencySymbol, formatCurrency } from '../../lib/formatCurrency';
 import usePrintDocument from '../../lib/printDocument';
@@ -131,7 +132,9 @@ export default function ProductsIndex({
     const [viewMode, setViewMode] = useState('table');
     const [errors, setErrors] = useState({});
     const [submitting, setSubmitting] = useState(false);
-    const [uploadingImage, setUploadingImage] = useState(false);
+    const [removedMedia, setRemovedMedia] = useState([]);
+    const [coverMediaId, setCoverMediaId] = useState(null);
+    const [removeLegacyImage, setRemoveLegacyImage] = useState(false);
     const [formData, setFormData] = useState(emptyForm());
 
     function emptyForm() {
@@ -147,7 +150,7 @@ export default function ProductsIndex({
             min_stock: '',
             sku: '',
             barcode: '',
-            image: '',
+            images: [],
             active: true,
         };
     }
@@ -226,6 +229,9 @@ export default function ProductsIndex({
     const openCreateModal = () => {
         setEditingProduct(null);
         setHtDraft(null);
+        setRemovedMedia([]);
+        setCoverMediaId(null);
+        setRemoveLegacyImage(false);
         setFormData(emptyForm());
         setErrors({});
         setShowModal(true);
@@ -242,6 +248,9 @@ export default function ProductsIndex({
     const openEditModal = (product) => {
         setEditingProduct(product);
         setHtDraft(null);
+        setRemovedMedia([]);
+        setCoverMediaId(product.cover_media_id ?? product.images?.[0]?.id ?? null);
+        setRemoveLegacyImage(false);
         setFormData({
             name: product.name,
             description: product.description ?? '',
@@ -254,7 +263,7 @@ export default function ProductsIndex({
             min_stock: product.min_stock ?? '',
             sku: product.sku ?? '',
             barcode: product.barcode ?? '',
-            image: product.image ?? '',
+            images: [],
             active: product.active,
         });
         setErrors({});
@@ -269,11 +278,18 @@ export default function ProductsIndex({
             onError: (errs) => setErrors(errs),
             onFinish: () => setSubmitting(false),
             preserveScroll: true,
+            forceFormData: true,
+        };
+        const payload = {
+            ...formData,
+            remove_media: removedMedia,
+            cover_media_id: coverMediaId,
+            remove_legacy_image: removeLegacyImage,
         };
         if (editingProduct) {
-            router.put(`/produits/${editingProduct.id}`, formData, options);
+            router.post(`/produits/${editingProduct.id}`, { ...payload, _method: 'put' }, options);
         } else {
-            router.post('/produits', formData, options);
+            router.post('/produits', payload, options);
         }
     };
 
@@ -282,34 +298,30 @@ export default function ProductsIndex({
         router.delete(`/produits/${product.id}`, { preserveScroll: true });
     };
 
-    const handleImageUpload = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        setUploadingImage(true);
-        try {
-            const formDataImg = new FormData();
-            formDataImg.append('image', file);
-            const res = await fetch('/produits/upload-image', {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
-                },
-                body: formDataImg,
-            });
-            const data = await res.json();
-            if (data.url) {
-                setFormData({ ...formData, image: data.url });
+    const toggleRemovedMedia = (id) => {
+        setRemovedMedia((previous) => {
+            const next = previous.includes(id) ? previous.filter((item) => item !== id) : [...previous, id];
+            if (next.includes(coverMediaId)) {
+                const nextCover = (editingProduct?.images ?? []).find((image) => !next.includes(image.id))?.id ?? null;
+                setCoverMediaId(nextCover);
             }
-        } catch {
-            setErrors({ ...errors, image: t('products.uploadError') });
-        } finally {
-            setUploadingImage(false);
-        }
+            return next;
+        });
     };
 
-    const handleImageRemove = () => {
-        setFormData({ ...formData, image: '' });
+    const addPendingImages = (files) => {
+        setFormData((previous) => ({ ...previous, images: [...previous.images, ...files] }));
     };
+
+    const removePendingImage = (index) => {
+        setFormData((previous) => ({ ...previous, images: previous.images.filter((_, i) => i !== index) }));
+    };
+
+    const legacyImage =
+        editingProduct?.image &&
+        (editingProduct.image.startsWith('/storage/') || editingProduct.image.startsWith('http'))
+            ? editingProduct.image
+            : null;
 
     return (
         <>
@@ -729,29 +741,23 @@ export default function ProductsIndex({
                                 <X size={18} />
                             </button>
                         </div>
-                        <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-5 p-4 sm:p-6 md:grid-cols-[180px_1fr]">
-                            <div className="flex flex-col gap-2">
-                                <div className="text-xs font-medium text-slate-600">{t('products.image')}</div>
-                                {formData.image ? (
-                                    <div className="relative overflow-hidden rounded-xl border border-slate-200">
-                                        <img src={formData.image} alt="" className="aspect-video w-full object-cover" />
-                                        <button
-                                            type="button"
-                                            onClick={handleImageRemove}
-                                            className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-white/90 text-slate-600 shadow-md hover:bg-white hover:text-red-600"
-                                        >
-                                            <X size={14} />
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <label className="flex aspect-video cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 transition hover:border-indigo-300 hover:bg-indigo-50/50">
-                                        <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" disabled={uploadingImage} />
-                                        <Upload size={20} className="mb-1 text-slate-400" />
-                                        <span className="text-xs text-slate-500">{uploadingImage ? t('products.uploading') : t('products.upload')}</span>
-                                    </label>
-                                )}
-                                {errors.image && <div className="text-xs text-red-600">{errors.image}</div>}
-                            </div>
+                        <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-5 p-4 sm:p-6 md:grid-cols-[220px_1fr]">
+                            <ProductImageManager
+                                existingImages={editingProduct?.images ?? []}
+                                legacyImage={legacyImage}
+                                removedMediaIds={removedMedia}
+                                pendingFiles={formData.images}
+                                coverMediaId={coverMediaId}
+                                removeLegacy={removeLegacyImage}
+                                errors={errors}
+                                maxFiles={6}
+                                maxSizeKb={10240}
+                                onAddFiles={addPendingImages}
+                                onRemovePending={removePendingImage}
+                                onToggleExisting={toggleRemovedMedia}
+                                onSetCover={setCoverMediaId}
+                                onToggleLegacy={() => setRemoveLegacyImage((value) => !value)}
+                            />
                             <div className="grid grid-cols-1 gap-4">
                                 <Field label={t('products.name')} error={errors.name}>
                                     <input

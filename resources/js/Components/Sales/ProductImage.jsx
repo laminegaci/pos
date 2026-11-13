@@ -300,8 +300,9 @@ const BG_BY_CATEGORY = {
     bureaux_partages: 'from-teal-50 to-cyan-100',
 };
 
-export default function ProductImage({ product, size = 'md' }) {
-    const hasCustomImage = product.image && (product.image.startsWith('http') || product.image.startsWith('/storage'));
+export default function ProductImage({ product, size = 'md', className = '' }) {
+    const image = product.image_url ?? product.image;
+    const hasCustomImage = typeof image === 'string' && image !== '' && (image.startsWith('http') || image.startsWith('/storage'));
     const Visual = VISUAL_BY_PRODUCT[product.id];
     const bg = BG_BY_CATEGORY[product.category_id] ?? 'from-slate-50 to-slate-100';
 
@@ -313,10 +314,12 @@ export default function ProductImage({ product, size = 'md' }) {
 
     if (hasCustomImage) {
         return (
-            <div className={`overflow-hidden bg-gradient-to-br ${bg} ${sizes[size]}`}>
+            <div className={`overflow-hidden bg-gradient-to-br ${bg} ${sizes[size]} ${className}`}>
                 <img
-                    src={product.image}
+                    src={image}
                     alt={product.name || ''}
+                    loading="lazy"
+                    decoding="async"
                     className="h-full w-full object-cover"
                 />
             </div>
@@ -324,7 +327,7 @@ export default function ProductImage({ product, size = 'md' }) {
     }
 
     return (
-        <div className={`relative overflow-hidden bg-gradient-to-br ${bg} ${sizes[size]}`}>
+        <div className={`relative overflow-hidden bg-gradient-to-br ${bg} ${sizes[size]} ${className}`}>
             {Visual ? <Visual /> : null}
         </div>
     );

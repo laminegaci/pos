@@ -20,7 +20,6 @@ use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SupplierPaymentController;
 use App\Http\Controllers\UserController;
 use App\Models\Category;
-use App\Models\Client;
 use App\Models\Product;
 use App\Models\Settings;
 use Illuminate\Support\Facades\Route;
@@ -67,7 +66,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/produits', [ProductController::class, 'index'])->name('products.index');
     Route::post('/produits', [ProductController::class, 'store'])->name('products.store');
-    Route::post('/produits/upload-image', [ProductController::class, 'uploadImage'])->name('products.uploadImage');
     Route::put('/produits/{product}', [ProductController::class, 'update'])->name('products.update');
     Route::delete('/produits/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
     Route::get('/produits/{product}/mouvements', [ProductController::class, 'movements'])->name('products.movements');
