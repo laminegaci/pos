@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Seeders;
 
 use App\Models\User;
@@ -10,7 +12,7 @@ class AdminSeeder extends Seeder
 {
     public function run(): void
     {
-        User::updateOrCreate(
+        $admin = User::updateOrCreate(
             ['email' => 'root@app.com'],
             [
                 'name' => 'root',
@@ -20,5 +22,9 @@ class AdminSeeder extends Seeder
                 'remember_token' => null,
             ]
         );
+
+        // `role` is not mass assignable on purpose, so set it explicitly.
+        $admin->role = User::ROLE_ADMIN;
+        $admin->save();
     }
 }
